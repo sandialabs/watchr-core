@@ -7,14 +7,15 @@
 ******************************************************************************/
 package gov.sandia.watchr.log;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 
 public class Log4jLogger implements ILogger {
 
-    private static Logger log = Logger.getLogger(Log4jLogger.class.getName());
+    private static Logger log = LogManager.getRootLogger();
 
     @Override
     public void logInfo(String message) {
