@@ -1,0 +1,79 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "xml"
+        },
+        "categories" : [
+            "max",
+            "min",
+            "mean"
+        ],
+        "plot" : [
+            {
+                "name" : "Max Plot",
+                "category" : "max",
+                "dataLines" : [
+                    {
+                        "name" : "Max Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "max",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }, {
+                "name" : "Min Plot",
+                "category" : "min",
+                "dataLines" : [
+                    {
+                        "name" : "Min Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "min",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }, {
+                "name" : "Mean Plot",
+                "category" : "mean",
+                "dataLines" : [
+                    {
+                        "name" : "Mean Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "mean",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

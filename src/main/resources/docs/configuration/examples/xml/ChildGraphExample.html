@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ChildGraphExample</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* GitHub stylesheet for MarkdownPad (http://markdownpad.com) */
+/* Author: Nicolas Hery - http://nicolashery.com */
+/* Version: b13fe65ca28d2e568c6ed5d7f06581183df8f2ff */
+/* Source: https://github.com/nicolahery/markdownpad-github */
+
+/* RESET
+=============================================================================*/
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* BODY
+=============================================================================*/
+
+body {
+  font-family: Helvetica, arial, freesans, clean, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fff;
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+body>*:first-child {
+  margin-top: 0 !important;
+}
+
+body>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* BLOCKS
+=============================================================================*/
+
+p, blockquote, ul, ol, dl, table, pre {
+  margin: 15px 0;
+}
+
+/* HEADERS
+=============================================================================*/
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 20px 0 10px;
+  padding: 0;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 tt, h1 code, h2 tt, h2 code, h3 tt, h3 code, h4 tt, h4 code, h5 tt, h5 code, h6 tt, h6 code {
+  font-size: inherit;
+}
+
+h1 {
+  font-size: 28px;
+  color: #000;
+}
+
+h2 {
+  font-size: 24px;
+  border-bottom: 1px solid #ccc;
+  color: #000;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+h4 {
+  font-size: 16px;
+}
+
+h5 {
+  font-size: 14px;
+}
+
+h6 {
+  color: #777;
+  font-size: 14px;
+}
+
+body>h2:first-child, body>h1:first-child, body>h1:first-child+h2, body>h3:first-child, body>h4:first-child, body>h5:first-child, body>h6:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+a:first-child h1, a:first-child h2, a:first-child h3, a:first-child h4, a:first-child h5, a:first-child h6 {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+h1+p, h2+p, h3+p, h4+p, h5+p, h6+p {
+  margin-top: 10px;
+}
+
+/* LINKS
+=============================================================================*/
+
+a {
+  color: #4183C4;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* LISTS
+=============================================================================*/
+
+ul, ol {
+  padding-left: 30px;
+}
+
+ul li > :first-child, 
+ol li > :first-child, 
+ul li ul:first-of-type, 
+ol li ol:first-of-type, 
+ul li ol:first-of-type, 
+ol li ul:first-of-type {
+  margin-top: 0px;
+}
+
+ul ul, ul ol, ol ol, ol ul {
+  margin-bottom: 0;
+}
+
+dl {
+  padding: 0;
+}
+
+dl dt {
+  font-size: 14px;
+  font-weight: bold;
+  font-style: italic;
+  padding: 0;
+  margin: 15px 0 5px;
+}
+
+dl dt:first-child {
+  padding: 0;
+}
+
+dl dt>:first-child {
+  margin-top: 0px;
+}
+
+dl dt>:last-child {
+  margin-bottom: 0px;
+}
+
+dl dd {
+  margin: 0 0 15px;
+  padding: 0 15px;
+}
+
+dl dd>:first-child {
+  margin-top: 0px;
+}
+
+dl dd>:last-child {
+  margin-bottom: 0px;
+}
+
+/* CODE
+=============================================================================*/
+
+pre, code, tt {
+  font-size: 12px;
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+
+code, tt {
+  margin: 0 0px;
+  padding: 0px 0px;
+  white-space: nowrap;
+  border: 1px solid #eaeaea;
+  background-color: #f8f8f8;
+  border-radius: 3px;
+}
+
+pre>code {
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  border: none;
+  background: transparent;
+}
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px;
+}
+
+pre code, pre tt {
+  background-color: transparent;
+  border: none;
+}
+
+kbd {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background-color: #DDDDDD;
+    background-image: linear-gradient(#F1F1F1, #DDDDDD);
+    background-repeat: repeat-x;
+    border-color: #DDDDDD #CCCCCC #CCCCCC #DDDDDD;
+    border-image: none;
+    border-radius: 2px 2px 2px 2px;
+    border-style: solid;
+    border-width: 1px;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    line-height: 10px;
+    padding: 1px 4px;
+}
+
+/* QUOTES
+=============================================================================*/
+
+blockquote {
+  border-left: 4px solid #DDD;
+  padding: 0 15px;
+  color: #777;
+}
+
+blockquote>:first-child {
+  margin-top: 0px;
+}
+
+blockquote>:last-child {
+  margin-bottom: 0px;
+}
+
+/* HORIZONTAL RULES
+=============================================================================*/
+
+hr {
+  clear: both;
+  margin: 15px 0;
+  height: 0px;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  border-bottom: 4px solid #ddd;
+  padding: 0;
+}
+
+/* TABLES
+=============================================================================*/
+
+table th {
+  font-weight: bold;
+}
+
+table th, table td {
+  border: 1px solid #ccc;
+  padding: 6px 13px;
+}
+
+table tr {
+  border-top: 1px solid #ccc;
+  background-color: #fff;
+}
+
+table tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+/* IMAGES
+=============================================================================*/
+
+img {
+  max-width: 100%
+}
+</style>
+</head>
+<body>
+<h1>Example:  Child Graph Example</h1>
+<h2>Overview</h2>
+<p>With a few extra settings, it is possible to configure Watchr to gather additional child data and create new graphs based on that child information, using the configuration you have specified to gather data to construct the parent graphs.  This is most useful in cases where your initial report contains hierarchical-but-similar data.</p>
+<h2>Watchr Config:  config.json</h2>
+<pre><code>{
+    &quot;plots&quot; : {
+        &quot;files&quot; : {
+            &quot;fileName&quot;: &quot;performance&quot;,
+            &quot;type&quot; : &quot;xml&quot;
+        },
+        &quot;plot&quot; : [
+            {
+                &quot;autoname&quot; : {
+                    &quot;useProperty&quot; : &quot;y/path&quot;
+                },
+                &quot;dataLines&quot; : [
+                    {
+                        &quot;name&quot; : &quot;Data Line&quot;,
+                        &quot;x&quot; : {
+                            &quot;getElement&quot; : &quot;performance-report&quot;,
+                            &quot;getPath&quot;: &quot;*&quot;,
+                            &quot;getKey&quot; : &quot;date&quot;,
+                            &quot;unit&quot; : &quot;date&quot;
+                        },
+                        &quot;y&quot; : {
+                            &quot;getElement&quot; : &quot;performance-report|timing&quot;,
+                            &quot;getPath&quot;: &quot;*/measurement_A&quot;,
+                            &quot;getPathAttribute&quot;: &quot;name&quot;,
+                            &quot;getKey&quot; : &quot;value&quot;,
+                            &quot;unit&quot; : &quot;seconds&quot;,
+                            &quot;strategy&quot; : {
+                                &quot;getFirstMatchOnly&quot; : &quot;false&quot;,
+                                &quot;recurseChildGraphs&quot; : &quot;true&quot;
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+</code></pre>
+
+<h2>Data File:  performance.xml</h2>
+<pre><code>&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;performance-report date=&quot;2021-04-05T22:21:21&quot; name=&quot;nightly_run_2021-04-05&quot;&gt;
+    &lt;timing name=&quot;measurement_A&quot; value=&quot;100.0&quot;&gt;
+        &lt;timing name=&quot;measurement_A1&quot; value=&quot;25.0&quot;&gt;
+            &lt;timing name=&quot;measurement_A1A&quot; value=&quot;15.0&quot;/&gt;
+            &lt;timing name=&quot;measurement_A1B&quot; value=&quot;10.0&quot;/&gt;
+        &lt;/timing&gt;
+        &lt;timing name=&quot;measurement_A2&quot; value=&quot;75.0&quot;&gt;
+    &lt;/timing&gt;
+&lt;/performance-report&gt;
+</code></pre>
+
+<h2>What this example demonstrates:</h2>
+<p>Note that the data file &quot;performance.xml&quot; contains hierarchical &quot;timing&quot; elements.  The &quot;name&quot; attributes are different at each level, and the hierarchy indicates the granularity of the measurements in the report.  In other words, the top-level measurement, &quot;measurement_A&quot;, records a value of &quot;100.0.&quot;  It has two children - &quot;measurement_A1&quot; and &quot;measurement_A2&quot;, with subdivide the measurement of &quot;100.0&quot; into &quot;25.0&quot; and &quot;75.0&quot;, respectively.  Additionally, &quot;measurement_A1&quot; contains two children of its own - &quot;measurement_A1A&quot; and &quot;measurement_A1B&quot;.  These two children subdivide the value of &quot;25.0&quot; into &quot;15.0&quot; and &quot;10.0.&quot;</p>
+<p>To gather all of this information and also maintain the hierarchical relationship, we can employ the following new sections in our config file:</p>
+<ul>
+<li>
+<strong>The &quot;strategy&quot; section</strong>  - The &quot;strategy&quot; section provides guidance to Watchr in ambiguous situations.
+<ul>
+<li><strong>getFirstMatchOnly</strong> - This tells Watchr what to do if the data file contains two possible candidates for data extraction (i.e. two children at the same level that satisfy the data extraction conditions laid out in the configuration file).  If true, only the first match will be extracted; if false, all matches will receive their own graph.</li>
+<li><strong>recurseChildGraphs</strong> - This tells Watchr whether or not to look for child data once the data extraction conditions for the parent have been specified.  The same extraction conditions will be applied to the child (though &quot;getPath&quot; will now be treated as a prefix for the child path, and not a match for the entire path).  It is not currently possible to change the specification for extracting child graphs using this method. </li>
+</ul>
+</li>
+<li><strong>The &quot;autoName&quot; section</strong> - Since more than one plot will be created (and mostly auto-generated off of the parent's configuration), it may not be appropriate to apply the same &quot;name&quot; field to all child plots.  Instead, you can auto-name the plot based on some property of the parent/child graphs.  In this example, the &quot;useProperty&quot; field is set to &quot;y/path&quot;, indicating that each graph will be named after the &quot;getPath&quot; value of the &quot;y&quot; extractor.</li>
+</ul>
+<h2>Notes</h2>
+<p>It is not possible to set &quot;recurseChildGraphs&quot; to true for more than one extractor at the same level.</p>
+<h2>Command Line:</h2>
+<pre><code>watchr config.json performance.xml
+</code></pre>
+
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

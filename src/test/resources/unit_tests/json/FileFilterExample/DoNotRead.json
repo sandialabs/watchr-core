@@ -1,0 +1,10 @@
+{
+    "performance-report" : {
+        "nightly_run_2021-04-05" : {
+            "date" : "2021-04-12T12:34:56",
+            "measurement": {
+                "value":"2.0"
+            }
+        }
+    }
+}

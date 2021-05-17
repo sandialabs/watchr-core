@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<performance-report date="2018-01-08T21:59:59" name="nightly_run_2018_01_08" time-units="seconds">
+    <timing end-time="2018-01-08 21:33:59" name="TestTiming">
+        <metadata key="codeBase" value="Aria" />
+        <metadata key="branch" value="master" />
+        <timing count="4" cpu-time-max="100.286" cpu-time-min="99.521" cpu-time-sum="400.061" name="Test" parallel="true" wall-time-max="101.401" wall-time-min="101.347" wall-time-sum="405.498">
+            <metric name="RAM" units="MB" value="363.6" />
+            <timing name="Domain">
+                <timing name="Procedure myProcedure">
+                    <timing count="4" cpu-time-max="0.429" cpu-time-min="0.428" cpu-time-sum="1.714" name="Initialize" parallel="true" wall-time-max="0.431" wall-time-min="0.431" wall-time-sum="1.725"/>
+                    <timing count="4" cpu-time-max="97.084" cpu-time-min="96.873" cpu-time-sum="388.107" name="Execute" parallel="true" wall-time-max="97.372" wall-time-min="97.372" wall-time-sum="389.487"/>
+                    <timing count="4" cpu-time-max="0.425" cpu-time-min="0.335" cpu-time-sum="1.517" name="Mesh input" parallel="true" wall-time-max="0.493" wall-time-min="0.493" wall-time-sum="1.973"/>
+                    <timing count="10560" cpu-time-max="1.15" cpu-time-min="1.111" cpu-time-sum="4.493" name="Mesh output" parallel="true" wall-time-max="1.229" wall-time-min="1.228" wall-time-sum="4.915"/>
+                </timing>
+            </timing>
+        </timing>
+    </timing>
+</performance-report>

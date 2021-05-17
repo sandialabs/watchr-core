@@ -1,0 +1,148 @@
+{
+	"plots" : {
+		"files" : {
+			"fileName": "performance_*",
+			"type" : "xml",
+			"ignoreOldFiles" : true,
+			"recurseDirectories" : false
+		},
+		"categories": [
+			"cpu-time-max",
+			"cpu-time-min",
+			"cpu-time-sum",
+			"wall-time-max",
+			"wall-time-min",
+			"wall-time-sum"
+		],
+		"plot" : [
+			{
+				"template" : "plot_template",
+				"autoname" : {
+					"useProperty" : "y/path",
+					"formatByRemovingPrefix" : "\\/nightly_run_\\d{4}_\\d{2}_\\d{2}"
+				},
+				"category" : "cpu-time-max",
+				"dataLines" : [
+					{
+						"name" : "Data Line",
+						"x" : {
+							"getPath": "*", "getElement" : "performance-report", "getKey" : "date",
+							"unit" : "timestamp"
+						},
+						"y" : {
+							"getElement" : "performance-report|timing", "getPath": "nightly_run_*/*/*",
+							"getPathAttribute": "name", "getKey" : "cpu-time-max",							
+							"strategy" : {
+								"getFirstMatchOnly" : "false",
+								"recurseChildGraphs" : "true"
+							},
+							"unit" : "seconds"
+						},
+						"color" : "77,77,202",
+						"derivativeLines" : [
+							{
+								"type" : "average",
+								"range" : 20,
+								"color" : "202,77,77"
+							},
+							{
+								"type" : "standardDeviationOffset",
+								"range" : 20,
+								"color" : "77,202,77"
+							}
+						],
+						"metadata": [
+							{
+								"name": "codeBase",
+								"extractor" : {
+									"getElement" : "performance-report|timing|metadata",
+									"getPath" : "nightly_run_*/*/codeBase",
+									"getPathAttribute" : "name|key",
+									"getKey" : "value"
+								}
+							},
+							{
+								"name": "branch",
+								"extractor" : {
+									"getElement" : "performance-report|timing|metadata",									
+									"getPath" : "nightly_run_*/*/branch",
+									"getPathAttribute" : "name|key",
+									"getKey" : "value"
+								}
+							}
+						]
+					}
+				],
+				"rules" : [
+					{
+						"condition" : "dataLine > average",
+						"action" : "fail"
+					},
+					{
+						"condition" : "dataLine > standardDeviationOffset",
+						"action" : "fail"
+					}
+				]
+			}, {
+				"inherit" : "plot_template",
+				"category" : "cpu-time-min",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "cpu-time-min"
+						}
+					}
+				]
+			}, {
+				"inherit" : "plot_template",
+				"category" : "cpu-time-sum",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "cpu-time-sum"
+						}
+					}
+				]
+			}, {
+				"inherit" : "plot_template",
+				"category" : "wall-time-max",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "wall-time-max"
+						}
+					}
+				]
+			}, {
+				"inherit" : "plot_template",
+				"category" : "wall-time-min",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "wall-time-min"
+						}
+					}
+				]
+			}, {
+				"inherit" : "plot_template",
+				"category" : "wall-time-sum",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "wall-time-sum"
+						}
+					}
+				]
+			}
+		]
+	},
+	"graphDisplay": {
+		"displayCategory" : "cpu-time-max",
+		"displayRange" : 30,
+		"graphWidth" : 450,
+		"graphHeight" : 450,
+		"graphsPerRow" : 3,
+		"graphsPerPage" : 15,
+		"displayedDecimalPlaces" : 3
+	}
+}

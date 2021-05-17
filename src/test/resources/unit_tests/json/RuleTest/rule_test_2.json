@@ -1,0 +1,55 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_rising_data",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "My First Plot",
+                "dataLines" : [
+                    {
+                        "name" : "My First Data Line",
+                        "x" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "date",
+                            "unit" : "date",
+							"strategy" : {
+								"getFirstMatchOnly" : "false"
+							}
+                        },
+                        "y" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "measurement",
+                            "unit" : "seconds",
+							"strategy" : {
+								"getFirstMatchOnly" : "false",
+                                "iterateWith" : "x"
+							}
+                        },
+                        "derivativeLines" : [
+							{
+								"type" : "average",
+								"range" : 3
+							},
+							{
+								"type" : "standardDeviationOffset",
+								"range" : 3
+							}
+						]
+                    }
+                ],
+				"rules" : [
+					{
+						"condition" : "dataLine < average",
+						"action" : "fail"
+					},
+					{
+						"condition" : "dataLine < standardDeviationOffset",
+						"action" : "fail"
+					}
+				]
+            }
+        ]
+    }
+}

@@ -1,0 +1,20 @@
+WATCHR-CORE
+Release Notes
+
+1.0.0 (2021-04-21)
+-----------
+The first release of watchr-core represents a major refactoring of the previous iteration of Watchr, which was simply
+a Jenkins plugin that performed all of Watchr's functionality by itself.  Now, watchr-core represents all of the
+non-Jenkins functionality that Watchr represents - scraping temporal data from many report files, storing it, and
+generating graphs.
+
+There have been many exciting features added to watchr-core as a result of this splitting away from Jenkins:
+- All Watchr graphs are now defined by a single configuration file, which throws the door wide open for more sophisticated
+graph organization failure condition checking, and more.  These types of configuration changes are now completely up to
+the user, and don’t have to be logged as formal feature requests.
+- Watchr can now scrape data arbitrarily from any XML or JSON file.
+- We've migrated to the more flexible plotly.js as the graphing library of choice, which means graphs look nicer and we can
+support more than just line charts.
+- All previous features we worked on circa 2019 (custom plots and data filtering) are still available.
+- Finally, being separated into a non-Jenkins library means that we can apply Watchr-style functionality to other
+endpoints apart from Jenkins (such as CDash, or even just standalone plot rendering).

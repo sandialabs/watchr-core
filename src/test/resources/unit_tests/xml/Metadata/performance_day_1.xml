@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<performance-report date="2021-04-05T22:21:21" name="nightly_run_2021-04-05">
+    <timing name="measurement" value="1.0"/>
+    <metadata key="branch" value="master"/>
+</performance-report>

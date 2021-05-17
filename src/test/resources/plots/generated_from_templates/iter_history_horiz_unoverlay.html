@@ -1,0 +1,521 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:70px;height:70px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+var trace1 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [4.0, 3.509783903, 3.259583598, 2.487721763, 2.250838706, 2.3514491, 2.330610642, 2.342261619, 2.3530412, 2.351808018, 2.352030187, 2.352034083, 2.352034072],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'w',
+xaxis: 'x1',
+yaxis: 'y1'
+};
+
+
+
+
+var trace2 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [4.0, 3.664561042, 3.86235281, 3.640321485, 3.560750743, 3.332710169, 3.373666433, 3.339410878, 3.324835952, 3.326751193, 3.326284713, 3.326278486, 3.326278485],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 't',
+xaxis: 'x2',
+yaxis: 'y2'
+};
+
+
+
+
+var trace3 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0, 40000.0],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'R',
+xaxis: 'x3',
+yaxis: 'y3'
+};
+
+
+
+
+var trace4 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7, 2.9E7],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'E',
+xaxis: 'x4',
+yaxis: 'y4'
+};
+
+
+
+
+var trace5 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0, 500.0],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'X',
+xaxis: 'x5',
+yaxis: 'y5'
+};
+
+
+
+
+var trace6 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'Y',
+xaxis: 'x6',
+yaxis: 'y6'
+};
+
+
+
+
+var trace7 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [16.0, 12.86181736, 12.58966187, 9.056106982, 8.014675595, 7.836698329, 7.86270289, 7.821773929, 7.823475976, 7.82388013, 7.823522057, 7.823520367, 7.823520331],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'obj_fn',
+xaxis: 'x7',
+yaxis: 'y7'
+};
+
+
+
+
+var trace8 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [-0.6484375, -0.5156094031, -0.5087595996, -0.2120983315, -0.05864111886, -0.01867295563, -0.02524079481, -0.01635565731, -0.01592779064, -0.01609698024, -0.01600962733, -0.01600901061, -0.01600900424],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'nln_ineq_con_1',
+xaxis: 'x8',
+yaxis: 'y8'
+};
+
+
+
+
+var trace9 = {
+x: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0],
+y: [-0.7326873741, -0.5964054211, -0.6018084755, -0.2528171884, -0.0351840999, -0.003355584204, -0.009404586168, 5.1229983.3e-4, 1.208178961E-5, -9.191562474E-5, -4.412802381E-7, -9.206275409E-9, -9.157774539E-11],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+type: 'scatter',
+name: 'nln_ineq_con_2',
+xaxis: 'x9',
+yaxis: 'y9'
+};
+
+
+
+
+
+
+var data = [trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8, trace9];
+var layout = {
+title: "Iteration History - Tabular Data Set 1",
+titlefont: {
+family: 'Segoe UI'
+},
+showlegend: false,
+height: 70,
+width: 70,
+hovermode: 'closest',
+plot_bgcolor: 'rgb(255, 255, 255)',
+xaxis1: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.0, 0.05111111111111111],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis1: {
+title: 'w',
+type: '',
+position: 0.0,
+domain: [0.0, 1.0],
+autorange: true,
+range:[2.250838706, 4.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+,
+xaxis2: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.1111111111111111, 0.1622222222222222],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis2: {
+title: 't',
+type: '',
+position: 0.1111111111111111,
+domain: [0.0, 1.0],
+autorange: true,
+range:[3.324835952, 4.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+,
+xaxis3: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.2222222222222222, 0.2733333333333333],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis3: {
+title: 'R',
+type: '',
+position: 0.2222222222222222,
+domain: [0.0, 1.0],
+autorange: true,
+range:[40000.0, 40000.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+,
+xaxis4: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.3333333333333333, 0.3844444444444444],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis4: {
+title: 'E',
+type: '',
+position: 0.3333333333333333,
+domain: [0.0, 1.0],
+autorange: true,
+range:[2.9E7, 2.9E7],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+,
+xaxis5: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.4444444444444444, 0.4955555555555556],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis5: {
+title: 'X',
+type: '',
+position: 0.4444444444444444,
+domain: [0.0, 1.0],
+autorange: true,
+range:[500.0, 500.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+,
+xaxis6: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.5555555555555556, 0.6066666666666667],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis6: {
+title: 'Y',
+type: '',
+position: 0.5555555555555556,
+domain: [0.0, 1.0],
+autorange: true,
+range:[1000.0, 1000.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+,
+xaxis7: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.6666666666666666, 0.7177777777777776],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis7: {
+title: 'obj_fn',
+type: '',
+position: 0.6666666666666666,
+domain: [0.0, 1.0],
+autorange: true,
+range:[7.821773929, 16.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+,
+xaxis8: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.7777777777777777, 0.8288888888888888],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis8: {
+title: 'nln_ineq_con_1',
+type: '',
+position: 0.7777777777777777,
+domain: [0.0, 1.0],
+autorange: true,
+range:[-0.6484375, 4.9E-324],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+,
+xaxis9: {
+title: 'function eval ID',
+type: '',
+position: 0.0,
+domain: [0.8888888888888888, 1.0],
+autorange: true,
+range:[1.0, 13.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+},
+yaxis9: {
+title: 'nln_ineq_con_2',
+type: '',
+position: 0.8888888888888888,
+domain: [0.0, 1.0],
+autorange: true,
+range:[-0.7326873741, 5.1229983.3e-4],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+hoverformat: '.3e',
+showgrid: true,
+zeroline: true
+}
+
+};
+    
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>
+

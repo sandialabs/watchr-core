@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<performance-report date="2021-04-05T22:21:21" name="nightly_run_2021-04-05">
+    <timing name="measurement" max="5.0" min="0.0" mean="2.5"/>
+</performance-report>

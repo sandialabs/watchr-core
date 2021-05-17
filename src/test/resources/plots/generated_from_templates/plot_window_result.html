@@ -1,0 +1,30 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:70px;height:70px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+
+
+var data = [];
+var layout = {
+title: "",
+titlefont: {
+family: 'Segoe UI'
+},
+showlegend: false,
+height: 70,
+width: 70,
+hovermode: 'closest',
+plot_bgcolor: 'rgb(255, 255, 255)',
+
+};
+    
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>

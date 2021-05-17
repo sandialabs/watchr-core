@@ -1,0 +1,29 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "Plot with Legend",
+                "legend" : "true",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getPath": "performance-report/nightly_run_*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getPath": "performance-report/nightly_run_*/measurement",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

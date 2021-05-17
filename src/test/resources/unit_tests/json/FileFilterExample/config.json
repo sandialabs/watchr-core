@@ -1,0 +1,31 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "*",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "My First Plot",
+                "fileFilter" : {
+                    "namePattern" : "ReadThisFile*"
+                },                
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getPath": "performance-report/nightly_run_*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getPath": "performance-report/nightly_run_*/measurement",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

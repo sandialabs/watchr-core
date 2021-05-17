@@ -1,0 +1,155 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:500px;height:500px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+var xValues = [-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0];
+var yValues = [-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0];
+var zValues = [[3609.0, 1812.5, 904.0, 508.5, 401.0, 506.5, 900.0, 1806.5, 3601.0], 
+[3034.0, 1412.5, 629.0, 308.5, 226.0, 306.5, 625.0, 1406.5, 3026.0], 
+[2509.0, 1062.5, 404.0, 158.5, 101.0, 156.5, 400.0, 1056.5, 2501.0], 
+[2034.0, 762.5, 229.0, 58.5, 26.0, 56.5, 225.0, 756.5, 2026.0], 
+[1609.0, 512.5, 104.0, 8.5, 1.0, 6.5, 100.0, 506.5, 1601.0], 
+[1234.0, 312.5, 29.0, 8.5, 26.0, 6.5, 25.0, 306.5, 1226.0], 
+[909.0, 162.5, 4.0, 58.5, 101.0, 56.5, 0.0, 156.5, 901.0], 
+[634.0, 62.5, 29.0, 158.5, 226.0, 156.5, 25.0, 56.5, 626.0], 
+[409.0, 12.5, 104.0, 308.5, 401.0, 306.5, 100.0, 6.5, 401.0]
+];
+
+var trace1 = {
+    x: xValues,
+    y: yValues,
+    z: zValues,
+    colorscale: [[0.0, 'rgb(0, 0, 0)'],[0.0, 'rgb(0, 0, 0)'],[0.2770850651149903, 'rgb(0, 0, 0)'],[1.0, 'rgb(0, 0, 0)'],],
+    showscale: false,
+    type: 'heatmap'
+};
+
+
+
+
+
+var data = [trace1];
+var layout = {
+title: "Heat Map Plot - Tabular Data Set 1",
+titlefont: {
+family: 'Segoe UI'
+},
+annotations: [],
+xaxis: {
+ticks: '',
+side: 'bottom',
+showgrid: true,
+automargin: true
+},
+yaxis: {
+ticks: '',
+ticksuffix: ' ',
+height: 500,
+width: 500,
+autosize: false,
+showgrid: true,
+automargin: true
+}
+};
+
+var maxZValue = Number.MIN_VALUE;
+var minZValue = Number.MAX_VALUE;
+for ( var i = 0; i < yValues.length; i++ ) {
+  for ( var j = 0; j < xValues.length; j++ ) {
+    var currentValue = zValues[i][j];
+    if ( currentValue !== '' && currentValue !== "NaN" ) {
+      if ( currentValue > maxZValue ) {
+        maxZValue = currentValue;
+      }
+      if ( currentValue < minZValue ) {
+        minZValue = currentValue;
+      }
+    }
+  }
+}
+for ( var i = 0; i < yValues.length; i++ ) {
+  for ( var j = 0; j < xValues.length; j++ ) {
+    var currentValue = zValues[i][j];
+    // Calculate luminance for each number label.
+    var luminance = 255;
+    if ( currentValue !== '' && currentValue !== "NaN" ) {
+        var nearestLowerIndex = 0;
+        var nearestUpperIndex = 1;
+        var nearestValue = Number.MAX_VALUE;
+        for ( var k = 0; k < trace1.colorscale.length; k++ ) {
+            var tuple = trace1.colorscale[k];
+            var value = tuple[0];
+            var color = tuple[1];
+            var scaledValue = (maxZValue - minZValue) * value;
+            if( Math.abs(currentValue - scaledValue) < nearestValue ) {
+                nearestLowerIndex = k;
+                if (k + 1 < trace1.colorscale.length) {
+                    nearestUpperIndex = k + 1;
+                }
+                nearestValue = Math.abs(currentValue - scaledValue);
+            }
+        }
+
+        var lowerScaledValue = trace1.colorscale[nearestLowerIndex][0] * (maxZValue - minZValue);
+        var upperScaledValue = trace1.colorscale[nearestUpperIndex][0] * (maxZValue - minZValue);
+
+        var valuePositionAsPercentage = 0.0;
+        if(upperScaledValue > 0.0) {
+            valuePositionAsPercentage = currentValue / upperScaledValue;
+        }
+
+        var lowerColor = trace1.colorscale[nearestLowerIndex][1];
+        var upperColor = trace1.colorscale[nearestUpperIndex][1];
+
+        var upperColor_r_str = upperColor.split("(")[1].split(",")[0];
+        var upperColor_g_str = upperColor.split("(")[1].split(",")[1];
+        var upperColor_b_str = upperColor.split("(")[1].split(",")[2];
+        var lowerColor_r_str = lowerColor.split("(")[1].split(",")[0];
+        var lowerColor_g_str = lowerColor.split("(")[1].split(",")[1];
+        var lowerColor_b_str = lowerColor.split("(")[1].split(",")[2];
+
+        var upperColor_r = parseFloat(upperColor_r_str);
+        var upperColor_g = parseFloat(upperColor_g_str);
+        var upperColor_b = parseFloat(upperColor_b_str);
+        var lowerColor_r = parseFloat(lowerColor_r_str);
+        var lowerColor_g = parseFloat(lowerColor_g_str);
+        var lowerColor_b = parseFloat(lowerColor_b_str);
+
+        var middleColor_r = lowerColor_r + ((upperColor_r - lowerColor_r) * valuePositionAsPercentage);
+        var middleColor_g = lowerColor_g + ((upperColor_g - lowerColor_g) * valuePositionAsPercentage);
+        var middleColor_b = lowerColor_b + ((upperColor_b - lowerColor_b) * valuePositionAsPercentage);
+
+        luminance = 0.299*(middleColor_r) + 0.587*(middleColor_g) + 0.114*(middleColor_b);
+    }
+
+    var textColor = (luminance >= 128) ? 'black' : 'white';
+    var result = {
+      xref: 'x1',
+      yref: 'y1',
+      x: xValues[j],
+      y: yValues[i],
+      text: zValues[i][j],
+      font: {
+        family: 'Segoe UI',
+        size: 12
+      },
+      showarrow: false,
+      font: {
+        color: textColor
+      }
+    };
+    layout.annotations.push(result);
+  }
+}
+
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>
+

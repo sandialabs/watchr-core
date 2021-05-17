@@ -1,0 +1,156 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:70px;height:70px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+var trace1 = {
+y: ['X_mean', 'Y_mean'],
+x:   [4.68375E-16, -5.82867E-16],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'Bar Chart: mean_wt / Y',
+xaxis: 'x1',
+yaxis: 'y1'
+};
+
+
+
+
+var trace2 = {
+y: ['X_mean', 'Y_mean'],
+x:   [-0.619328, -0.782554],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'Bar Chart: ccdf_beta_s / Y',
+xaxis: 'x2',
+yaxis: 'y2'
+};
+
+
+
+
+var trace3 = {
+y: ['X_mean', 'Y_mean'],
+x:   [-0.913854, -0.401386],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'Bar Chart: ccdf_beta_d / Y',
+xaxis: 'x3',
+yaxis: 'y3'
+};
+
+
+
+
+
+
+var data = [trace1, trace2, trace3];
+var layout = {
+title: "Bar Chart Group - Simple Correlation Matrix among all inputs and outputs:",
+titlefont: {
+family: 'Segoe UI'
+},
+showlegend: false,
+height: 70,
+width: 70,
+hovermode: 'closest',
+plot_bgcolor: 'rgb(255, 255, 255)',
+xaxis1: {
+title: 'mean_wt',
+type: '',
+position: 0.0,
+domain: [0.0, 0.2733333333333333],
+autorange: true,
+range:[-5.82867E-16, 4.68375E-16],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis1: {
+title: '',
+position: 0.0,
+domain: [0.0, 1.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+,
+xaxis2: {
+title: 'ccdf_beta_s',
+type: '',
+position: 0.0,
+domain: [0.3333333333333333, 0.6066666666666667],
+autorange: true,
+range:[-0.782554, 4.9E-324],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis2: {
+title: '',
+position: 0.3333333333333333,
+domain: [0.0, 1.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+,
+xaxis3: {
+title: 'ccdf_beta_d',
+type: '',
+position: 0.0,
+domain: [0.6666666666666666, 1.0],
+autorange: true,
+range:[-0.913854, 4.9E-324],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis3: {
+title: '',
+position: 0.6666666666666666,
+domain: [0.0, 1.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+
+};
+    
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>
+

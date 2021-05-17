@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<performance-report date="2018-10-08T21:16:16" name="nightly_run_2018_10_08" time-units="seconds">
+    <timing end-time="2018-10-08 21:39:16" name="subgraph_1">
+        <timing count="128" cpu-time-max="79.006" cpu-time-min="0.0" cpu-time-sum="10076.33" name="subgraph_5" parallel="true" wall-time-max="80.455" wall-time-min="0.0" wall-time-sum="10298.214">
+            <timing count="128" cpu-time-max="0.734" cpu-time-min="0.525" cpu-time-sum="79.75" name="subgraph_6" parallel="true" wall-time-max="1.529" wall-time-min="1.529" wall-time-sum="195.705">
+                <timing count="128" cpu-time-max="0.734" cpu-time-min="0.525" cpu-time-sum="79.75" name="subgraph_7" parallel="true" wall-time-max="1.529" wall-time-min="1.529" wall-time-sum="195.705">
+                </timing>
+            </timing>
+        </timing>
+    </timing>
+</performance-report>

@@ -1,0 +1,41 @@
+{
+	"performanceReport" : {
+		"name" : "my_test_performance_report",
+		"date" : "2018-07-02T00:00:00",
+		"units" : "seconds",
+		"timings" : [
+			{
+				"name" : "obliquesphereimpact",
+				"timings" : [
+					{
+						"count" : "1",
+						"name" : "cpunoio",
+						"time-value" : "4.2998999023437500e+02",
+						"units" : "seconds"
+					}
+				],
+				"metrics" : [
+					{
+						"name" : "overRanksVirtualMemory",
+						"max" : "0",
+						"min" : "0",
+						"units" : "MB"
+					},
+					{
+						"name" : "overRanksResidentMemory",
+						"max" : "2.2726171875000000e+02",
+						"min" : "0",
+						"units" : "MB"
+					}
+				],
+				"metadata" : {
+					"mno" : "pqr"
+				}
+			}
+		],
+		"metadata" : {
+			"abc" : "def",
+			"ghi" : "jkl"
+		}
+	}
+}

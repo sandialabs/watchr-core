@@ -1,0 +1,210 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:70px;height:70px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+var trace1 = {
+y: ['E', 'p', 'Y', 'X', 'w', 't', 'L'],
+x:   [0.0, 0.00444946610986113, 0.02119823589302314, 0.02812341597429757, 0.19349553359061178, 0.2050634636247146, 0.30605851610867624],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'displacement / MainEffects',
+xaxis: 'x1',
+yaxis: 'y1'
+};
+
+
+var trace2 = {
+y: ['p', 'E', 'Y', 'X', 'w', 't', 'L'],
+x:   [0.009693215955482878, 0.024647524635774982, 0.04783523010221449, 0.08725532105010503, 0.28154337942105256, 0.36031821186963436, 0.43031848566455094],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'displacement / TotalEffects',
+xaxis: 'x1',
+yaxis: 'y1'
+};
+
+
+
+
+var trace3 = {
+y: ['E', 'X', 'Y', 'p', 't', 'w', 'L'],
+x:   [0.0, 0.0, 0.0, 0.012092626101910564, 0.30231565379604297, 0.3023156538966113, 0.30231565425871976],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'mass / MainEffects',
+xaxis: 'x2',
+yaxis: 'y2'
+};
+
+
+var trace4 = {
+y: ['X', 'E', 'Y', 'p', 't', 'w', 'L'],
+x:   [6.011673805987218E-19, 1.8726615757010265E-18, 1.8726615757010265E-18, 0.015374710418527417, 0.35598368025899135, 0.3559836805163531, 0.35598368076985487],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'mass / TotalEffects',
+xaxis: 'x2',
+yaxis: 'y2'
+};
+
+
+
+
+var trace5 = {
+y: ['E', 'L', 'p', 'X', 'Y', 'w', 't'],
+x:   [0.0, 1.797908113703253E-4, 3.727266551994685E-4, 0.039483659508745814, 0.05148076329091267, 0.3395477132595371, 0.4524475265554598],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'stress / MainEffects',
+xaxis: 'x3',
+yaxis: 'y3'
+};
+
+
+var trace6 = {
+y: ['E', 'L', 'p', 'X', 'Y', 'w', 't'],
+x:   [7.557545337525907E-4, 0.00212441353048085, 0.004210208001674174, 0.06291006041832434, 0.07901397139616863, 0.4249292049065039, 0.5425442071318706],
+marker: {
+color: 'rgb(0, 0, 0)', 
+line: {
+color: 'rgb(0, 0, 0)', 
+width: 1
+}
+},
+orientation: 'h',
+type: 'bar',
+name: 'stress / TotalEffects',
+xaxis: 'x3',
+yaxis: 'y3'
+};
+
+
+
+
+
+
+var data = [trace1, trace2, trace3, trace4, trace5, trace6];
+var layout = {
+title: "Sobol Indices",
+titlefont: {
+family: 'Segoe UI'
+},
+showlegend: true, 
+height: 70,
+width: 70,
+hovermode: 'closest',
+plot_bgcolor: 'rgb(255, 255, 255)',
+xaxis1: {
+title: 'displacement',
+type: '',
+position: 0.0,
+domain: [0.0, 0.2733333333333333],
+autorange: true,
+range:[0.0, 0.43031848566455094],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis1: {
+title: '',
+position: 0.0,
+domain: [0.0, 1.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+,
+xaxis2: {
+title: 'mass',
+type: '',
+position: 0.0,
+domain: [0.3333333333333333, 0.6066666666666667],
+autorange: true,
+range:[0.0, 0.35598368076985487],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis2: {
+title: '',
+position: 0.3333333333333333,
+domain: [0.0, 1.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+,
+xaxis3: {
+title: 'stress',
+type: '',
+position: 0.0,
+domain: [0.6666666666666666, 1.0],
+autorange: true,
+range:[0.0, 0.5425442071318706],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis3: {
+title: '',
+position: 0.6666666666666666,
+domain: [0.0, 1.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+
+};
+    
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>
+

@@ -1,0 +1,37 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "autoname" : {
+                    "useProperty" : "y/path"
+                },
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement_A",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "recurseChildGraphs" : "true"
+                            },
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,78 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:500px;height:500px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+var trace1 = {
+x: [-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0],
+y: [-2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0],
+z: [[3609.0, 1812.5, 904.0, 508.5, 401.0, 506.5, 900.0, 1806.5, 3601.0], 
+[3034.0, 1412.5, 629.0, 308.5, 226.0, 306.5, 625.0, 1406.5, 3026.0], 
+[2509.0, 1062.5, 404.0, 158.5, 101.0, 156.5, 400.0, 1056.5, 2501.0], 
+[2034.0, 762.5, 229.0, 58.5, 26.0, 56.5, 225.0, 756.5, 2026.0], 
+[1609.0, 512.5, 104.0, 8.5, 1.0, 6.5, 100.0, 506.5, 1601.0], 
+[1234.0, 312.5, 29.0, 8.5, 26.0, 6.5, 25.0, 306.5, 1226.0], 
+[909.0, 162.5, 4.0, 58.5, 101.0, 56.5, 0.0, 156.5, 901.0], 
+[634.0, 62.5, 29.0, 158.5, 226.0, 156.5, 25.0, 56.5, 626.0], 
+[409.0, 12.5, 104.0, 308.5, 401.0, 306.5, 100.0, 6.5, 401.0]
+],
+colorscale: [[0.0, 'rgb(255, 0, 0)'],[0.249999, 'rgb(255, 0, 0)'],[0.25, 'rgb(255, 128, 64)'],[0.49999899999999997, 'rgb(255, 128, 64)'],[0.5, 'rgb(255, 255, 0)'],[0.749999, 'rgb(255, 255, 0)'],[0.75, 'rgb(0, 255, 0)'],[0.899999, 'rgb(0, 255, 0)'],[0.9, 'rgb(0, 128, 192)'],[0.999999, 'rgb(0, 128, 192)'],[1.0, 'rgb(128, 0, 255)'],],
+showscale: true,
+type: 'surface',
+name: 'Surface 3D Plot: x1 / x2 / rosen_out'
+};
+
+
+
+
+
+
+var data = [trace1];
+var layout = {
+title: "Rosenbrock Rainbow Curve",
+titlefont: {
+family: 'Segoe UI'
+},
+showlegend: false,
+height: 500,
+width: 500,
+hovermode: 'closest',
+plot_bgcolor: 'rgb(255, 255, 255)',
+scene: {
+xaxis: {
+title: 'x1',
+type: '',
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+yaxis: {
+title: 'x2',
+type: '',
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+},
+zaxis: {
+title: 'rosen_out',
+type: '',
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+zeroline: true
+}
+}
+
+};
+    
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>

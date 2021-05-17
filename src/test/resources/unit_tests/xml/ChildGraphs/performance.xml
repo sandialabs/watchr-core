@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<performance-report date="2021-04-05T22:21:21" name="nightly_run_2021-04-05">
+    <timing name="measurement_A" value="100.0">
+        <timing name="measurement_A1" value="25.0">
+            <timing name="measurement_A1A" value="15.0"/>
+            <timing name="measurement_A1B" value="10.0"/>
+        </timing>
+        <timing name="measurement_A2" value="75.0"/>
+    </timing>
+</performance-report>

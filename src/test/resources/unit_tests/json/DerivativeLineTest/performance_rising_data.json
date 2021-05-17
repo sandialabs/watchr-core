@@ -1,0 +1,28 @@
+{
+    "performance-reports" : [
+        {
+            "date" : "2021-04-05T22:21:21",
+            "measurement" : "1.0"
+        },
+        {
+            "date" : "2021-04-06T22:21:21",
+            "measurement" : "2.0"
+        },
+        {
+            "date" : "2021-04-07T22:21:21",
+            "measurement" : "3.0"
+        },
+        {
+            "date" : "2021-04-08T22:21:21",
+            "measurement" : "4.0"
+        },
+        {
+            "date" : "2021-04-09T22:21:21",
+            "measurement" : "1.0"
+        },
+        {
+            "date" : "2021-04-10T22:21:21",
+            "measurement" : "-1.0"
+        }
+    ]
+}

@@ -1,0 +1,42 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "name" : "Metadata Example",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        },
+						"metadata": [
+							{
+								"name": "branch",
+								"extractor" : {
+									"getElement" : "performance-report|metadata",
+									"getPath" : "nightly_run_2021-04-05/branch",
+									"getPathAttribute" : "name|key",
+									"getKey" : "value"
+								}
+							}
+						]
+                    }
+                ]
+            }
+        ]
+    }
+}

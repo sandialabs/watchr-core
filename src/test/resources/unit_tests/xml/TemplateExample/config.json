@@ -1,0 +1,60 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance",
+            "type" : "xml"
+        },
+        "categories" : [
+            "cpu-time-max",
+            "cpu-time-min",
+            "cpu-time-sum"
+        ],
+        "plot" : [
+            {
+                "name" : "Plot for cpu-time-max",
+                "category" : "cpu-time-max",
+                "template" : "plot_template",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "cpu-time-max",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            },{
+				"inherit" : "plot_template",
+                "name" : "Plot for cpu-time-min",
+				"category" : "cpu-time-min",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "cpu-time-min"
+						}
+					}
+				]
+			}, {
+				"inherit" : "plot_template",
+                "name" : "Plot for cpu-time-sum",
+				"category" : "cpu-time-sum",
+				"dataLines" : [
+					{
+						"y" : {
+							"getKey" : "cpu-time-sum"
+						}
+					}
+				]
+			}
+        ]
+    }
+}
