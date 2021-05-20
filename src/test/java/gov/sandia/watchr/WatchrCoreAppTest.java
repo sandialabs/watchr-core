@@ -489,11 +489,14 @@ public class WatchrCoreAppTest {
                 dbDir.getAbsolutePath(),
                 exportDir.getAbsolutePath()
             });
-
-            assertEquals(3, exportDir.listFiles().length);
-            assertEquals("root_cpu-time-max.html", exportDir.listFiles()[0].getName());
-            assertEquals("root_cpu-time-min.html", exportDir.listFiles()[1].getName());
-            assertEquals("root_cpu-time-sum.html", exportDir.listFiles()[2].getName());
+            
+            List<File> files = Arrays.asList(exportDir.listFiles());
+            Collections.sort(files);
+            assertEquals(3, files.size());
+            
+            assertEquals("root_cpu-time-max.html", files.get(0).getName());
+            assertEquals("root_cpu-time-min.html", files.get(1).getName());
+            assertEquals("root_cpu-time-sum.html", files.get(2).getName());
 
             String file1Contents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
             assertTrue(file1Contents.contains("x: ['2021-04-05T22:21:21'],"));
