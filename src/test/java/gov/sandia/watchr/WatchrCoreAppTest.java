@@ -12,6 +12,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -489,7 +492,7 @@ public class WatchrCoreAppTest {
                 dbDir.getAbsolutePath(),
                 exportDir.getAbsolutePath()
             });
-            
+
             List<File> files = Arrays.asList(exportDir.listFiles());
             Collections.sort(files);
             assertEquals(3, files.size());
@@ -513,8 +516,129 @@ public class WatchrCoreAppTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-    }   
+    }
 
+    @Test
+    public void testUnitExample_Xml_Treemap() {
+        try {            
+            File config    = loadTestFile("unit_tests/xml/Treemap/config.json");
+            File dataFile  = loadTestFile("unit_tests/xml/Treemap/performance.xml");
+            File dbDir     = Files.createTempDirectory(null).toFile();
+            File exportDir = Files.createTempDirectory(null).toFile();
+
+            WatchrCoreApp.main(new String[]{
+                config.getAbsolutePath(),
+                dataFile.getAbsolutePath(),
+                dbDir.getAbsolutePath(),
+                exportDir.getAbsolutePath()
+            });
+
+            assertEquals(1, exportDir.listFiles().length);
+
+            String file1Contents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertTrue(file1Contents.contains("labels: ['/nightly_run_2021-04-05/A', 'B', 'C', 'D', 'E', 'F', 'G'],"));
+            assertTrue(file1Contents.contains("parents: ['', '/nightly_run_2021-04-05/A', '/nightly_run_2021-04-05/A', 'B', 'B', 'C', 'C'],"));
+            assertTrue(file1Contents.contains("values: [100.0, 75.0, 25.0, 25.0, 50.0, 15.0, 10.0],"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testUnitExample_TestAutonameStrategy() {
+        try {            
+            File config    = loadTestFile("system_tests/config/BigJsonAutonameConfig.json");
+            File dataFile  = loadTestFile("system_tests/reports/json_reports_basic/basic_report_2.json");
+            File dbDir     = Files.createTempDirectory(null).toFile();
+            File exportDir = Files.createTempDirectory(null).toFile();
+
+            WatchrCoreApp.main(new String[]{
+                config.getAbsolutePath(),
+                dataFile.getAbsolutePath(),
+                dbDir.getAbsolutePath(),
+                exportDir.getAbsolutePath()
+            });
+
+            assertEquals(1, exportDir.listFiles().length);
+
+            String file1Contents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertTrue(file1Contents.contains("x: ['2019-11-01 22:15:28', '2019-11-01 22:15:29'],"));
+            assertTrue(file1Contents.contains("y: [0.016754639323649404, 0.03536856681926057],"));
+            assertTrue(file1Contents.contains("x: ['2019-11-01 22:17:57'],"));
+            assertTrue(file1Contents.contains("y: [-0.11097154263042563],"));
+            assertTrue(file1Contents.contains("x: ['2019-11-01 22:15:28', '2019-11-01 22:15:29'],"));
+            assertTrue(file1Contents.contains("y: [5.1876956330731954e-11, 1.0944087267160736e-10],"));
+            assertTrue(file1Contents.contains("x: ['2019-11-01 22:17:57'],"));
+            assertTrue(file1Contents.contains("y: [-0.1096240105893509],"));
+            assertTrue(file1Contents.contains("x: ['2019-11-01 22:15:28', '2019-11-01 22:15:29'],"));
+            assertTrue(file1Contents.contains("y: [0.021157282214797696, 0.04451590518611598],"));
+        } catch (WatchrParseException e) {
+            e.getOriginalException().printStackTrace();;
+            fail(e.getOriginalException().getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testUnitExample_NumberFormatTest() {
+        try {            
+            File config    = loadTestFile("unit_tests/json/NumberFormatTest/config.json");
+            File dataFile  = loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
+            File dbDir     = Files.createTempDirectory(null).toFile();
+            File exportDir = Files.createTempDirectory(null).toFile();
+
+            WatchrCoreApp.main(new String[]{
+                config.getAbsolutePath(),
+                dataFile.getAbsolutePath(),
+                dbDir.getAbsolutePath(),
+                exportDir.getAbsolutePath()
+            });
+
+            assertEquals(1, exportDir.listFiles().length);
+            String fileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertTrue(fileContents.contains("'2021-05-13T16:39:13'"));
+        } catch (WatchrParseException e) {
+            e.getOriginalException().printStackTrace();;
+            fail(e.getOriginalException().getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testUnitExample_NumberFormatMillisecondsTest() {
+        try {            
+            File config    = loadTestFile("unit_tests/json/NumberFormatTest/config_ms.json");
+            File dataFile  = loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
+            File dbDir     = Files.createTempDirectory(null).toFile();
+            File exportDir = Files.createTempDirectory(null).toFile();
+
+            WatchrCoreApp.main(new String[]{
+                config.getAbsolutePath(),
+                dataFile.getAbsolutePath(),
+                dbDir.getAbsolutePath(),
+                exportDir.getAbsolutePath()
+            });
+
+            assertEquals(1, exportDir.listFiles().length);
+            String fileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            
+            // We now have a completely different date interpretation because we are parsing
+            // the number string as milliseconds instead of seconds.
+            assertTrue(fileContents.contains("'1970-01-19T11:15:45'"));
+        } catch (WatchrParseException e) {
+            e.getOriginalException().printStackTrace();;
+            fail(e.getOriginalException().getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }       
+    
     /////////////
     // PRIVATE //
     /////////////
