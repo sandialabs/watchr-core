@@ -12,9 +12,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -49,7 +46,7 @@ public class WatchrCoreAppTest {
         WatchrCoreApp app = WatchrCoreApp.getInstance();
         try {            
             ClassLoader classLoader = WatchrCoreAppTest.class.getClassLoader();
-            File dbDestDir = Files.createTempDirectory(null).toFile();
+            File dbDestDir = Files.createTempDirectory("testGetFailedPlotsSize_RealData").toFile();
 
             URL reportsDirUrl = classLoader.getResource("unit_tests/json/RuleTest");
             File reportsDir = new File(reportsDirUrl.toURI());
@@ -83,7 +80,7 @@ public class WatchrCoreAppTest {
         WatchrCoreApp app = WatchrCoreApp.getInstance();
         try {            
             ClassLoader classLoader = WatchrCoreAppTest.class.getClassLoader();
-            File dbDestDir = Files.createTempDirectory(null).toFile();
+            File dbDestDir = Files.createTempDirectory("testGetPlotsSize_RealData").toFile();
 
             URL reportsDirUrl = classLoader.getResource("unit_tests/json/RuleTest");
             File reportsDir = new File(reportsDirUrl.toURI());
@@ -114,8 +111,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/HelloWorld/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/HelloWorld/performance_day_1.xml");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_HelloWorld").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_HelloWorld").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -139,8 +136,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/ThreePointsOnOneLine/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/ThreePointsOnOneLine/");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_ThreePointsOnOneLine").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_ThreePointsOnOneLine").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -164,8 +161,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/Categories/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/Categories/");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_Categories").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_Categories").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -204,8 +201,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/HelloWorld/config.json");
             File dataFile  = loadTestFile("unit_tests/json/HelloWorld/performance_day_1.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_HelloWorld").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_HelloWorld").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -229,8 +226,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/DerivativeLineTest/config.json");
             File dataFile  = loadTestFile("unit_tests/json/DerivativeLineTest/performance_rising_data.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_DerivativeLineTest").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_DerivativeLineTest").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -259,8 +256,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/RuleTest/rule_test.json");
             File dataFile  = loadTestFile("unit_tests/json/RuleTest/performance_rising_data.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_Rules_Success").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_Rules_Success").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -286,8 +283,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/RuleTest/rule_test_2.json");
             File dataFile  = loadTestFile("unit_tests/json/RuleTest/performance_rising_data.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_Rules_Fail").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_Rules_Fail").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -313,8 +310,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/RuleTest/rule_test_3.json");
             File dataFile  = loadTestFile("unit_tests/json/RuleTest/performance_rising_data_2.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_Rules_WarnWithConflictingRules").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_Rules_WarnWithConflictingRules").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -340,8 +337,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/FileFilterExample/config.json");
             File dataFile  = loadTestFile("unit_tests/json/FileFilterExample");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_FileFilter").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_FileFilter").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -367,8 +364,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/Legend/config.json");
             File dataFile  = loadTestFile("unit_tests/json/Legend/performance_day_1.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_Legend").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_Legend").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -391,8 +388,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/ChildGraphs/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/ChildGraphs/performance.xml");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_ChildGraphs").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_ChildGraphs").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -431,8 +428,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/Metadata/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/Metadata/performance_day_1.xml");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_Metadata").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_Metadata").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -456,8 +453,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/PointFilterExample/config.json");
             File dataFile  = loadTestFile("unit_tests/json/PointFilterExample");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_PointFilter").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_PointFilter").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -483,8 +480,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/TemplateExample/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/TemplateExample/performance.xml");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_TemplateExample").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_TemplateExample").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -493,13 +490,10 @@ public class WatchrCoreAppTest {
                 exportDir.getAbsolutePath()
             });
 
-            List<File> files = Arrays.asList(exportDir.listFiles());
-            Collections.sort(files);
-            assertEquals(3, files.size());
-            
-            assertEquals("root_cpu-time-max.html", files.get(0).getName());
-            assertEquals("root_cpu-time-min.html", files.get(1).getName());
-            assertEquals("root_cpu-time-sum.html", files.get(2).getName());
+            assertEquals(3, exportDir.listFiles().length);
+            assertEquals("root_cpu-time-max.html", exportDir.listFiles()[0].getName());
+            assertEquals("root_cpu-time-min.html", exportDir.listFiles()[1].getName());
+            assertEquals("root_cpu-time-sum.html", exportDir.listFiles()[2].getName());
 
             String file1Contents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
             assertTrue(file1Contents.contains("x: ['2021-04-05T22:21:21'],"));
@@ -523,8 +517,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/xml/Treemap/config.json");
             File dataFile  = loadTestFile("unit_tests/xml/Treemap/performance.xml");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Xml_Treemap").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Xml_Treemap").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -550,8 +544,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("system_tests/config/BigJsonAutonameConfig.json");
             File dataFile  = loadTestFile("system_tests/reports/json_reports_basic/basic_report_2.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_TestAutonameStrategy").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_TestAutonameStrategy").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -587,8 +581,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/NumberFormatTest/config.json");
             File dataFile  = loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_NumberFormatTest").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_NumberFormatTest").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
@@ -614,8 +608,8 @@ public class WatchrCoreAppTest {
         try {            
             File config    = loadTestFile("unit_tests/json/NumberFormatTest/config_ms.json");
             File dataFile  = loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
-            File dbDir     = Files.createTempDirectory(null).toFile();
-            File exportDir = Files.createTempDirectory(null).toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_NumberFormatMillisecondsTest").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_NumberFormatMillisecondsTest").toFile();
 
             WatchrCoreApp.main(new String[]{
                 config.getAbsolutePath(),
