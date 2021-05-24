@@ -12,6 +12,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
@@ -171,10 +174,13 @@ public class WatchrCoreAppTest {
                 exportDir.getAbsolutePath()
             });
 
-            assertEquals(3, exportDir.listFiles().length);
-            assertEquals("root_max.html", exportDir.listFiles()[0].getName());
-            assertEquals("root_mean.html", exportDir.listFiles()[1].getName());
-            assertEquals("root_min.html", exportDir.listFiles()[2].getName());
+            List<File> files = Arrays.asList(exportDir.listFiles());
+            Collections.sort(files);
+
+            assertEquals(3, files.size());
+            assertEquals("root_max.html", files.get(0).getName());
+            assertEquals("root_mean.html", files.get(1).getName());
+            assertEquals("root_min.html", files.get(2).getName());
 
             String maxExportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
             assertTrue(maxExportFileContents.contains("x: ['2021-04-05T22:21:21'],"));
