@@ -1,0 +1,37 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "type" : "treemap",
+                "autoname" : {
+                    "useProperty" : "x/key"
+                },
+                "dataLines" : [
+                    {
+                        "name" : "My First Treemap",
+                        "x" : {
+                            "getPath": "*", 
+                            "getElement" : "performance-report",
+                            "getKey" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "nightly_run_*/*",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",                          
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "recurseChildGraphs" : "true"
+                            },
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

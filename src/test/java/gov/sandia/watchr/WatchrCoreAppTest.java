@@ -408,9 +408,9 @@ public class WatchrCoreAppTest {
             Collections.sort(files);
 
             assertEquals(3, files.size());
-            assertEquals("root.html", files.get(0).getName());
-            assertEquals("_nightly_run_2021-04-05_measurement_A.html", files.get(1).getName());
-            assertEquals("_nightly_run_2021-04-05_measurement_A_measurement_A1.html", files.get(2).getName());
+            assertEquals("_nightly_run_2021-04-05_measurement_A.html", files.get(0).getName());
+            assertEquals("_nightly_run_2021-04-05_measurement_A_measurement_A1.html", files.get(1).getName());
+            assertEquals("root.html", files.get(2).getName());
 
             String file1Contents = FileUtils.readFileToString(files.get(0), StandardCharsets.UTF_8);
             assertTrue(file1Contents.contains("x: ['2021-04-05T22:21:21'],"));
@@ -653,7 +653,11 @@ public class WatchrCoreAppTest {
         try {
             ClassLoader classLoader = WatchrCoreAppTest.class.getClassLoader();
             URL url = classLoader.getResource(path);
-            return new File(url.toURI());
+            if(url == null) {
+                throw new IllegalStateException(path + " resulted in a null file reference!");
+            } else {
+                return new File(url.toURI());
+            }
         } catch (URISyntaxException e) {
             e.printStackTrace();
             fail(e.getMessage());

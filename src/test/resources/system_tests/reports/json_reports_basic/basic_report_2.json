@@ -1,0 +1,171 @@
+[{
+    "time stamp": "2019-11-01 22:15:29",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "CircularlyPolarized3D",
+        "parameters": {
+            "np": "4",
+            "refine": "1",
+            "nprocs": "4"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 4.473069190979004,
+        "NODE_E_L1_diff": {
+            "value": 0.03536856681926057,
+            "scale": 1.0
+        },
+        "NODE_B_L1_diff": {
+            "value": 1.0944087267160736e-10,
+            "scale": 3.3356409519815204e-09
+        },
+        "ELEMENT_E_L1_diff": {
+            "value": 0.04451590518611598,
+            "scale": 1.0
+        },
+        "ELEMENT_B_L1_diff": {
+            "value": 1.3681275329881638e-10,
+            "scale": 3.3356409519815204e-09
+        }
+    }
+}, {
+    "time stamp": "2019-11-01 22:17:57",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "CircularlyPolarized3D",
+        "parameters": {
+            "nprocs": "1"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 0.005036830902099609,
+        "NODE_E_L1_diff_reduction_error": {
+            "value": -0.11097154263042563,
+            "scale": 2.0
+        },
+        "NODE_B_L1_diff_reduction_error": {
+            "value": -0.1096240105893509,
+            "scale": 2.0
+        },
+        "ELEMENT_E_L1_diff_reduction_error": {
+            "value": -0.10404648074226364,
+            "scale": 2.0
+        },
+        "ELEMENT_B_L1_diff_reduction_error": {
+            "value": -0.1118785405242555,
+            "scale": 2.0
+        }
+    }
+}, {
+    "time stamp": "2019-11-01 22:15:28",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "CircularlyPolarized3D",
+        "parameters": {
+            "np": "4",
+            "refine": "2",
+            "nprocs": "4"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 6.709707498550415,
+        "NODE_E_L1_diff": {
+            "value": 0.016754639323649404,
+            "scale": 1.0
+        },
+        "NODE_B_L1_diff": {
+            "value": 5.1876956330731954e-11,
+            "scale": 3.3356409519815204e-09
+        },
+        "ELEMENT_E_L1_diff": {
+            "value": 0.021157282214797696,
+            "scale": 1.0
+        },
+        "ELEMENT_B_L1_diff": {
+            "value": 6.478249135712785e-11,
+            "scale": 3.3356409519815204e-09
+        }
+    }
+}, {
+    "time stamp": "2019-11-01 22:15:18",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "MPI_StREEQ",
+        "parameters": {
+            "np": "8",
+            "nprocs": "8"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 3.9177234172821045
+    }
+}, {
+    "time stamp": "2019-11-01 22:17:54",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "MinimalStREEQ",
+        "parameters": {
+            "np": "1",
+            "nprocs": "1"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 1.6600534915924072
+    }
+}, {
+    "time stamp": "2019-11-01 22:17:56",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "TM_Square_Waveguide_EDrive",
+        "parameters": {
+            "nprocs": "1"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 0.004765510559082031,
+        "E_L2_relative_error_reduction_error": {
+            "value": 0.20721664135315865,
+            "scale": 2.0
+        },
+        "B_L2_relative_error_reduction_error": {
+            "value": -0.006692582930833524,
+            "scale": 2.0
+        }
+    }
+}, {
+    "time stamp": "2019-11-01 22:15:26",
+    "time stamp format": "%Y-%m-%d %H:%M:%S",
+    "metadata": {
+        "name": "TM_Square_Waveguide_EDrive",
+        "parameters": {
+            "np": "4",
+            "refine": "1",
+            "nprocs": "4"
+        },
+        "hostname": "hosty.boi",
+        "BUILD_TYPE": "RELEASE"
+    },
+    "metrics": {
+        "duration": 1.313694715499878,
+        "E_L2_relative_error": {
+            "value": 0.12458985040458417,
+            "scale": 1.0
+        },
+        "B_L2_relative_error": {
+            "value": 0.19753604541231393,
+            "scale": 1.0
+        }
+    }
+}]

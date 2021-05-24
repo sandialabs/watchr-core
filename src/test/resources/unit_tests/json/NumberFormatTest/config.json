@@ -1,0 +1,28 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "Number Format Test",
+                "dataLines" : [
+                    {
+                        "x" : {
+                            "getPath": "performance-report/nightly_run_*",
+                            "getKey" : "time",
+                            "unit" : "date",
+                            "formatAs" : "timestamp"
+                        },
+                        "y" : {
+                            "getPath": "performance-report/nightly_run_*/measurement",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

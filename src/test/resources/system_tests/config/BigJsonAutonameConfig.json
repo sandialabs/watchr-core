@@ -1,0 +1,58 @@
+{
+	"plots" : {
+		"files" : {
+			"fileName": "basic_report_2*",
+			"type" : "json",
+			"ignoreOldFiles" : true,
+			"recurseDirectories" : false
+		},
+		"plot" : [
+			{
+				"dataLines" : [
+					{
+						"template" : "dataLine",
+						"autoname" : {
+							"useProperty" : "y/path"
+						},
+						"x": { 
+							"getPath": "*",
+							"getKey" : "time stamp",
+							"strategy" : {
+								"getFirstMatchOnly" : "false"
+							}
+						},
+						"y": {
+							"getPath": "*/metrics/{1}",
+							"getKey" : "value",
+							"strategy" : {
+								"getFirstMatchOnly" : "false",
+								"iterateWith" : "x"
+							}
+						},
+						"color" : "77,222,77"
+					}, {
+						"inherit" : "dataLine",
+						"y": { "getPath": "*/metrics/{2}" }
+					}, {
+						"inherit" : "dataLine",
+						"y": { "getPath": "*/metrics/{3}" }
+					}, {
+						"inherit" : "dataLine",
+						"y": { "getPath": "*/metrics/{4}" }
+					}
+				],
+				"legend" : "true",
+				"autoname" : {
+					"extractor" : {
+						"getPath" : "*/metadata",
+						"getKey" : "name",
+						"strategy" : {
+							"getFirstMatchOnly" : "false",
+							"iterateWith" : "x"
+						}
+					}
+				}
+			}
+		]
+	}
+}
