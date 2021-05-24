@@ -182,17 +182,17 @@ public class WatchrCoreAppTest {
             assertEquals("root_mean.html", files.get(1).getName());
             assertEquals("root_min.html", files.get(2).getName());
 
-            String maxExportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            String maxExportFileContents = FileUtils.readFileToString(files.get(0), StandardCharsets.UTF_8);
             assertTrue(maxExportFileContents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(maxExportFileContents.contains("y: [5.0],"));
             assertTrue(maxExportFileContents.contains("name: 'Max Data Line',"));
 
-            String meanExportFileContents = FileUtils.readFileToString(exportDir.listFiles()[1], StandardCharsets.UTF_8);
+            String meanExportFileContents = FileUtils.readFileToString(files.get(1), StandardCharsets.UTF_8);
             assertTrue(meanExportFileContents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(meanExportFileContents.contains("y: [2.5],"));
             assertTrue(meanExportFileContents.contains("name: 'Mean Data Line',"));
 
-            String minExportFileContents = FileUtils.readFileToString(exportDir.listFiles()[2], StandardCharsets.UTF_8);
+            String minExportFileContents = FileUtils.readFileToString(files.get(2), StandardCharsets.UTF_8);
             assertTrue(minExportFileContents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(minExportFileContents.contains("y: [0.0],"));
             assertTrue(minExportFileContents.contains("name: 'Min Data Line',"));
@@ -404,21 +404,24 @@ public class WatchrCoreAppTest {
                 exportDir.getAbsolutePath()
             });
 
-            assertEquals(3, exportDir.listFiles().length);
-            assertEquals("root.html", exportDir.listFiles()[0].getName());
-            assertEquals("_nightly_run_2021-04-05_measurement_A.html", exportDir.listFiles()[1].getName());
-            assertEquals("_nightly_run_2021-04-05_measurement_A_measurement_A1.html", exportDir.listFiles()[2].getName());
+            List<File> files = Arrays.asList(exportDir.listFiles());
+            Collections.sort(files);
 
-            String file1Contents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertEquals(3, files.size());
+            assertEquals("root.html", files.get(0).getName());
+            assertEquals("_nightly_run_2021-04-05_measurement_A.html", files.get(1).getName());
+            assertEquals("_nightly_run_2021-04-05_measurement_A_measurement_A1.html", files.get(2).getName());
+
+            String file1Contents = FileUtils.readFileToString(files.get(0), StandardCharsets.UTF_8);
             assertTrue(file1Contents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(file1Contents.contains("y: [100.0],"));
 
-            String file2Contents = FileUtils.readFileToString(exportDir.listFiles()[1], StandardCharsets.UTF_8);
+            String file2Contents = FileUtils.readFileToString(files.get(1), StandardCharsets.UTF_8);
             assertTrue(file2Contents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(file2Contents.contains("y: [25.0],"));
             assertTrue(file2Contents.contains("y: [75.0],"));
 
-            String file3Contents = FileUtils.readFileToString(exportDir.listFiles()[2], StandardCharsets.UTF_8);
+            String file3Contents = FileUtils.readFileToString(files.get(2), StandardCharsets.UTF_8);
             assertTrue(file3Contents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(file3Contents.contains("y: [15.0],"));
             assertTrue(file3Contents.contains("y: [10.0],"));
@@ -496,20 +499,23 @@ public class WatchrCoreAppTest {
                 exportDir.getAbsolutePath()
             });
 
-            assertEquals(3, exportDir.listFiles().length);
-            assertEquals("root_cpu-time-max.html", exportDir.listFiles()[0].getName());
-            assertEquals("root_cpu-time-min.html", exportDir.listFiles()[1].getName());
-            assertEquals("root_cpu-time-sum.html", exportDir.listFiles()[2].getName());
+            List<File> files = Arrays.asList(exportDir.listFiles());
+            Collections.sort(files);
 
-            String file1Contents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertEquals(3, files.size());
+            assertEquals("root_cpu-time-max.html", files.get(0).getName());
+            assertEquals("root_cpu-time-min.html", files.get(1).getName());
+            assertEquals("root_cpu-time-sum.html", files.get(2).getName());
+
+            String file1Contents = FileUtils.readFileToString(files.get(0), StandardCharsets.UTF_8);
             assertTrue(file1Contents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(file1Contents.contains("y: [2.0],"));
 
-            String file2Contents = FileUtils.readFileToString(exportDir.listFiles()[1], StandardCharsets.UTF_8);
+            String file2Contents = FileUtils.readFileToString(files.get(1), StandardCharsets.UTF_8);
             assertTrue(file2Contents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(file2Contents.contains("y: [1.0],"));
 
-            String file3Contents = FileUtils.readFileToString(exportDir.listFiles()[2], StandardCharsets.UTF_8);
+            String file3Contents = FileUtils.readFileToString(files.get(2), StandardCharsets.UTF_8);
             assertTrue(file3Contents.contains("x: ['2021-04-05T22:21:21'],"));
             assertTrue(file3Contents.contains("y: [3.0],"));
         } catch (Exception e) {
