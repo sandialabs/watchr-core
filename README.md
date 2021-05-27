@@ -1,6 +1,6 @@
 # Status
 
-[![Java CI with Maven](https://github.com/sandialabs/watchr-core/actions/workflows/maven.yml/badge.svg)](https://github.com/sandialabs/watchr-core/actions/workflows/maven.yml)
+[![watchr-core build and test](https://github.com/sandialabs/watchr-core/actions/workflows/maven.yml/badge.svg)](https://github.com/sandialabs/watchr-core/actions/workflows/maven.yml)
 
 # Description
 
