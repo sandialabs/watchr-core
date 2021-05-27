@@ -1,4 +1,8 @@
-# watchr-core
+# Status
+
+[![Java CI with Maven](https://github.com/sandialabs/watchr-core/actions/workflows/maven.yml/badge.svg)](https://github.com/sandialabs/watchr-core/actions/workflows/maven.yml)
+
+# Description
 
 Watchr is a Java library that processes time-series data and generates HTML graphs.  It is primarily used to track performance of subroutines over time.
 
