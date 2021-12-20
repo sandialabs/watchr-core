@@ -1,0 +1,70 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "Plot with Filter",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "date",
+                            "unit" : "date",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false"
+                            }
+                        },
+                        "y" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "measurement",
+                            "unit" : "seconds",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "iterateWith" : "x"
+                            }
+                        }
+                    }
+                ],
+                "filter": {
+                    "x": [ "2021-04-07*" ],
+                    "y": [ "-1.0" ]
+                }
+            }, {
+                "name" : "No Filter Plot",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "date",
+                            "unit" : "date",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false"
+                            }
+                        },
+                        "y" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "measurement",
+                            "unit" : "seconds",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "iterateWith" : "x"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "filter": {
+            "x": [ "2021-04-05*" ],
+            "y": [ "1.0" ]
+        }
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
+    }
+}

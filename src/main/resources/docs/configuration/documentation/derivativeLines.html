@@ -295,9 +295,18 @@ img {
 <p>Given a <a href="dataLines.html">data line</a> on a Watchr graph, additional &quot;derivative lines&quot; can be added.  These lines are derivative in the sense that they do not contain their own independent data, but rather are processed versions of data from an original line.  One example of a derivative line would be the rolling average of data from an original line.</p>
 <h2>Properties</h2>
 <ul>
-<li><strong>type</strong> : <em>enum</em> :  The type of derivative line.  Current available types are &quot;average&quot;, &quot;standardDeviation&quot;, or &quot;standardDeviationOffset&quot;, which is the average line + 1 standard deviation.  These strings can be case-insensitive in your config file.</li>
+<li>
+<strong>type</strong> : <em>enum</em> :  The type of derivative line.  These strings can be case-insensitive in your config file.  Current available types are:
+<ul>
+<li><em>average</em> - rolling average line</li>
+<li><em>standardDeviation</em> - standard deviation line</li>
+<li><em>standardDeviationNegativeOffset</em> - the average line minus 1 standard deviation.</li>
+<li><em>standardDeviationOffset</em> - the average line plus 1 standard deviation.</li>
+<li><em>slope</em> - a line defined by the expression &quot;y=mx+b&quot;.</li>
+</ul>
+</li>
 <li><strong>range</strong> : <em>int</em> : The range of data points to use if your derivative line type is rolling.</li>
-<li><strong>color</strong> : <em>RGB</em> : The color of the data line.  The color should be specified by providing the three number values for red, green, and blue.</li>
+<li><strong>color</strong> : <em>RGB</em> : The color of the data line.  The color should be specified by providing the three number values for red, green, and blue.  You can alternately provide a fourth value between 0.0 and 1.0 to specify opacity.</li>
 <li><strong>ignoreFilteredData</strong> : <em>boolean</em> : If true, any points filtered from the main data line will not be used in calculating the derivative values that comprise this line.</li>
 </ul>
 <h2>Child Elements</h2>

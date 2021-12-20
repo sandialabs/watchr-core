@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.ILogger;
 
 public class PlotsConfig implements IConfig {
     
@@ -21,19 +23,23 @@ public class PlotsConfig implements IConfig {
     private FileConfig fileConfig;
     private List<PlotConfig> plotConfigs;
     private CategoryConfiguration categoryConfig;
+    private FilterConfig pointFilterConfig;
 
     private final String configPath;
+    private final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public PlotsConfig(String configPathPrefix) {
+    public PlotsConfig(String configPathPrefix, ILogger logger, IFileReader fileReader) {
         this.configPath = configPathPrefix + "/plotsConfig";
 
-        this.fileConfig = new FileConfig(configPath);
+        this.fileConfig = new FileConfig(configPath, logger, fileReader);
         this.plotConfigs = new ArrayList<>();
-        this.categoryConfig = new CategoryConfiguration(configPath);
+        this.categoryConfig = new CategoryConfiguration(configPath, logger);
+        this.pointFilterConfig = new FilterConfig(configPath, logger);
+        this.logger = logger;
     }
 
     public PlotsConfig(PlotsConfig copy) {
@@ -43,7 +49,9 @@ public class PlotsConfig implements IConfig {
         }
         this.fileConfig = new FileConfig(copy.getFileConfig());
         this.categoryConfig = new CategoryConfiguration(copy.getCategoryConfig());
+        this.pointFilterConfig = new FilterConfig(copy.getPointFilterConfig());
         this.configPath = copy.getConfigPath();
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -62,9 +70,18 @@ public class PlotsConfig implements IConfig {
         return categoryConfig;
     }
 
+    public FilterConfig getPointFilterConfig() {
+        return pointFilterConfig;
+    }
+
     @Override
     public String getConfigPath() {
         return configPath;
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
     } 
 
     /////////////
@@ -77,6 +94,10 @@ public class PlotsConfig implements IConfig {
 
     public void setCategoryConfig(CategoryConfiguration categoryConfig) {
         this.categoryConfig = categoryConfig;
+    }
+
+    public void setPointFilterConfig(FilterConfig pointFilterConfig) {
+        this.pointFilterConfig = pointFilterConfig;
     }
 
     //////////////
@@ -107,7 +128,7 @@ public class PlotsConfig implements IConfig {
         // Check for new elements added to list
         int newStart = plotConfigs.size();
         for(int i = newStart; i < otherPlotsConfig.plotConfigs.size(); i++) {
-            PlotConfig dummyPlotConfig = new PlotConfig(otherPlotsConfig.getConfigPath() + "/" + Integer.toString(i));
+            PlotConfig dummyPlotConfig = new PlotConfig(otherPlotsConfig.getConfigPath() + "/" + Integer.toString(i), logger);
             PlotConfig otherPlotConfig = otherPlotsConfig.plotConfigs.get(i);
             diffList.addAll(dummyPlotConfig.diff(otherPlotConfig));
         }
@@ -143,5 +164,5 @@ public class PlotsConfig implements IConfig {
             hash = 31 * (hash + plotConfig.hashCode());
         }
         return hash;
-    }     
+    }    
 }

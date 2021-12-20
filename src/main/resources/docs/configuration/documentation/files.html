@@ -295,7 +295,7 @@ img {
 <p>The &quot;files&quot; section of a Watchr config file instructs Watchr on how to explore your filesystem and gather data for plots.  Once files have been located and read by Watchr, the &quot;plot&quot; section of your config file will dictate how Watchr should extract data from each file.</p>
 <h2>Properties</h2>
 <ul>
-<li><strong>fileName</strong> : <em>string</em> : The name pattern for files that should be parsed by Watchr.  This field respects simple wildcards (for example, A* will cause Watchr to read every file that begins with a capital letter A).</li>
+<li><strong>fileName</strong> : <em>string</em> : The name pattern for files that should be parsed by Watchr.  This field respects <a href="regex.html">regular expressions</a>.</li>
 <li><strong>type</strong> : <em>string</em> : The file extension for files that Watchr should read.  No leading period should be used when specifying the file extension.  If left blank, file extension is not regarded by Watchr.</li>
 <li><strong>ignoreOldFiles</strong> : <em>boolean</em> :  If true, Watchr will keep track of the files it has previously parsed and ignore those files on subsequent parses.  If false, Watchr will read every file (based on the other configuration of this section) and add data to its database, disregarding duplicate information.</li>
 <li><strong>recurseDirectories</strong> : <em>boolean</em> : If true, Watchr will also explore child directories for more files, beginning from the starting point specified when Watchr was launched.  If false, Watchr will only explore the starting directory for files.</li>

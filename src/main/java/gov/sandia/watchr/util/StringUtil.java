@@ -22,12 +22,13 @@ import org.apache.commons.lang3.StringUtils;
 
 public class StringUtil {
 
+    public static final String REGEX_START = "R$";
+
     private StringUtil() {}
     
     public static String[] splitFilePath(String path) {
         if(!StringUtils.isBlank(path)) {
-            String[] pathComponents = path.split(Pattern.quote(File.separator));
-            return pathComponents;
+            return path.split(Pattern.quote(File.separator));
         } else {
             return new String[0];
         }
@@ -42,5 +43,42 @@ public class StringUtil {
 
     public static boolean hasIllegalCharacters(String str) {
         return str.matches(".*[^a-zA-Z0-9\\s\\-_]+.*");
+    }
+
+    public static String convertToRegex(String original) {
+        if(StringUtils.isNotBlank(original)) {
+            boolean fullRegex = original.startsWith(REGEX_START);
+            if(fullRegex) {
+                return original.replace(REGEX_START, "");
+            } else {
+                if(original.contains("*") && !original.contains(".*")) {
+                    return original.replace("*", ".*");
+                }
+            }
+        }
+        return original;
+    }
+
+    public static String escapeRegexCharacters(String original) {
+        String finalRegex = original;
+        finalRegex = finalRegex.replace("|", "\\|");
+        finalRegex = finalRegex.replace("&", "\\&");
+        finalRegex = finalRegex.replace(":", "\\:");
+        finalRegex = finalRegex.replace(";", "\\;");
+        finalRegex = finalRegex.replace("<", "\\<");
+        finalRegex = finalRegex.replace(">", "\\>");
+        finalRegex = finalRegex.replace("(", "\\(");
+        finalRegex = finalRegex.replace(")", "\\)");
+        finalRegex = finalRegex.replace("$", "\\$");
+        finalRegex = finalRegex.replace("`", "\\`");
+        finalRegex = finalRegex.replace("-", "\\-");
+        finalRegex = finalRegex.replace("_", "\\_");
+        finalRegex = finalRegex.replace("=", "\\=");
+        finalRegex = finalRegex.replace("\"", "\\\"");
+        finalRegex = finalRegex.replace("\'", "\\\'");
+        finalRegex = finalRegex.replace(".", "\\.");
+        finalRegex = finalRegex.replace("*", "\\*");
+        finalRegex = finalRegex.replace(" ", "\\s");
+        return finalRegex;
     }
 }

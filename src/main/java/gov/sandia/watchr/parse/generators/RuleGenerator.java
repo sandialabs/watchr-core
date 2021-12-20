@@ -12,11 +12,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.math.NumberUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
@@ -45,7 +44,8 @@ public class RuleGenerator extends AbstractGenerator<List<RuleConfig>> {
         LAST_POINT_ON_DATA_LINE,
         LAST_POINT_ON_AVERAGE_LINE,
         LAST_POINT_ON_STD_DEV_LINE,
-        LAST_POINT_ON_STD_DEV_OFFSET_LINE
+        LAST_POINT_ON_STD_DEV_OFFSET_LINE,
+        LAST_POINT_ON_STD_DEV_NEG_OFFSET_LINE
     }
 
     ////////////
@@ -59,7 +59,8 @@ public class RuleGenerator extends AbstractGenerator<List<RuleConfig>> {
     // CONSTRUCTOR //
     /////////////////
 
-    public RuleGenerator(PlotTraceModel traceModel) {
+    public RuleGenerator(PlotTraceModel traceModel, ILogger logger) {
+        super(logger);
         this.traceModel = traceModel;
         this.ruleActors = new ArrayList<>();
     }
@@ -113,7 +114,6 @@ public class RuleGenerator extends AbstractGenerator<List<RuleConfig>> {
             return evaluate(leftValue, test, rightValue);
         } else {
             String message = "Rule \"" + condition + "\" should have three lexical elements in it, separated by spaces.";
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, message));
         }
         return false;
@@ -129,7 +129,6 @@ public class RuleGenerator extends AbstractGenerator<List<RuleConfig>> {
             test = RuleTest.LESS_THAN;
         } else {
             String message = "Middle part of rule should be =, ==, <, or >, but it was none of these.";
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, message));
         }
         return test;
@@ -147,7 +146,6 @@ public class RuleGenerator extends AbstractGenerator<List<RuleConfig>> {
             target = RuleTarget.LAST_POINT_ON_STD_DEV_OFFSET_LINE;
         } else {
             String message = "Left part of rule must refer to \"dataLine\", \"average\", \"standardDeviation\", or \"standardDeviationOffset\".";
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, message));
         }
         return target;
@@ -182,6 +180,8 @@ public class RuleGenerator extends AbstractGenerator<List<RuleConfig>> {
             return parent.findDerivativeLine(traceModel.getName(), DerivativeLineType.STANDARD_DEVIATION);
         } else if(target == RuleTarget.LAST_POINT_ON_STD_DEV_OFFSET_LINE) {
             return parent.findDerivativeLine(traceModel.getName(), DerivativeLineType.STANDARD_DEVIATION_OFFSET);
+        } else if(target == RuleTarget.LAST_POINT_ON_STD_DEV_NEG_OFFSET_LINE) {
+            return parent.findDerivativeLine(traceModel.getName(), DerivativeLineType.STANDARD_DEVIATION_NEG_OFFSET);
         }
         return null;
     }

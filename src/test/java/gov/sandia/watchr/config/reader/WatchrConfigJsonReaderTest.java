@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.config.DataLine;
-import gov.sandia.watchr.config.DerivativeLine;
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.HierarchicalExtractor;
 import gov.sandia.watchr.config.MetadataConfig;
@@ -25,8 +24,13 @@ import gov.sandia.watchr.config.PlotConfig;
 import gov.sandia.watchr.config.PlotsConfig;
 import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.WatchrConfig;
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.AverageDerivativeLine;
+import gov.sandia.watchr.config.derivative.DerivativeLine;
+import gov.sandia.watchr.config.derivative.StdDevPositiveOffsetDerivativeLine;
+import gov.sandia.watchr.config.file.DefaultFileReader;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
+import gov.sandia.watchr.log.StringOutputLogger;
 
 public class WatchrConfigJsonReaderTest {
     
@@ -36,13 +40,19 @@ public class WatchrConfigJsonReaderTest {
 
     private static final String CONFIG = "BigXmlBasedConfig.json";
 
+    private StringOutputLogger testLogger;
+    private IFileReader fileReader;
+
     @Before
     public void setup() {
+        testLogger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(testLogger);
+
         try {
             ClassLoader classLoader = WatchrConfigJsonReaderTest.class.getClassLoader();
             URL reportsDirUrl = classLoader.getResource("unit_tests/xml/HelloWorld");
             reportsDir = new File(reportsDirUrl.toURI());
-            reader = new WatchrConfigJsonReader(reportsDir);
+            reader = new WatchrConfigJsonReader(reportsDir.getAbsolutePath(), testLogger, fileReader);
 
             URL configDirUrl = classLoader.getResource("system_tests/config");
             configDir = new File(configDirUrl.toURI());
@@ -71,9 +81,10 @@ public class WatchrConfigJsonReaderTest {
 
             FileConfig fileConfig = plotConfig.getFileConfig();
             assertEquals("xml", fileConfig.getFileExtension());
-            assertEquals("performance_.*", fileConfig.getFileNamePattern());
-            assertTrue(fileConfig.getStartDir().getAbsolutePath().contains("HelloWorld"));
-            assertTrue(fileConfig.getStartDir().getAbsolutePath().contains("xml"));
+            assertEquals("performance_*", fileConfig.getFileNamePattern());
+            assertEquals("performance_.*", fileConfig.getFileNamePatternAsRegex());
+            assertTrue(fileConfig.getStartFile().contains("HelloWorld"));
+            assertTrue(fileConfig.getStartFile().contains("xml"));
             assertTrue(fileConfig.shouldIgnoreOldFiles());
             assertFalse(fileConfig.shouldRecurseDirectories());
         } catch(IOException e) {
@@ -198,15 +209,15 @@ public class WatchrConfigJsonReaderTest {
             List<DerivativeLine> derivativeLines = line.getDerivativeLines();
             assertEquals(2, derivativeLines.size());
 
-            DerivativeLine avgLine = derivativeLines.get(0);
-            assertEquals(DerivativeLineType.AVERAGE, avgLine.getType());
+            assertTrue(derivativeLines.get(0) instanceof AverageDerivativeLine);
+            AverageDerivativeLine avgLine = (AverageDerivativeLine) derivativeLines.get(0);
             assertEquals(20, avgLine.getRollingRange());
             assertEquals(202, avgLine.getColor().red);
             assertEquals(77, avgLine.getColor().green);
             assertEquals(77, avgLine.getColor().blue);
 
-            DerivativeLine stdDevLine = derivativeLines.get(1);
-            assertEquals(DerivativeLineType.STANDARD_DEVIATION_OFFSET, stdDevLine.getType());
+            assertTrue(derivativeLines.get(1) instanceof StdDevPositiveOffsetDerivativeLine);
+            StdDevPositiveOffsetDerivativeLine stdDevLine = (StdDevPositiveOffsetDerivativeLine) derivativeLines.get(1);
             assertEquals(20, stdDevLine.getRollingRange());
             assertEquals(77, stdDevLine.getColor().red);
             assertEquals(202, stdDevLine.getColor().green);

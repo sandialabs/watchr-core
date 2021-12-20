@@ -1,0 +1,58 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_day_*",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "name" : "My Plot A",
+                "template" : "plotTemplate",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "template" : "dataLineTemplate",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurementA",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }, {
+                "name" : "My Plot B",
+                "inherit" : "plotTemplate",
+                "dataLines" : [
+                    {
+                        "template" : "dataLineTemplate",
+                        "y" : {
+                            "getPath": "*/measurementB"
+                        }
+                    }
+                ]
+            }, {
+                "name" : "My Plot C",
+                "inherit" : "plotTemplate",
+                "dataLines" : [
+                    {
+                        "template" : "dataLineTemplate",
+                        "y" : {
+                            "getPath": "*/measurementC"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perPlot"
+    }
+}

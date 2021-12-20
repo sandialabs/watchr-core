@@ -7,17 +7,17 @@
 ******************************************************************************/
 package gov.sandia.watchr.config;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.util.StringUtil;
 
 public class FileConfig implements IConfig {
 
@@ -25,7 +25,7 @@ public class FileConfig implements IConfig {
     // FIELDS //
     ////////////
 
-    private final File startDir;
+    private final String startFileAbsPath;
 
     private String fileNamePattern = "";
     private String fileExtension = "";
@@ -33,36 +33,44 @@ public class FileConfig implements IConfig {
     private boolean recurseDirectories = false;
 
     private final String configPath;
+    private final ILogger logger;
+    private final IFileReader fileReader;
 
     //////////////////
     // CONSTRUCTORS //
     //////////////////
 
-    public FileConfig(String configPathPrefix) {
-        this.startDir = null;
+    public FileConfig(String configPathPrefix, ILogger logger, IFileReader fileReader) {
+        this.logger = logger;
+        this.startFileAbsPath = null;
         this.configPath = configPathPrefix + "/fileConfig";
+        this.fileReader = fileReader;
     }
 
-    public FileConfig(File startDir, String configPathPrefix) {
-        this.startDir = startDir;
+    public FileConfig(String startFileAbsPath, String configPathPrefix, ILogger logger, IFileReader fileReader) {
+        this.logger = logger;
+        this.startFileAbsPath = startFileAbsPath;
         this.configPath = configPathPrefix + "/fileConfig";
+        this.fileReader = fileReader;
     }
 
     public FileConfig(FileConfig copy) {
-        this.startDir = (copy.getStartDir() != null) ? new File(copy.getStartDir().getAbsolutePath()) : null;
+        this.logger = copy.logger;
+        this.startFileAbsPath = (copy.getStartFile() != null) ? copy.getStartFile() : null;
         this.fileNamePattern = copy.getFileNamePattern();
         this.fileExtension = copy.getFileExtension();
         this.ignoreOldFiles = copy.shouldIgnoreOldFiles();
         this.recurseDirectories = copy.shouldRecurseDirectories();
         this.configPath = copy.getConfigPath();
+        this.fileReader = copy.getFileReader();
     }
 
     /////////////
     // GETTERS //
     /////////////
 
-    public File getStartDir() {
-        return startDir;
+    public String getStartFile() {
+        return startFileAbsPath;
     }
 
     public boolean shouldIgnoreOldFiles() {
@@ -71,6 +79,10 @@ public class FileConfig implements IConfig {
 
     public String getFileNamePattern() {
         return fileNamePattern;
+    }
+
+    public String getFileNamePatternAsRegex() {
+        return StringUtil.convertToRegex(fileNamePattern);
     }
 
     public String getFileExtension() {
@@ -86,6 +98,15 @@ public class FileConfig implements IConfig {
         return configPath;
     }
 
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
+
+    public IFileReader getFileReader() {
+        return fileReader;
+    }
+
     /////////////
     // SETTERS //
     /////////////
@@ -95,8 +116,7 @@ public class FileConfig implements IConfig {
     }
 
     public void setFileNamePattern(String fileNamePattern) {
-        // Note: Must convert general wildcard syntax to Java regex syntax.
-        this.fileNamePattern = fileNamePattern.replace("*", ".*");
+        this.fileNamePattern = fileNamePattern;
     }
 
     public void setFileExtension(String fileExtension) {
@@ -113,13 +133,12 @@ public class FileConfig implements IConfig {
 
     @Override
     public void validate() {
-        ILogger logger = WatchrCoreApp.getInstance().getLogger();
-
-        if(startDir == null) {
+        if(startFileAbsPath == null) {
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, "A directory for parseable reports was not provided."));
-        } else if(!startDir.exists()) {
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, startDir + " does not exist."));
+        } else if(!fileReader.exists(startFileAbsPath)) {
+            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Directory \"" + startFileAbsPath + "\" does not exist."));
         }
+
         if(StringUtils.isBlank(fileNamePattern)) {
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Pattern for finding report files cannot be blank!"));
         }
@@ -137,11 +156,11 @@ public class FileConfig implements IConfig {
         if(other instanceof FileConfig) {
             FileConfig otherFileConfig = (FileConfig) other;
 
-            boolean startDirsXorNull = startDir == null ^ otherFileConfig.startDir == null;
-            if(startDirsXorNull || (startDir != null && !(startDir.equals(otherFileConfig.startDir)))) {
-                WatchrDiff<File> diff = new WatchrDiff<>(configPath, DiffCategory.START_DIR);
-                diff.setBeforeValue(startDir);
-                diff.setNowValue(otherFileConfig.startDir);
+            boolean startDirsXorNull = startFileAbsPath == null ^ otherFileConfig.startFileAbsPath == null;
+            if(startDirsXorNull || (startFileAbsPath != null && !(startFileAbsPath.equals(otherFileConfig.startFileAbsPath)))) {
+                WatchrDiff<String> diff = new WatchrDiff<>(configPath, DiffCategory.START_DIR);
+                diff.setBeforeValue(startFileAbsPath);
+                diff.setNowValue(otherFileConfig.startFileAbsPath);
                 diffList.add(diff);
             }
             if(!(fileNamePattern.equals(otherFileConfig.fileNamePattern))) {
@@ -185,9 +204,9 @@ public class FileConfig implements IConfig {
         } else {
 			FileConfig otherFileConfig = (FileConfig) other;
 
-            if(startDir != null && otherFileConfig.startDir != null) {
-                equals = startDir.equals(otherFileConfig.startDir);
-            } else if(startDir == null && otherFileConfig.startDir == null) {
+            if(startFileAbsPath != null && otherFileConfig.startFileAbsPath != null) {
+                equals = startFileAbsPath.equals(otherFileConfig.startFileAbsPath);
+            } else if(startFileAbsPath == null && otherFileConfig.startFileAbsPath == null) {
                 equals = true;
             }
             equals = equals && fileNamePattern.equals(otherFileConfig.fileNamePattern);
@@ -201,8 +220,8 @@ public class FileConfig implements IConfig {
     @Override
     public int hashCode() {
         int hash = 7;
-        if(startDir != null) {
-            hash = 31 * (hash + startDir.hashCode());
+        if(startFileAbsPath != null) {
+            hash = 31 * (hash + startFileAbsPath.hashCode());
         }
         hash = 31 * (hash + fileNamePattern.hashCode());
         hash = 31 * (hash + fileExtension.hashCode());

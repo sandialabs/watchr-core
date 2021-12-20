@@ -14,11 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.db.IDatabase;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
-import gov.sandia.watchr.graph.library.IHtmlGraphRenderer;
-import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.graph.library.IHtmlButtonRenderer;
 
 public abstract class AbstractButtonBar {
 
@@ -26,21 +24,21 @@ public abstract class AbstractButtonBar {
     // FIELDS //
     ////////////
 
-    protected final IHtmlGraphRenderer parentGraphRenderer;
+    protected final IHtmlButtonRenderer parentRenderer;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    protected AbstractButtonBar(IHtmlGraphRenderer parentGraphLibrary) {
-        this.parentGraphRenderer = parentGraphLibrary;
+    protected AbstractButtonBar(IHtmlButtonRenderer parentRenderer) {
+        this.parentRenderer = parentRenderer;
     }
 
     ////////////
     // PUBLIC //
     ////////////
     
-    public String getHtml(PlotWindowModel currentPlot, List<ButtonType> buttons) {
+    public String getHtml(PlotWindowModel currentPlot, List<ButtonType> buttons) throws UnsupportedEncodingException {
         StringBuilder htmlSb = new StringBuilder();
         for(ButtonType button : buttons) {
             htmlSb.append(getHtmlForButton(currentPlot, button));
@@ -48,15 +46,17 @@ public abstract class AbstractButtonBar {
         return htmlSb.toString();
     }
 
-    public IHtmlGraphRenderer getParentGraphRenderer() {
-        return parentGraphRenderer;
+    public IHtmlButtonRenderer getButtonRenderer() {
+        return parentRenderer;
     }
 
     ///////////////
     // PROTECTED //
     ///////////////
 
-    protected Map<String, String> getParameterMapForChildButton(IDatabase db, PlotWindowModel plot) {
+    protected Map<String, String> getParameterMapForChildButton(
+            IDatabase db, PlotWindowModel plot) throws UnsupportedEncodingException {
+
         Map<String, String> paramsMap = new HashMap<>();
         if(!db.getChildren(plot, "").isEmpty()) {
             paramsMap.put("path", escapePlotName(plot));
@@ -64,20 +64,13 @@ public abstract class AbstractButtonBar {
         return paramsMap;
     }
 
-    protected String escapePlotName(PlotWindowModel plot) {
-        String escapedPlotFilename = "";
-        try {
-            escapedPlotFilename = URLEncoder.encode(plot.getName(), StandardCharsets.UTF_8.name());
-        } catch(UnsupportedEncodingException e) {
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
-            logger.logError("An error occurred encoding " + plot.getName(), e);
-        }
-        return escapedPlotFilename;
+    protected String escapePlotName(PlotWindowModel plot) throws UnsupportedEncodingException {
+        return URLEncoder.encode(plot.getName(), StandardCharsets.UTF_8.name());
 }
 
     //////////////
     // ABSTRACT //
     //////////////
 
-    public abstract String getHtmlForButton(PlotWindowModel currentPlot, ButtonType type);
+    public abstract String getHtmlForButton(PlotWindowModel currentPlot, ButtonType type) throws UnsupportedEncodingException;
 }

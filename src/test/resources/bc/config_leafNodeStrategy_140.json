@@ -1,0 +1,553 @@
+{
+    "plotsConfig": {
+        "fileConfig": {
+            "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+            "fileNamePattern": "performance_*",
+            "fileExtension": "xml",
+            "ignoreOldFiles": true,
+            "recurseDirectories": false,
+            "configPath": "//plotsConfig/fileConfig"
+        },
+        "plotConfigs": [{
+                "category": "cpu-time-max",
+                "name": "",
+                "autonameConfig": {
+                    "nameFormatRemovePrefix": "\\/nightly_run_\\d{4}_\\d{2}_\\d{2}",
+                    "nameUseProperty": "y/path",
+                    "nameUseExtractor": {
+                        "fileConfig": {
+                            "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                            "fileNamePattern": "performance_*",
+                            "fileExtension": "xml",
+                            "ignoreOldFiles": true,
+                            "recurseDirectories": false,
+                            "configPath": "//plotsConfig/fileConfig"
+                        },
+                        "extractionStrategyType": "XML",
+                        "ambiguityStrategy": {
+                            "getFirstMatchOnly": true,
+                            "recurseToChildGraphs": false,
+                            "iterateWithOtherExtractor": "",
+                            "configPath": "//plotsConfig/0/plotConfig/nameConfig/strategy"
+                        },
+                        "properties": {},
+                        "configPath": "//plotsConfig/0/plotConfig/nameConfig/autoname"
+                    },
+                    "configPath": "//plotsConfig/0/plotConfig/nameConfig"
+                },
+                "type": "SCATTER_PLOT",
+                "canvasLayout": "SHARED",
+                "canvasPerRow": 1,
+                "templateName": "plot_template",
+                "inheritTemplate": "",
+                "dataLines": [{
+                        "extractorType": "XML",
+                        "xExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/0/plotConfig/0/strategy"
+                            },
+                            "properties": {
+                                "getPath": "*",
+                                "getKey": "date",
+                                "unit": "timestamp",
+                                "getElement": "performance-report"
+                            },
+                            "configPath": "//plotsConfig/0/plotConfig/0/x"
+                        },
+                        "yExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": false,
+                                "recurseToChildGraphs": true,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/0/plotConfig/0/dataLine/strategy"
+                            },
+                            "properties": {
+                                "getPath": "nightly_run_*/*/*",
+                                "getKey": "cpu-time-max",
+                                "unit": "seconds",
+                                "getPathAttribute": "name",
+                                "getElement": "performance-report|timing"
+                            },
+                            "configPath": "//plotsConfig/0/plotConfig/0/y"
+                        },
+                        "metadataList": [{
+                                "link": "",
+                                "name": "codeBase",
+                                "metadataExtractor": {
+                                    "fileConfig": {
+                                        "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                        "fileNamePattern": "performance_*",
+                                        "fileExtension": "xml",
+                                        "ignoreOldFiles": true,
+                                        "recurseDirectories": false,
+                                        "configPath": "//plotsConfig/fileConfig"
+                                    },
+                                    "extractionStrategyType": "XML",
+                                    "ambiguityStrategy": {
+                                        "getFirstMatchOnly": true,
+                                        "recurseToChildGraphs": false,
+                                        "iterateWithOtherExtractor": "",
+                                        "configPath": "//plotsConfig/0/plotConfig/0/dataLine/strategy"
+                                    },
+                                    "properties": {
+                                        "getPath": "nightly_run_*/*/codeBase",
+                                        "getKey": "value",
+                                        "getPathAttribute": "name|key",
+                                        "getElement": "performance-report|timing|metadata"
+                                    },
+                                    "configPath": "//plotsConfig/0/plotConfig/0/dataLine/metadata"
+                                },
+                                "fileConfig": {
+                                    "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                    "fileNamePattern": "performance_*",
+                                    "fileExtension": "xml",
+                                    "ignoreOldFiles": true,
+                                    "recurseDirectories": false,
+                                    "configPath": "//plotsConfig/fileConfig"
+                                },
+                                "configPath": "//plotsConfig/0/plotConfig/0/dataLine/metadataConfig"
+                            }, {
+                                "link": "",
+                                "name": "branch",
+                                "metadataExtractor": {
+                                    "fileConfig": {
+                                        "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                        "fileNamePattern": "performance_*",
+                                        "fileExtension": "xml",
+                                        "ignoreOldFiles": true,
+                                        "recurseDirectories": false,
+                                        "configPath": "//plotsConfig/fileConfig"
+                                    },
+                                    "extractionStrategyType": "XML",
+                                    "ambiguityStrategy": {
+                                        "getFirstMatchOnly": true,
+                                        "recurseToChildGraphs": false,
+                                        "iterateWithOtherExtractor": "",
+                                        "configPath": "//plotsConfig/0/plotConfig/0/dataLine/strategy"
+                                    },
+                                    "properties": {
+                                        "getPath": "nightly_run_*/*/branch",
+                                        "getKey": "value",
+                                        "getPathAttribute": "name|key",
+                                        "getElement": "performance-report|timing|metadata"
+                                    },
+                                    "configPath": "//plotsConfig/0/plotConfig/0/dataLine/metadata"
+                                },
+                                "fileConfig": {
+                                    "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                    "fileNamePattern": "performance_*",
+                                    "fileExtension": "xml",
+                                    "ignoreOldFiles": true,
+                                    "recurseDirectories": false,
+                                    "configPath": "//plotsConfig/fileConfig"
+                                },
+                                "configPath": "//plotsConfig/0/plotConfig/0/dataLine/metadataConfig"
+                            }
+                        ],
+                        "derivativeLines": [{
+                                "rollingRange": 20,
+                                "ignoreFilteredData": false,
+                                "numberFormat": "#.####",
+                                "configPath": "//plotsConfig/0/plotConfig/0/dataLine/0/derivativeLine/average",
+                                "name": "",
+                                "color": {
+                                    "red": 202,
+                                    "green": 77,
+                                    "blue": 77
+                                },
+                                "classMetaKey": "gov.sandia.watchr.config.derivative.AverageDerivativeLine"
+                            }, {
+                                "rollingRange": 20,
+                                "ignoreFilteredData": false,
+                                "numberFormat": "#.####",
+                                "configPath": "//plotsConfig/0/plotConfig/0/dataLine/1/derivativeLine/stdDevPositiveOffset",
+                                "name": "",
+                                "color": {
+                                    "red": 77,
+                                    "green": 202,
+                                    "blue": 77
+                                },
+                                "classMetaKey": "gov.sandia.watchr.config.derivative.StdDevPositiveOffsetDerivativeLine"
+                            }
+                        ],
+                        "color": {
+                            "red": 77,
+                            "green": 77,
+                            "blue": 202
+                        },
+                        "name": "Data Line",
+                        "templateName": "SierraDataLineBase",
+                        "inheritTemplate": "",
+                        "configPath": "//plotsConfig/0/plotConfig/0/dataLine"
+                    }
+                ],
+                "plotRules": [{
+                        "condition": "dataLine > average",
+                        "action": "warn",
+                        "actionProperties": {},
+                        "configPath": "//plotsConfig/0/plotConfig/0/ruleConfig"
+                    }, {
+                        "condition": "dataLine > standardDeviationOffset",
+                        "action": "fail",
+                        "actionProperties": {},
+                        "configPath": "//plotsConfig/0/plotConfig/1/ruleConfig"
+                    }
+                ],
+                "configPath": "//plotsConfig/0/plotConfig"
+            }, {
+                "category": "cpu-time-min",
+                "name": "",
+                "type": "SCATTER_PLOT",
+                "canvasLayout": "SHARED",
+                "canvasPerRow": 1,
+                "templateName": "",
+                "inheritTemplate": "plot_template",
+                "dataLines": [{
+                        "extractorType": "XML",
+                        "xExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/1/plotConfig/0/strategy"
+                            },
+                            "properties": {},
+                            "configPath": "//plotsConfig/1/plotConfig/0/x"
+                        },
+                        "yExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/1/plotConfig/0/strategy"
+                            },
+                            "properties": {
+                                "getKey": "cpu-time-min"
+                            },
+                            "configPath": "//plotsConfig/1/plotConfig/0/y"
+                        },
+                        "metadataList": [],
+                        "derivativeLines": [],
+                        "name": "",
+                        "templateName": "",
+                        "inheritTemplate": "SierraDataLineBase",
+                        "configPath": "//plotsConfig/1/plotConfig/0/dataLine"
+                    }
+                ],
+                "plotRules": [],
+                "configPath": "//plotsConfig/1/plotConfig"
+            }, {
+                "category": "cpu-time-sum",
+                "name": "",
+                "type": "SCATTER_PLOT",
+                "canvasLayout": "SHARED",
+                "canvasPerRow": 1,
+                "templateName": "",
+                "inheritTemplate": "plot_template",
+                "dataLines": [{
+                        "extractorType": "XML",
+                        "xExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/2/plotConfig/0/strategy"
+                            },
+                            "properties": {},
+                            "configPath": "//plotsConfig/2/plotConfig/0/x"
+                        },
+                        "yExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/2/plotConfig/0/strategy"
+                            },
+                            "properties": {
+                                "getKey": "cpu-time-sum"
+                            },
+                            "configPath": "//plotsConfig/2/plotConfig/0/y"
+                        },
+                        "metadataList": [],
+                        "derivativeLines": [],
+                        "name": "",
+                        "templateName": "",
+                        "inheritTemplate": "SierraDataLineBase",
+                        "configPath": "//plotsConfig/2/plotConfig/0/dataLine"
+                    }
+                ],
+                "plotRules": [],
+                "configPath": "//plotsConfig/2/plotConfig"
+            }, {
+                "category": "wall-time-max",
+                "name": "",
+                "type": "SCATTER_PLOT",
+                "canvasLayout": "SHARED",
+                "canvasPerRow": 1,
+                "templateName": "",
+                "inheritTemplate": "plot_template",
+                "dataLines": [{
+                        "extractorType": "XML",
+                        "xExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/3/plotConfig/0/strategy"
+                            },
+                            "properties": {},
+                            "configPath": "//plotsConfig/3/plotConfig/0/x"
+                        },
+                        "yExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/3/plotConfig/0/strategy"
+                            },
+                            "properties": {
+                                "getKey": "wall-time-max"
+                            },
+                            "configPath": "//plotsConfig/3/plotConfig/0/y"
+                        },
+                        "metadataList": [],
+                        "derivativeLines": [],
+                        "name": "",
+                        "templateName": "",
+                        "inheritTemplate": "SierraDataLineBase",
+                        "configPath": "//plotsConfig/3/plotConfig/0/dataLine"
+                    }
+                ],
+                "plotRules": [],
+                "configPath": "//plotsConfig/3/plotConfig"
+            }, {
+                "category": "wall-time-min",
+                "name": "",
+                "type": "SCATTER_PLOT",
+                "canvasLayout": "SHARED",
+                "canvasPerRow": 1,
+                "templateName": "",
+                "inheritTemplate": "plot_template",
+                "dataLines": [{
+                        "extractorType": "XML",
+                        "xExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/4/plotConfig/0/strategy"
+                            },
+                            "properties": {},
+                            "configPath": "//plotsConfig/4/plotConfig/0/x"
+                        },
+                        "yExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/4/plotConfig/0/strategy"
+                            },
+                            "properties": {
+                                "getKey": "wall-time-min"
+                            },
+                            "configPath": "//plotsConfig/4/plotConfig/0/y"
+                        },
+                        "metadataList": [],
+                        "derivativeLines": [],
+                        "name": "",
+                        "templateName": "",
+                        "inheritTemplate": "SierraDataLineBase",
+                        "configPath": "//plotsConfig/4/plotConfig/0/dataLine"
+                    }
+                ],
+                "plotRules": [],
+                "configPath": "//plotsConfig/4/plotConfig"
+            }, {
+                "category": "wall-time-sum",
+                "name": "",
+                "type": "SCATTER_PLOT",
+                "canvasLayout": "SHARED",
+                "canvasPerRow": 1,
+                "templateName": "",
+                "inheritTemplate": "plot_template",
+                "dataLines": [{
+                        "extractorType": "XML",
+                        "xExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/5/plotConfig/0/strategy"
+                            },
+                            "properties": {},
+                            "configPath": "//plotsConfig/5/plotConfig/0/x"
+                        },
+                        "yExtractor": {
+                            "fileConfig": {
+                                "startFileAbsPath": "C:\\Users\\emridgw\\workspace\\git\\watchr-test-data\\xml_reports_sierra_large\\performance_2018_01_12_07-01-41-949893_master.xml",
+                                "fileNamePattern": "performance_*",
+                                "fileExtension": "xml",
+                                "ignoreOldFiles": true,
+                                "recurseDirectories": false,
+                                "configPath": "//plotsConfig/fileConfig"
+                            },
+                            "extractionStrategyType": "XML",
+                            "ambiguityStrategy": {
+                                "getFirstMatchOnly": true,
+                                "recurseToChildGraphs": false,
+                                "iterateWithOtherExtractor": "",
+                                "configPath": "//plotsConfig/5/plotConfig/0/strategy"
+                            },
+                            "properties": {
+                                "getKey": "wall-time-sum"
+                            },
+                            "configPath": "//plotsConfig/5/plotConfig/0/y"
+                        },
+                        "metadataList": [],
+                        "derivativeLines": [],
+                        "name": "",
+                        "templateName": "",
+                        "inheritTemplate": "SierraDataLineBase",
+                        "configPath": "//plotsConfig/5/plotConfig/0/dataLine"
+                    }
+                ],
+                "plotRules": [],
+                "configPath": "//plotsConfig/5/plotConfig"
+            }
+        ],
+        "categoryConfig": {
+            "categories": [
+                "cpu-time-max",
+                "cpu-time-min",
+                "cpu-time-sum",
+                "wall-time-max",
+                "wall-time-min",
+                "wall-time-sum"
+            ],
+            "configPath": "//plotsConfig/categories"
+        },
+        "pointFilterConfig": {
+            "filterPoints": [],
+            "configPath": "//plotsConfig/filterConfig"
+        },
+        "configPath": "//plotsConfig"
+    },
+    "graphConfig": {
+        "configPath": "//graphDisplayConfig",
+        "lastPlotDbLocation": "/3d_omd_fic_s/Test",
+        "nextPlotDbLocation": "/3d_omd_fic_s/Test",
+        "page": 1,
+        "displayCategory": "cpu-time-max",
+        "displayRange": 30,
+        "graphWidth": 450,
+        "graphHeight": 450,
+        "graphsPerRow": 3,
+        "graphsPerPage": 15,
+        "displayedDecimalPlaces": 3,
+        "travelUpIfEmpty": "true",
+        "sort": "ASCENDING",
+        "exportMode": "PER_CATEGORY"
+    }
+}

@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
+import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.NameConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
@@ -17,16 +17,36 @@ import gov.sandia.watchr.log.ILogger;
 
 public class AutonameConfigReader extends AbstractExtractorConfigReader<NameConfig> {
 
+    ////////////
+    // FIELDS //
+    ////////////
+
+    private final FileConfig fileConfig;
+
+    /////////////////
+    // CONSTRUCTOR //
+    /////////////////
+
+    public AutonameConfigReader(FileConfig fileConfig, ILogger logger) {
+        super(logger);
+        this.fileConfig = fileConfig;
+        if(fileConfig == null) {
+            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "AutonameConfigReader: No file config defined."));
+        }
+    }
+
+    //////////////
+    // OVERRIDE //
+    //////////////
+
     @Override
     public Set<String> getRequiredKeywords() {
-        Set<String> requiredKeywords = new HashSet<>();
-        requiredKeywords.add(Keywords.USE_PROPERTY);
-        return requiredKeywords;
+        return new HashSet<>();
     }
 
     @Override
     public NameConfig handle(JsonElement element, IConfig parent) {
-        NameConfig nameConfig = new NameConfig(parent.getConfigPath());
+        NameConfig nameConfig = new NameConfig(fileConfig, parent.getConfigPath());
 
         JsonObject jsonObject = element.getAsJsonObject();
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
@@ -37,11 +57,13 @@ public class AutonameConfigReader extends AbstractExtractorConfigReader<NameConf
             if(key.equals(Keywords.USE_PROPERTY)) {
                 seenKeywords.add(Keywords.USE_PROPERTY);
                 nameConfig.setNameUseProperty(value.getAsString());
+            } else if(key.equals(Keywords.EXTRACTOR)) {
+                seenKeywords.add(Keywords.EXTRACTOR);
+                handleDataForExtractor(value, nameConfig.getNameUseExtractor(), nameConfig);
             } else if(key.equals(Keywords.FORMAT_BY_REMOVING_PREFIX)) {
                 seenKeywords.add(Keywords.FORMAT_BY_REMOVING_PREFIX);
                 nameConfig.setNameFormatRemovePrefix(value.getAsString());
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsNameConfig: Unrecognized element `" + key + "`."));
             }
         }

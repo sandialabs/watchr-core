@@ -14,6 +14,7 @@ import java.util.Set;
 
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.ILogger;
 
 public class CategoryConfiguration implements IConfig {
     
@@ -23,20 +24,23 @@ public class CategoryConfiguration implements IConfig {
 
     private Set<String> categories;
     private final String configPath;
+    private final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public CategoryConfiguration(String configPathPrefix) {
+    public CategoryConfiguration(String configPathPrefix, ILogger logger) {
         this.categories = new LinkedHashSet<>();
         this.configPath = configPathPrefix + "/categories";
+        this.logger = logger;
     }
 
     public CategoryConfiguration(CategoryConfiguration copy) {
         this.categories = new LinkedHashSet<>();
         this.categories.addAll(copy.getCategories());
         this.configPath = copy.getConfigPath();
+        this.logger = copy.logger;
     }
 
     /////////////
@@ -50,6 +54,11 @@ public class CategoryConfiguration implements IConfig {
     @Override
     public String getConfigPath() {
         return configPath;
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
     }
 
     //////////////

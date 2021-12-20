@@ -10,42 +10,76 @@ package gov.sandia.watchr.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.util.CommonConstants;
 import gov.sandia.watchr.util.OsUtil;
-public class GraphDisplayConfig implements IConfig {
 
+public class GraphDisplayConfig implements IConfig {
 
     ////////////
     // FIELDS //
     ////////////
 
+    public enum GraphDisplaySort {
+        NONE,
+        ASCENDING,
+        DESCENDING;
+    }
+    public enum ExportMode {
+        NONE,
+        PER_CATEGORY,
+        PER_PLOT;
+    }
+    public enum LeafNodeStrategy {
+        TRAVEL_UP_TO_PARENT,
+        SHOW_CHILD_ONLY,
+        SHOW_NOTHING
+    }
     private final String configPath;
 
     // Non-configurable properties
     private String lastPlotDbLocation = "";
     private String nextPlotDbLocation = "";
-    private int page = 1;
+    private int page = -1;
 
     // Configurable properties
     private String displayCategory = "";
-    private int displayRange = 30;
-    private int graphWidth = 450;
-    private int graphHeight = 450;
-    private int graphsPerRow = 3;
-    private int graphsPerPage = 15;
-    private int displayedDecimalPlaces = 3;
-    private boolean travelUpIfEmpty = false;
+    private int displayRange = -1;
+    private int graphWidth = -1;
+    private int graphHeight = -1;
+    private int graphsPerRow = -1;
+    private int graphsPerPage = -1;
+    private int displayedDecimalPlaces = -1;
+    private LeafNodeStrategy leafStrategy;
+    private GraphDisplaySort sort;
+    private ExportMode exportMode;
+
+    private final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public GraphDisplayConfig(String configPathPrefix) {
+    public GraphDisplayConfig(String configPathPrefix, ILogger logger) {
         this.configPath = configPathPrefix + "/graphDisplayConfig";
+        this.logger = logger;
+
+        this.lastPlotDbLocation = CommonConstants.ROOT_PATH_ALIAS;
+        this.nextPlotDbLocation = CommonConstants.ROOT_PATH_ALIAS;
+        this.page = 1;
+
+        this.displayRange = 30;
+        this.graphWidth = 500;
+        this.graphHeight = 500;
+        this.graphsPerRow = 3;
+        this.graphsPerPage = 15;
+        this.displayedDecimalPlaces = 3;
+        this.leafStrategy = LeafNodeStrategy.SHOW_NOTHING;
+        this.sort = GraphDisplaySort.ASCENDING;
+        this.exportMode = ExportMode.NONE;
     }
 
     public GraphDisplayConfig(GraphDisplayConfig copy) {
@@ -59,9 +93,12 @@ public class GraphDisplayConfig implements IConfig {
         this.graphsPerRow = copy.getGraphsPerRow();
         this.graphsPerPage = copy.getGraphsPerPage();
         this.displayedDecimalPlaces = copy.getDisplayedDecimalPlaces();
-        this.travelUpIfEmpty = copy.shouldTravelUpIfEmpty();
+        this.leafStrategy = copy.getLeafNodeStrategy();
+        this.sort = copy.getSort();
+        this.exportMode = copy.getExportMode();
 
         this.configPath = copy.getConfigPath();
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -108,14 +145,37 @@ public class GraphDisplayConfig implements IConfig {
         return displayedDecimalPlaces;
     }
 
-    public boolean shouldTravelUpIfEmpty() {
-        return travelUpIfEmpty;
+    public LeafNodeStrategy getLeafNodeStrategy() {
+        return leafStrategy;
+    }
+
+    public GraphDisplaySort getSort() {
+        // This field has the potential to be null, since it was
+        // added after version 1.0.0.
+        if(sort == null) {
+            sort = GraphDisplaySort.ASCENDING;
+        }
+        return sort;
+    }
+
+    public ExportMode getExportMode() {
+        // This field has the potential to be null, since it was
+        // added after version 1.0.0.
+        if(exportMode == null) {
+            exportMode = ExportMode.NONE;
+        }
+        return exportMode;
     }
 
     @Override
     public String getConfigPath() {
         return configPath;
-    }  
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
 
     /////////////
     // SETTERS //
@@ -161,8 +221,46 @@ public class GraphDisplayConfig implements IConfig {
         this.displayedDecimalPlaces = displayedDecimalPlaces;
     }
 
-    public void setTravelUpIfEmpty(boolean travelUpIfEmpty) {
-        this.travelUpIfEmpty = travelUpIfEmpty;
+    public void setLeafNodeStrategy(LeafNodeStrategy leafStrategy) {
+        this.leafStrategy = leafStrategy;
+    }
+
+    public void setLeafNodeStrategy(String leafStrategyStr) {
+        if(leafStrategyStr.equalsIgnoreCase("SHOW_CHILD_ONLY")) {
+            leafStrategy = LeafNodeStrategy.SHOW_CHILD_ONLY;
+        } else if(leafStrategyStr.equalsIgnoreCase("SHOW_NOTHING")) {
+            leafStrategy = LeafNodeStrategy.SHOW_NOTHING;
+        } else {
+            leafStrategy = LeafNodeStrategy.TRAVEL_UP_TO_PARENT;
+        }
+    }
+
+    public void setSort(GraphDisplaySort sort) {
+        this.sort = sort;
+    }
+
+    public void setSort(String sortStr) {
+        if(sortStr.equalsIgnoreCase("NONE")) {
+            sort = GraphDisplaySort.NONE;
+        } else if(sortStr.equalsIgnoreCase("DESCENDING")) {
+            sort = GraphDisplaySort.DESCENDING;
+        } else {
+            sort = GraphDisplaySort.ASCENDING;
+        }
+    }
+
+    public void setExportMode(ExportMode exportMode) {
+        this.exportMode = exportMode;
+    }
+
+    public void setExportMode(String exportModeStr) {
+        if(exportModeStr.equalsIgnoreCase("NONE")) {
+            exportMode = ExportMode.NONE;
+        } else if(exportModeStr.equalsIgnoreCase("PER_CATEGORY") || exportModeStr.equalsIgnoreCase("perCategory")) {
+            exportMode = ExportMode.PER_CATEGORY;
+        } else {
+            exportMode = ExportMode.PER_PLOT;
+        }
     }
 
     //////////////
@@ -183,14 +281,13 @@ public class GraphDisplayConfig implements IConfig {
         sb.append("graphsPerRow: " + graphsPerRow + OsUtil.getOSLineBreak());
         sb.append("graphsPerPage: " + graphsPerPage + OsUtil.getOSLineBreak());
         sb.append("displayedDecimalPlaces: " + displayedDecimalPlaces + OsUtil.getOSLineBreak());
-        sb.append("travelUpIfEmpty: " + Boolean.toString(travelUpIfEmpty) + OsUtil.getOSLineBreak());
+        sb.append("leafNodeStrategy: " + leafStrategy.toString() + OsUtil.getOSLineBreak());
 
         return sb.toString();
     }
 
     @Override
     public void validate() {
-        ILogger logger = WatchrCoreApp.getInstance().getLogger();
         if(page < 1) {
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Page must start at 1."));
         }
@@ -261,6 +358,18 @@ public class GraphDisplayConfig implements IConfig {
             diff.setNowValue(otherGraphConfig.displayedDecimalPlaces);
             diffList.add(diff);
         }
+        if(sort != otherGraphConfig.sort) {
+            WatchrDiff<GraphDisplaySort> diff = new WatchrDiff<>(configPath, DiffCategory.SORT);
+            diff.setBeforeValue(sort);
+            diff.setNowValue(otherGraphConfig.sort);
+            diffList.add(diff);
+        }
+        if(exportMode != otherGraphConfig.exportMode) {
+            WatchrDiff<ExportMode> diff = new WatchrDiff<>(configPath, DiffCategory.EXPORT_MODE);
+            diff.setBeforeValue(exportMode);
+            diff.setNowValue(otherGraphConfig.exportMode);
+            diffList.add(diff);
+        }
         return diffList;
     }
 
@@ -286,7 +395,9 @@ public class GraphDisplayConfig implements IConfig {
             equals = equals && graphsPerRow == otherGraphConfig.graphsPerRow;
             equals = equals && graphsPerPage == otherGraphConfig.graphsPerPage;
             equals = equals && displayedDecimalPlaces == otherGraphConfig.displayedDecimalPlaces;
-            equals = equals && travelUpIfEmpty == otherGraphConfig.travelUpIfEmpty;
+            equals = equals && leafStrategy == otherGraphConfig.leafStrategy;
+            equals = equals && sort == otherGraphConfig.sort;
+            equals = equals && exportMode == otherGraphConfig.exportMode;
         }
         return equals;
     }
@@ -304,7 +415,9 @@ public class GraphDisplayConfig implements IConfig {
         hash = 31 * (hash + Integer.hashCode(graphsPerRow));
         hash = 31 * (hash + Integer.hashCode(graphsPerPage));
         hash = 31 * (hash + Integer.hashCode(displayedDecimalPlaces));
-        hash = 31 * (hash + Boolean.hashCode(travelUpIfEmpty));
+        hash = 31 * (hash + leafStrategy.ordinal());
+        hash = 31 * (hash + Integer.hashCode(sort.ordinal()));
+        hash = 31 * (hash + Integer.hashCode(exportMode.ordinal()));
         return hash;
     }
 }

@@ -24,7 +24,8 @@ public class PlotRelationshipManager {
     private PlotRelationshipManager() {}
 
     public static PlotWindowModel getWindowModel(UUID windowModelUUID) {
-        for(PlotWindowModel windowModel : windowModels) {
+        for(int i = 0; i < windowModels.size(); i++) {
+            PlotWindowModel windowModel = windowModels.get(i);
             if(windowModel.getUUID().equals(windowModelUUID)) {
                 return windowModel;
             }

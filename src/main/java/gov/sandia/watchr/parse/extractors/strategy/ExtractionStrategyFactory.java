@@ -9,6 +9,9 @@ package gov.sandia.watchr.parse.extractors.strategy;
 
 import java.util.Map;
 
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.ILogger;
+
 public class ExtractionStrategyFactory {
     
     private static ExtractionStrategyFactory INSTANCE;
@@ -20,11 +23,13 @@ public class ExtractionStrategyFactory {
         return INSTANCE;
     }
 
-    public ExtractionStrategy create(ExtractionStrategyType type, Map<String, String> properties, AmbiguityStrategy strategy) {
+    public ExtractionStrategy<?> create(
+            ExtractionStrategyType type, Map<String, String> properties, AmbiguityStrategy strategy,
+            ILogger logger, IFileReader fileReader) {
         if(type == ExtractionStrategyType.XML) {
-            return new XmlExtractionStrategy(properties, strategy);
+            return new XmlExtractionStrategy(properties, strategy, logger, fileReader);
         } else if(type == ExtractionStrategyType.JSON) {
-            return new JsonExtractionStrategy(properties, strategy);
+            return new JsonExtractionStrategy(properties, strategy, logger, fileReader);
         }
         return null;
     }

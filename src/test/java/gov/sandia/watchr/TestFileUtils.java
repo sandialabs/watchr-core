@@ -1,6 +1,7 @@
 package gov.sandia.watchr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,7 +22,23 @@ import gov.sandia.watchr.util.OsUtil;
 
 public class TestFileUtils {
 
+    ////////////
+    // FIELDS //
+    ////////////
+
+    public static final int LINE_FIRST_PLOT_X = 41;
+    public static final int LINE_FIRST_PLOT_Y = 42;
+    public static final int LINE_FIRST_PLOT_NAME = 63;
+    public static final int LINE_SECOND_PLOT_X = 70;
+    public static final int LINE_SECOND_PLOT_Y = 71;
+    public static final int LINE_SECOND_PLOT_NAME = 92;
+    public static final int LINE_BACKGROUND_COLOR = 141;
+
     private static final String LOG_FILE = "logFile.txt";
+
+    /////////////
+    // METHODS //
+    /////////////
 
     /**
      * Utility method for reading a test file that is local to the src/test/resources
@@ -131,4 +148,27 @@ public class TestFileUtils {
         }
         return points;
     }
+
+    public static File loadTestFile(String path) {
+        try {
+            ClassLoader classLoader = WatchrCoreAppTest_MultistageTests.class.getClassLoader();
+            URL url = classLoader.getResource(path);
+            if(url == null) {
+                throw new IllegalStateException(path + " resulted in a null file reference!");
+            } else {
+                return new File(url.toURI());
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        }
+        return null;
+    }
+
+    public static void assertLineEquals(String fileContents, int lineNumber, String expectedLine) {
+        String[] lines = fileContents.split(OsUtil.getOSLineBreak());
+        assertTrue(lineNumber-1 < lines.length);
+        String actualLine = lines[lineNumber-1];
+        assertEquals(expectedLine, actualLine);
+    }    
 }

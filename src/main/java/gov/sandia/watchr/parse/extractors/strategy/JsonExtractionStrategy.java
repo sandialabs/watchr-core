@@ -7,8 +7,6 @@
 ******************************************************************************/
 package gov.sandia.watchr.parse.extractors.strategy;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -21,21 +19,33 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
-import gov.sandia.watchr.WatchrCoreApp;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.parse.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.extractors.ExtractionResultIndexParser;
+import gov.sandia.watchr.util.StringUtil;
 
-public class JsonExtractionStrategy extends ExtractionStrategy {
+public class JsonExtractionStrategy extends ExtractionStrategy<JsonElement> {
+
+    ////////////
+    // FIELDS //
+    ////////////
+
+    private String fileAbsPath;
+    private ExtractionResultIndexParser indexParser;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public JsonExtractionStrategy(Map<String, String> properties, AmbiguityStrategy strategy) {
-        super(properties, strategy);
+    public JsonExtractionStrategy(
+            Map<String, String> properties, AmbiguityStrategy strategy, ILogger logger, IFileReader fileReader) {
+        super(properties, strategy, logger, fileReader);
+        indexParser = new ExtractionResultIndexParser();
     }
 
     //////////////
@@ -43,22 +53,17 @@ public class JsonExtractionStrategy extends ExtractionStrategy {
     //////////////
 
     @Override
-    public List<ExtractionResult> extract(File targetFile) throws WatchrParseException {
-        try {
-            String jsonFileContents = FileUtils.readFileToString(targetFile, StandardCharsets.UTF_8);
-            JsonElement root = new JsonParser().parse(jsonFileContents);
-            Deque<String> stops = getPathStops();
-            return getNextPathStop(stops, root, "");
-        } catch(Exception e) {
-            throw new WatchrParseException(e);
-        }
-    }
-    
-    /////////////
-    // PRIVATE //
-    /////////////
+    public List<ExtractionResult> extract(String fileAbsPath) throws WatchrParseException {
+        this.fileAbsPath = fileAbsPath;
+      
+        String jsonFileContents = fileReader.readFromFile(fileAbsPath);
+        JsonElement root = JsonParser.parseString(jsonFileContents);
+        Deque<String> stops = getPathStops();
+        return getNextPathStop("", stops, root);
+    }     
 
-    private List<ExtractionResult> getNextPathStop(Deque<String> remainingStops, JsonElement element, String pathSoFar) {
+    @Override
+    protected List<ExtractionResult> getNextPathStop(String pathSoFar, Deque<String> remainingStops, JsonElement element) {
         List<ExtractionResult> results = new ArrayList<>();
 
         if((!remainingStops.isEmpty())) {
@@ -74,42 +79,97 @@ public class JsonExtractionStrategy extends ExtractionStrategy {
             }
         }
         return results;
-    }    
+    }
+    
+    /////////////
+    // PRIVATE //
+    /////////////    
 
     private List<ExtractionResult> handleAsArray(Deque<String> remainingStops, JsonArray array, String pathSoFar) {
         List<ExtractionResult> results = new ArrayList<>();
 
         String nextStop = "";
+        String poppedNextStop = "";
         if(!remainingStops.isEmpty()) {
-            nextStop = remainingStops.pop();
+            poppedNextStop = remainingStops.pop();
+            nextStop = poppedNextStop;
         }
 
-        if(!strategy.shouldGetFirstMatchOnly() && !nextStopIsIndexSyntax(nextStop)) {
-            for(int i = 0; i < array.size(); i++) {
+        if(!strategy.shouldGetFirstMatchOnly()) {
+            if(indexParser.isIndexRangeSyntax(nextStop)) {
+                results.addAll(handleAsArrayAndGetRangeOfElements(remainingStops, nextStop, array, pathSoFar));
+            } else {
+                results.addAll(handleAsArrayAndGetAllElements(remainingStops, array, pathSoFar));
+            }  
+        } else {
+            results.addAll(handleAsArrayAndGetSingleElement(remainingStops, nextStop, array, pathSoFar));
+        }
+
+        remainingStops.push(poppedNextStop);
+        return results;
+    }
+
+    private List<ExtractionResult> handleAsArrayAndGetRangeOfElements(
+            Deque<String> remainingStops, String nextStop, JsonArray array, String pathSoFar) {
+
+        List<ExtractionResult> results = new ArrayList<>();
+        Pair<Integer, Integer> range = indexParser.getRangeFromIndexRangeSyntax(nextStop, array.size());
+        if(range != null) {
+            int start = range.getLeft();
+            int end = range.getRight() + 1;
+            for(int i = start; i < end; i++) {
                 JsonElement arrayElement = array.get(i);
-                if(remainingStops.isEmpty()) {
-                    ExtractionResult result = handleAsTargetValue(arrayElement, pathSoFar);
-                    if(result != null) {
-                        results.add(result);
-                    }
+                List<ExtractionResult> arrayResults = getNextPathStop(pathSoFar, remainingStops, arrayElement);
+                if(arrayResults.isEmpty() && StringUtils.isNotBlank(strategy.getIterateWithOtherExtractor())) {
+                    results.add(null);
                 } else {
-                    results.addAll(getNextPathStop(remainingStops, arrayElement, pathSoFar));
+                    results.addAll(arrayResults);
                 }
             }
-        } else {
-            if(nextStopIsIndexSyntax(nextStop)) {
-                int indexValue = getIndexFromIndexSyntax(nextStop);
-                JsonElement arrayElement = array.get(indexValue);
-                results.addAll(getNextPathStop(remainingStops, arrayElement, pathSoFar));
+        }
+        return results;
+    }
+
+    private List<ExtractionResult> handleAsArrayAndGetAllElements(Deque<String> remainingStops, JsonArray array, String pathSoFar) {
+        List<ExtractionResult> results = new ArrayList<>();
+        for(int i = 0; i < array.size(); i++) {
+            JsonElement arrayElement = array.get(i);
+            if(remainingStops.isEmpty()) {
+                ExtractionResult result = handleAsTargetValue(arrayElement, pathSoFar);
+                if(result != null || StringUtils.isNotBlank(strategy.getIterateWithOtherExtractor())) {
+                    results.add(result);
+                }
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
-                String message = "Given path " + path + ", could not determine where to go next in JSON hierarchy.  " +
-                                 "Either provide index syntax (i.e. {1}) to speficy which JSON array element you want, " +
-                                 "or configure your Watchr settings to consume all array elements by setting the getFirstMatchOnly " +
-                                 "property to false.";
-                logger.logWarning(message);
+                results.addAll(getNextPathStop(pathSoFar, remainingStops, arrayElement));
             }
         }
+        return results;
+    }
+
+    private List<ExtractionResult> handleAsArrayAndGetSingleElement(
+            Deque<String> remainingStops, String nextStop, JsonArray array, String pathSoFar) {
+        List<ExtractionResult> results = new ArrayList<>();
+
+        if(indexParser.isIndexSyntax(nextStop)) {
+            int indexValue = indexParser.getIndexFromIndexSyntax(nextStop);
+            JsonElement arrayElement = array.get(indexValue);
+            results.addAll(getNextPathStop(pathSoFar, remainingStops, arrayElement));
+        } else if(array.size() > 0) {
+            JsonElement arrayElement = array.get(0);
+            List<ExtractionResult> arrayResults = getNextPathStop(pathSoFar, remainingStops, arrayElement);
+            if(arrayResults.isEmpty() && StringUtils.isNotBlank(strategy.getIterateWithOtherExtractor())) {
+                results.add(null);
+            } else {
+                results.addAll(arrayResults);
+            }
+        } else {
+            String message = "Given path " + path + ", could not determine where to go next in JSON hierarchy.  " +
+                             "Either provide index syntax (i.e. {1}) to speficy which JSON array element you want, " +
+                             "or configure your Watchr settings to consume all array elements by setting the getFirstMatchOnly " +
+                             "property to false.";
+            logger.logWarning(message);
+        }
+
         return results;
     }
 
@@ -117,25 +177,58 @@ public class JsonExtractionStrategy extends ExtractionStrategy {
         List<ExtractionResult> results = new ArrayList<>();
 
         String nextStop = "*";
+        String poppedNextStop = "";
         if(!remainingStops.isEmpty()) {
-            nextStop = remainingStops.pop();
+            poppedNextStop = remainingStops.pop();
+            nextStop = poppedNextStop;
         }
-        nextStop = nextStop.replace("*", ".*");
+        nextStop = StringUtil.convertToRegex(nextStop);
 
-        Set<Entry<String, JsonElement>> entries = object.entrySet();
-        for(Entry<String, JsonElement> entry : entries) {
-            String key = entry.getKey();
-            JsonElement value = entry.getValue();
-            if(key.matches(nextStop)) {
-                if(remainingStops.isEmpty()) {
-                    ExtractionResult result = handleAsTargetValue(value, pathSoFar + "/" + key);
-                    results.add(result);
-                } else {
-                    results.addAll(getNextPathStop(remainingStops, value, pathSoFar + "/" + key));
+        boolean indexSyntax =
+            indexParser.isIndexSyntax(nextStop) ||
+            indexParser.isIndexRangeSyntax(nextStop);
+        
+        List<Entry<String, JsonElement>> entries = new ArrayList<>(object.entrySet());
+        int start = 0;
+        int end = entries.size();
+
+        if(indexSyntax) {
+            if(indexParser.isIndexSyntax(nextStop)) {
+                start = indexParser.getIndexFromIndexSyntax(nextStop);
+                end = start + 1;
+            } else { // indexParser.isIndexRangeSyntax(nextStop)
+                Pair<Integer, Integer> range = indexParser.getRangeFromIndexRangeSyntax(nextStop, entries.size());
+                if(range != null) {
+                    start = range.getLeft();
+                    end = range.getRight() + 1;
                 }
             }
         }
 
+        for(int i = start; i < end; i++) {
+            if(i < entries.size()) {
+                Entry<String, JsonElement> entry = entries.get(i);
+                String key = entry.getKey();
+                String newPathSoFar = pathSoFar + "/" + key;
+                JsonElement value = entry.getValue();
+                if(indexSyntax || key.matches(nextStop)) {
+                    if(remainingStops.isEmpty()) {
+                        ExtractionResult result = handleAsTargetValue(value, newPathSoFar);
+                        if(result != null || StringUtils.isNotBlank(strategy.getIterateWithOtherExtractor())) {
+                            results.add(result);
+                        }
+                    } else {
+                        List<ExtractionResult> childResults = getNextPathStop(newPathSoFar, remainingStops, value);
+                        if(childResults.isEmpty() && StringUtils.isNotBlank(strategy.getIterateWithOtherExtractor())) {
+                            results.add(null);
+                        } else {
+                            results.addAll(childResults);
+                        }
+                    }
+                }
+            }
+        }
+        remainingStops.push(poppedNextStop);
         return results;
     }
 
@@ -147,25 +240,10 @@ public class JsonExtractionStrategy extends ExtractionStrategy {
                 String thisKey = entry.getKey();
                 if(thisKey.equals(key)) {
                     String value = entry.getValue().getAsString();
-                    return new ExtractionResult(pathSoFar, key, value);
+                    return new ExtractionResult(fileAbsPath, pathSoFar, key, value);
                 }
             }
         }
         return null;
-    }
-
-    private boolean nextStopIsIndexSyntax(String str) {
-        if(str.length() > 1) {
-            boolean isIndexSyntax = str.charAt(0) == '{' && str.charAt(str.length()-1) == '}';
-            String insideStr = str.substring(1, str.length()-1);
-            isIndexSyntax = isIndexSyntax && !insideStr.contains("{") && !insideStr.contains("}");
-            return isIndexSyntax;
-        }
-        return false;
-    }
-
-    private int getIndexFromIndexSyntax(String str) {
-        String insideStr = str.substring(1, str.length()-1);
-        return Integer.parseInt(insideStr);
     }
 }

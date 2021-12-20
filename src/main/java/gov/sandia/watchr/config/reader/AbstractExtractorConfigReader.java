@@ -13,7 +13,6 @@ import java.util.Map.Entry;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.HierarchicalExtractor;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
@@ -24,6 +23,14 @@ import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
 
 public abstract class AbstractExtractorConfigReader<E> extends AbstractConfigReader<E> {
     
+    ////////////
+    // FIELDS //
+    ////////////
+
+    protected AbstractExtractorConfigReader(ILogger logger) {
+        super(logger);
+    }
+
     /////////////
     // UTILITY //
     /////////////
@@ -39,7 +46,6 @@ public abstract class AbstractExtractorConfigReader<E> extends AbstractConfigRea
             } else {
                 extractor.setProperty(key, value.getAsString());
                 String message = "handleDataForExtractor: Handling generic element `" + key + "`...";
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.INFO, message));
             }
         }
@@ -60,7 +66,6 @@ public abstract class AbstractExtractorConfigReader<E> extends AbstractConfigRea
             } else if(key.equals(Keywords.ITERATE_WITH)) {
                 strategy.setIterateWithOtherExtractor(value.getAsString());
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsStrategy: Unrecognized element `" + key + "`."));
             }
         }

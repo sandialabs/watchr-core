@@ -16,6 +16,7 @@ public class ExtractionResult {
     // FIELDS //
     ////////////
 
+    private final String sourceFileAbsPath;
     private final String path;
     private final String key;
     private final String value;
@@ -26,10 +27,11 @@ public class ExtractionResult {
     //////////////////
 
     public ExtractionResult() {
-        this("", "", "");
+        this(null, "", "", "");
     }
 
-    public ExtractionResult(String path, String key, String value) {
+    public ExtractionResult(String sourceFileAbsPath, String path, String key, String value) {
+        this.sourceFileAbsPath = sourceFileAbsPath;
         this.path = path;
         this.key = key;
         this.value = value;
@@ -39,6 +41,10 @@ public class ExtractionResult {
     /////////////
     // GETTERS //
     /////////////
+
+    public String getSourceFile() {
+        return sourceFileAbsPath;
+    }
 
     public String getPath() {
         return path;

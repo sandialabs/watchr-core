@@ -13,7 +13,6 @@ import java.util.Set;
 
 import com.google.gson.JsonElement;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
@@ -28,13 +27,15 @@ public abstract class AbstractConfigReader<E> {
     ////////////
 
     protected final Set<String> seenKeywords;
+    protected final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    protected AbstractConfigReader() {
+    protected AbstractConfigReader(ILogger logger) {
         seenKeywords = new HashSet<>();
+        this.logger = logger;
     }
 
     /////////////
@@ -44,7 +45,6 @@ public abstract class AbstractConfigReader<E> {
     public void validateMissingKeywords() {
         for(String requiredKeyword : getRequiredKeywords()) {
             if(!seenKeywords.contains(requiredKeyword)) {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Missing keyword `" + requiredKeyword + "` in config file!"));
             }
         }

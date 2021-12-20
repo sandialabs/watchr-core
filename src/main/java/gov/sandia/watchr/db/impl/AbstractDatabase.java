@@ -7,9 +7,9 @@
 ******************************************************************************/
 package gov.sandia.watchr.db.impl;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,10 +20,11 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.CategoryConfiguration;
 import gov.sandia.watchr.config.GraphDisplayConfig;
 import gov.sandia.watchr.config.WatchrConfig;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.db.DatabaseMetadata;
 import gov.sandia.watchr.db.IDatabase;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
@@ -40,24 +41,37 @@ public abstract class AbstractDatabase implements IDatabase {
     ////////////
 
     protected WatchrConfig config;
+    protected DatabaseMetadata metadata;
 
     protected Set<String> filenameCache;
     protected Map<String, Set<String>> parentChildPlots;
 
-    protected Set<PlotWindowModel> plots;
+    protected List<PlotWindowModel> plots;
     protected Set<String> dirtyPlotUUIDs;
+    protected Object plotMonitor = new Object();
+
+    protected ILogger logger;
+    protected IFileReader fileReader;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
     protected AbstractDatabase() {
-        this.config = new WatchrConfig();
+        this(null, null);
+    }
 
-        this.plots = new HashSet<>();
+    protected AbstractDatabase(ILogger logger, IFileReader fileReader) {
+        this.config = new WatchrConfig(logger, fileReader);
+        this.metadata = new DatabaseMetadata();
+
+        this.plots = new ArrayList<>();
         this.dirtyPlotUUIDs = new HashSet<>();
         this.parentChildPlots = new HashMap<>();
         this.filenameCache = new HashSet<>();
+
+        setLogger(logger);
+        setFileReader(fileReader);
     }
 
     /////////////
@@ -65,58 +79,29 @@ public abstract class AbstractDatabase implements IDatabase {
     /////////////
 
     @Override
-    public PlotWindowModel getPlot(String plotName, String category) {
-        if(StringUtils.isNotBlank(plotName)) {
-            for(PlotWindowModel windowModel : plots) {
-                boolean categoryMatch =
-                    (StringUtils.isBlank(category) ||
-                    StringUtils.isBlank(windowModel.getCategory()) ||
-                    windowModel.getCategory().toLowerCase().matches(category.toLowerCase())); // Case-insensitive matching
-                if(windowModel.getName().matches(plotName) && categoryMatch) {
-                    return windowModel;
-                }
-            }
-        }
-        return null;
-    }    
-
-    @Override
-    public Set<PlotWindowModel> getPlots(String plotName, String category) {
-        plotName = plotName.replace("*", ".*");
-        category = category.replace("*", ".*");
-
-        Set<PlotWindowModel> searchResults = new HashSet<>();
-        if(StringUtils.isNotBlank(plotName)) {
-            for(PlotWindowModel windowModel : plots) {
-                if(windowModel.getName().matches(plotName) &&
-                   windowModel.getCategory().toLowerCase().matches(category.toLowerCase())) {
-                    searchResults.add(windowModel);
-                }
-            }
-        } else {
-            PlotWindowModel rootPlot = getRootPlot();
-            if(rootPlot != null) {
-                searchResults.add(rootPlot);
-            }
-        }
-        return searchResults;
-    }
-
-    @Override
-    public Set<PlotWindowModel> getAllPlots() {
-        return plots;
-    }
-
-    @Override
     public PlotWindowModel getRootPlot() {
-        List<PlotWindowModel> plotsList = new ArrayList<>(plots);
-        for(PlotWindowModel plot : plotsList) {
-            if(plot.isRoot()) {
-                return plot;
+        synchronized(plotMonitor) {
+            for(int i = 0; i < plots.size(); i++) {
+                PlotWindowModel plot = plots.get(i);
+                if(plot.isRoot()) {
+                    return plot;
+                }
             }
         }
         return null;
-    }    
+    }   
+
+    @Override
+    public List<PlotWindowModel> getAllPlots() {
+        List<PlotWindowModel> plotsCopy = new ArrayList<>();
+        synchronized(plotMonitor) {
+            for(int i = 0; i < plots.size(); i++) {
+                PlotWindowModel plot = plots.get(i);
+                plotsCopy.add(plot);
+            }
+        }
+        return plotsCopy;
+    }
 
     @Override
     public Set<PlotWindowModel> getChildren(PlotWindowModel parentPlot, String category) {
@@ -127,6 +112,10 @@ public abstract class AbstractDatabase implements IDatabase {
         Set<PlotWindowModel> childPlots = new HashSet<>();
         for(String childUUID : childUUIDs) {
             PlotWindowModel childPlot = getPlotByUUID(childUUID);
+            if(childPlot == null) {
+                childPlot = loadPlotUsingUUID(childUUID);
+            }
+
             if(childPlot != null) {
                 boolean categoryMatch =
                     (StringUtils.isBlank(category) ||
@@ -153,7 +142,7 @@ public abstract class AbstractDatabase implements IDatabase {
             }
         }
 
-        PlotWindowModel parentWindowModel = getPlot(parentPlotName, category);
+        PlotWindowModel parentWindowModel = searchPlot(parentPlotName, category);
         if(parentWindowModel != null) {
             return getChildren(parentWindowModel, category);
         }
@@ -162,7 +151,7 @@ public abstract class AbstractDatabase implements IDatabase {
 
     @Override
     public PlotWindowModel getParent(String plotName, String category) {
-        PlotWindowModel childPlot = getPlot(plotName, category);
+        PlotWindowModel childPlot = searchPlot(plotName, category);
         if(childPlot != null) {
             for(Entry<String, Set<String>> entry : parentChildPlots.entrySet()) {
                 String parentUUID = entry.getKey();
@@ -170,9 +159,10 @@ public abstract class AbstractDatabase implements IDatabase {
                 children.addAll(entry.getValue());
 
                 if(children.contains(childPlot.getUUID().toString())) {
-                    for(PlotWindowModel parentWindowModel : plots) {
-                        if(parentWindowModel.getUUID().toString().equals(parentUUID)) {
-                            return parentWindowModel;
+                    for(int i = 0; i < plots.size(); i++) {
+                        PlotWindowModel plot = plots.get(i);
+                        if(plot.getUUID().toString().equals(parentUUID)) {
+                            return plot;
                         }
                     }
                 }
@@ -189,7 +179,7 @@ public abstract class AbstractDatabase implements IDatabase {
 
     @Override
     public Set<String> getFilenameCache() {
-        return filenameCache;
+        return Collections.unmodifiableSet(filenameCache);
     }
 
     @Override
@@ -203,9 +193,59 @@ public abstract class AbstractDatabase implements IDatabase {
     }    
 
     @Override
-    public boolean hasSeenFile(File file) {
-        return filenameCache.contains(file.getName());
-    }    
+    public boolean hasSeenFile(String fileAbsPath) {
+        return filenameCache.contains(fileReader.getName(fileAbsPath));
+    }
+
+    @Override
+    public DatabaseMetadata getMetadata() {
+        return metadata;
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
+
+    @Override
+    public IFileReader getFileReader() {
+        return fileReader;
+    }
+
+    ////////////
+    // SEARCH //
+    ////////////
+
+    @Override
+    public PlotWindowModel searchPlot(String plotName, String category) {
+        logger.logDebug("AbstractDatabase.searchPlot()");
+        logger.logDebug("Name = \"" + plotName + "\", Category = \"" + category + "\".");
+        PlotWindowModel returnedWindowModel = null;
+        if(StringUtils.isNotBlank(plotName)) {
+            logger.logDebug("Look in loaded plot cache first...");
+            synchronized(plotMonitor) {
+                for(int i = 0; i < plots.size(); i++) {
+                    PlotWindowModel plot = plots.get(i);
+                    boolean categoryMatch =
+                        (StringUtils.isBlank(category) ||
+                        StringUtils.isBlank(plot.getCategory()) ||
+                        plot.getCategory().toLowerCase().matches(category.toLowerCase())); // Case-insensitive matching
+
+                    if(plot.getName().equals(plotName) && categoryMatch) {
+                        logger.logDebug("Found plot with name " + plotName + ", and category matched.");
+                        returnedWindowModel = plot;
+                        break;
+                    }
+                }
+            }
+        }
+        if(returnedWindowModel == null) {
+            logger.logDebug("Could not find plot in cache, so load it from disk...");
+            returnedWindowModel = loadPlotUsingInnerFields(plotName, category);
+        }
+
+        return returnedWindowModel;
+    }
 
     /////////////
     // SETTERS //
@@ -213,16 +253,25 @@ public abstract class AbstractDatabase implements IDatabase {
 
     @Override
     public void addPlot(PlotWindowModel newPlot) {
-        if(newPlot.isRoot() && getRootPlot() != null) {
-            throw new IllegalStateException("Database cannot contain two root plots.");
-        }
+        synchronized(plotMonitor) {
+            boolean alreadyContains = false;
+            for(int i = 0; i < plots.size(); i++) {
+                PlotWindowModel checkPlot = plots.get(i);
+                if(checkPlot.equals(newPlot) || (newPlot.isRoot() && getRootPlot() != null)) {
+                    alreadyContains = true;
+                    break;
+                }
+            }
 
-        plots.add(newPlot);
+            if(!alreadyContains) {
+                plots.add(newPlot);
+            }
+        }
         dirtyPlotUUIDs.add(newPlot.getUUID().toString());
     }    
 
     @Override
-    public void addChildPlots(PlotWindowModel parent, List<PlotWindowModel> newChildPlots) {
+    public void setPlotsAsChildren(PlotWindowModel parent, List<PlotWindowModel> newChildPlots) {
         Set<String> childPlotUUIDs = new HashSet<>(parentChildPlots.getOrDefault(parent.getUUID().toString(), new HashSet<>()));
         for(PlotWindowModel childPlot : newChildPlots) {
             if(childPlot != null) {
@@ -230,42 +279,70 @@ public abstract class AbstractDatabase implements IDatabase {
             }
         }
         parentChildPlots.put(parent.getUUID().toString(), childPlotUUIDs);
-    }    
+    }
+
+    @Override
+    public void updatePlot(PlotWindowModel changedPlot) {
+        synchronized(plotMonitor) {
+            PlotWindowModel foundOriginalPlot = null;
+            for(int i = 0; i < plots.size(); i++) {
+                PlotWindowModel plot = plots.get(i);
+                if(plot.getUUID().equals(changedPlot.getUUID())) {
+                    foundOriginalPlot = plot;
+                    break;
+                }
+            }
+
+            if(foundOriginalPlot != null) {
+                plots.remove(foundOriginalPlot);
+                plots.add(changedPlot);
+            } else {
+                logger.logError(
+                    "Tried to update plot in database (UUID " + changedPlot.getUUID() +
+                    ", name \"" + changedPlot.getName() + "\") but could not find original copy of plot.");
+            }
+        }
+    }
 
     @Override
     public void deletePlot(PlotWindowModel plotToDelete) {
-        ILogger logger = WatchrCoreApp.getInstance().getLogger();
-        logger.logInfo("Preparing to delete plot " + plotToDelete.getName());
-        logger.logInfo("First, delete any child plots...");
+        logger.logDebug("Preparing to delete plot " + plotToDelete.getName());
+        logger.logDebug("First, delete any child plots...");
         String plotToDeleteUUIDStr = plotToDelete.getUUID().toString();
 
-        Set<String> childPlotUUIDs = new HashSet<>(parentChildPlots.getOrDefault(plotToDeleteUUIDStr, new HashSet<>()));
+        Collection<String> childPlotUUIDs = parentChildPlots.getOrDefault(plotToDeleteUUIDStr, new HashSet<>());
         for(String childPlotUUID : childPlotUUIDs) {
             PlotWindowModel childPlot = getPlotByUUID(childPlotUUID);
             if(childPlot != null) {
-                logger.logInfo("Deleting plot " + childPlot.getName());
+                logger.logDebug("Deleting plot " + childPlot.getName());
                 deletePlot(childPlot);
             } else {
                 logger.logWarning("Couldn't find plot by UUID " + childPlotUUID);
             }
         }
-        logger.logInfo("Removing plot " + plotToDelete.getName() + " from database lookup files...");
+        logger.logDebug("Removing plot " + plotToDelete.getName() + " from database lookup files...");
 
         parentChildPlots.remove(plotToDeleteUUIDStr);
+        dirtyPlotUUIDs.remove(plotToDeleteUUIDStr);
         String rootPlotUUIDStr = getRootPlot().getUUID().toString();
-        Set<String> rootPlots = parentChildPlots.get(rootPlotUUIDStr);
-        if(rootPlots != null && rootPlots.contains(plotToDeleteUUIDStr)) {
-            logger.logInfo("Also removing plot from set of root plots...");
-            rootPlots.remove(plotToDeleteUUIDStr);
-            parentChildPlots.put(rootPlotUUIDStr, rootPlots);
+        Collection<String> result = parentChildPlots.get(rootPlotUUIDStr);
+        if(result != null) {
+            Set<String> rootPlots = new HashSet<>(result);
+            if(rootPlots.contains(plotToDeleteUUIDStr)) {
+                logger.logDebug("Also removing plot from set of root plots...");
+                rootPlots.remove(plotToDeleteUUIDStr);
+                parentChildPlots.put(rootPlotUUIDStr, rootPlots);
+            }
         }
 
-        plots.remove(plotToDelete);
+        synchronized(plotMonitor) {
+            plots.remove(plotToDelete);
+        }
     } 
 
     @Override
-    public void addFileToCache(File file) {
-        filenameCache.add(file.getName());
+    public void addFileToCache(String fileAbsPath) {
+        filenameCache.add(fileReader.getName(fileAbsPath));
     }    
 
     @Override
@@ -273,19 +350,53 @@ public abstract class AbstractDatabase implements IDatabase {
         this.config = config;
     }
 
+    @Override
+    public void updateMetadata() {
+        synchronized(plotMonitor) {
+            int failedCount = 0;
+            int plotCount = plots.size() - 1; // Don't count root plot
+
+            for(int i = 0; i < plots.size(); i++) {
+                PlotWindowModel plot = plots.get(i);
+                if(plot.isFailing()) {
+                    failedCount++;
+                }
+            }
+            metadata.setPlotCount(plotCount);
+            metadata.setFailedPlotCount(failedCount);
+        }
+    }
+
+    @Override
+    public void setLogger(ILogger logger) {
+        this.logger = logger;
+    }
+
+    @Override
+    public void setFileReader(IFileReader fileReader) {
+        this.fileReader = fileReader;
+    }
+
     ///////////////
     // PROTECTED //
     ///////////////
 
     protected PlotWindowModel getPlotByUUID(String uuid) {
-        List<PlotWindowModel> plotsList = Arrays.asList(plots.toArray(new PlotWindowModel[plots.size()]));
-        for(int i = 0; i < plotsList.size(); i++) {
-            PlotWindowModel plot = plotsList.get(i);
-            if(plot.getUUID().toString().equals(uuid)) {
-                return plot;
+        synchronized(plotMonitor) {
+            for(int i = 0; i < plots.size(); i++) {
+                PlotWindowModel plot = plots.get(i);
+                if(plot.getUUID().toString().equals(uuid)) {
+                    return plot;
+                }
             }
         }
         return null;
+    }
+
+    public void clearPlotCache() {
+        synchronized(plotMonitor) {
+            plots.clear();
+        }
     }
 
     protected void setListeners(PlotWindowModel windowModel) {

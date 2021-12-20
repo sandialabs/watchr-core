@@ -11,29 +11,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.ILogger;
 
 public class WatchrConfig implements IConfig {
 
     ////////////
     // FIELDS //
     ////////////
+    
+    private static final String START_PATH = "/";
 
     private PlotsConfig plotsConfig;
     private GraphDisplayConfig graphConfig;
-    private static final String START_PATH = "/";
+    private LogConfig logConfig;
+    private ILogger logger;
 
     //////////////////
     // CONSTRUCTORS //
     //////////////////
 
-    public WatchrConfig() {
-        plotsConfig = new PlotsConfig(START_PATH);
-        graphConfig = new GraphDisplayConfig(START_PATH);
+    public WatchrConfig(ILogger logger, IFileReader fileReader) {
+        plotsConfig = new PlotsConfig(START_PATH, logger, fileReader);
+        graphConfig = new GraphDisplayConfig(START_PATH, logger);
+        logConfig   = new LogConfig(START_PATH, logger);
+        this.logger = logger;
     }
 
     public WatchrConfig(WatchrConfig copy) {
         plotsConfig = new PlotsConfig(copy.getPlotsConfig());
         graphConfig = new GraphDisplayConfig(copy.getGraphDisplayConfig());
+        logConfig   = new LogConfig(copy.getLogConfig());
+        logger = copy.getLogger();
     }
 
     /////////////
@@ -48,10 +57,19 @@ public class WatchrConfig implements IConfig {
         return graphConfig;
     }
 
+    public LogConfig getLogConfig() {
+        return logConfig;
+    }
+
     @Override
     public String getConfigPath() {
         return START_PATH;
-    }   
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
 
     /////////////
     // SETTERS //
@@ -63,6 +81,10 @@ public class WatchrConfig implements IConfig {
 
     public void setGraphDisplayConfig(GraphDisplayConfig graphConfig) {
         this.graphConfig = graphConfig;
+    }
+
+    public void setLogConfig(LogConfig logConfig) {
+        this.logConfig = logConfig;
     }
 
     //////////////
@@ -108,5 +130,5 @@ public class WatchrConfig implements IConfig {
         hash = 31 * (hash + plotsConfig.hashCode());
         hash = 31 * (hash + graphConfig.hashCode());
         return hash;
-    }  
+    }
 }

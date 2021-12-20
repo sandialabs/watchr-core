@@ -12,10 +12,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.log.ILogger;
 
 public class PlotConfig implements IConfig {
@@ -24,11 +24,24 @@ public class PlotConfig implements IConfig {
     // FIELDS //
     ////////////
 
+    public enum CanvasLayout {
+        GRID,
+        STACKX,
+        STACKY,
+        SHARED,
+        INDEPENDENT
+    }
+
     private String category = "";
     private Boolean useLegend;
 
     private String name = "";
     private NameConfig autonameConfig;
+
+    private PlotType type = PlotType.SCATTER_PLOT;
+
+    private CanvasLayout canvasLayout = CanvasLayout.SHARED;
+    private int canvasPerRow = 1;
 
     private String templateName = "";
     private String inheritTemplate = "";
@@ -40,16 +53,18 @@ public class PlotConfig implements IConfig {
     private FilterConfig pointFilterConfig;
 
     private final String configPath;
+    private final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public PlotConfig(String configPathPrefix) {
+    public PlotConfig(String configPathPrefix, ILogger logger) {
         this.configPath = configPathPrefix + "/plotConfig";
 
         this.dataLines = new ArrayList<>();
         this.plotRules = new ArrayList<>();
+        this.logger = logger;
     }
 
     public PlotConfig(PlotConfig copy) {
@@ -60,8 +75,13 @@ public class PlotConfig implements IConfig {
             this.autonameConfig = new NameConfig(copy.getNameConfig());
         }
 
+        this.type = copy.getType();
+
         this.templateName = copy.getTemplateName();
         this.inheritTemplate = copy.getInheritTemplate();
+
+        this.canvasLayout = copy.getCanvasLayout();
+        this.canvasPerRow = copy.getCanvasPerRow();
 
         this.dataLines = new ArrayList<>();
         for(DataLine dataLine : copy.getDataLines()) {
@@ -81,6 +101,7 @@ public class PlotConfig implements IConfig {
         }
 
         this.configPath = copy.getConfigPath();
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -97,6 +118,10 @@ public class PlotConfig implements IConfig {
 
     public String getCategory() {
         return category;
+    }
+
+    public PlotType getType() {
+        return type;
     }
 
     public List<DataLine> getDataLines() {
@@ -132,6 +157,29 @@ public class PlotConfig implements IConfig {
         return configPath;
     }
 
+    public CanvasLayout getCanvasLayout() {
+        // This field has the potential to be uninitialized, since it was
+        // added after version 1.0.0.
+        if(canvasLayout == null) {
+            canvasLayout = CanvasLayout.SHARED;
+        }
+        return canvasLayout;
+    }
+
+    public int getCanvasPerRow() {
+        // This field has the potential to be uninitialized, since it was
+        // added after version 1.0.0.
+        if(canvasPerRow <= 0) {
+            canvasPerRow = 1;
+        }
+        return canvasPerRow;
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
+
     /////////////
     // SETTERS //
     /////////////
@@ -146,6 +194,20 @@ public class PlotConfig implements IConfig {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public void setType(PlotType type) {
+        this.type = type;
+    }
+
+    public void setType(String typeAsString) {
+        if(typeAsString.equalsIgnoreCase("areaPlot")) {
+            setType(PlotType.AREA_PLOT);
+        } else if(typeAsString.equalsIgnoreCase("scatterPlot")) {
+            setType(PlotType.SCATTER_PLOT);
+        } else if(typeAsString.equalsIgnoreCase("treeMap")) {
+            setType(PlotType.TREE_MAP);
+        }
     }
 
     public void setFileFilterConfig(FileFilterConfig fileFilterConfig) {
@@ -168,12 +230,42 @@ public class PlotConfig implements IConfig {
         this.templateName = templateName;
     }
 
+    public void setCanvasLayout(CanvasLayout canvasLayout) {
+        this.canvasLayout = canvasLayout;
+    }
+
+    public void setCanvasLayout(String canvasLayoutString) {
+        if(canvasLayoutString.equalsIgnoreCase(CanvasLayout.GRID.toString())) {
+            this.canvasLayout = CanvasLayout.GRID;
+        } else if(canvasLayoutString.equalsIgnoreCase(CanvasLayout.INDEPENDENT.toString())) {
+            this.canvasLayout = CanvasLayout.INDEPENDENT;
+        } else if(canvasLayoutString.equalsIgnoreCase(CanvasLayout.STACKX.toString())) {
+            this.canvasLayout = CanvasLayout.STACKX;
+        } else if(canvasLayoutString.equalsIgnoreCase(CanvasLayout.STACKY.toString())) {
+            this.canvasLayout = CanvasLayout.STACKY;
+        } else {
+            this.canvasLayout = CanvasLayout.SHARED;
+        }
+    }
+
+    public void setCanvasPerRow(int canvasPerRow) {
+        this.canvasPerRow = canvasPerRow;
+    }
+
     //////////////
     // OVERRIDE //
     //////////////
 
     @Override
     public void validate() {
+        if(StringUtils.isBlank(inheritTemplate) &&
+           StringUtils.isBlank(name) &&
+           (autonameConfig == null || autonameConfig.isBlank())) {   
+            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "All plots must have a \"name\" or \"autoname\" configuration specified."));
+        }
+        if(type == null) {
+            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Plot type cannot be null."));
+        }
         if(autonameConfig != null) {
             autonameConfig.validate();
         }
@@ -183,11 +275,6 @@ public class PlotConfig implements IConfig {
         for(RuleConfig plotRule : plotRules) {
             plotRule.validate();
         }
-        if(StringUtils.isBlank(name) && (autonameConfig == null || autonameConfig.isBlank())) {
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "All plots must have a \"name\" or \"autoname\" configuration specified."));
-        }
-
         if(pointFilterConfig != null) {
             pointFilterConfig.validate();
         }
@@ -218,6 +305,12 @@ public class PlotConfig implements IConfig {
             WatchrDiff<String> diff = new WatchrDiff<>(configPath, DiffCategory.NAME);
             diff.setBeforeValue(name);
             diff.setNowValue(otherPlotConfig.name);
+            diffList.add(diff);
+        }
+        if(type != otherPlotConfig.type) {
+            WatchrDiff<PlotType> diff = new WatchrDiff<>(configPath, DiffCategory.TYPE);
+            diff.setBeforeValue(type);
+            diff.setNowValue(otherPlotConfig.type);
             diffList.add(diff);
         }
         if(!templateName.equals(otherPlotConfig.templateName)) {
@@ -269,7 +362,8 @@ public class PlotConfig implements IConfig {
             // Check for new elements added to list
             int newStart = dataLines.size();
             for(int i = newStart; i < otherPlotConfig.dataLines.size(); i++) {
-                DataLine dummyDataLine = new DataLine(null, otherPlotConfig.getConfigPath());
+                FileConfig dummyFileConfig = new FileConfig(otherPlotConfig.getConfigPath(), logger, null);
+                DataLine dummyDataLine = new DataLine(dummyFileConfig, otherPlotConfig.getConfigPath());
                 DataLine otherDataLine = otherPlotConfig.dataLines.get(i);
                 diffList.addAll(dummyDataLine.diff(otherDataLine));
             }
@@ -284,10 +378,24 @@ public class PlotConfig implements IConfig {
             // Check for new elements added to list
             int newStart = plotRules.size();
             for(int i = newStart; i < otherPlotConfig.plotRules.size(); i++) {
-                RuleConfig dummyRule = new RuleConfig(otherPlotConfig.getConfigPath());
+                RuleConfig dummyRule = new RuleConfig(otherPlotConfig.getConfigPath(), logger);
                 RuleConfig otherRule = otherPlotConfig.plotRules.get(i);
                 diffList.addAll(dummyRule.diff(otherRule));
             }
+        }
+
+        if(getCanvasLayout() != otherPlotConfig.getCanvasLayout()) {
+            WatchrDiff<CanvasLayout> diff = new WatchrDiff<>(configPath, DiffCategory.CANVAS_LAYOUT);
+            diff.setBeforeValue(getCanvasLayout());
+            diff.setNowValue(otherPlotConfig.getCanvasLayout());
+            diffList.add(diff);
+        }
+
+        if(getCanvasPerRow() != otherPlotConfig.getCanvasPerRow()) {
+            WatchrDiff<Integer> diff = new WatchrDiff<>(configPath, DiffCategory.CANVAS_PER_ROW);
+            diff.setBeforeValue(getCanvasPerRow());
+            diff.setNowValue(otherPlotConfig.getCanvasPerRow());
+            diffList.add(diff);
         }
         
         return diffList;
@@ -306,6 +414,7 @@ public class PlotConfig implements IConfig {
 			PlotConfig otherPlotConfig = (PlotConfig) other;
 
             equals = category.equals(otherPlotConfig.category);
+            equals = equals && type == otherPlotConfig.type;
 
             equals = equals &&
                 ((useLegend == null && otherPlotConfig.useLegend == null) ||
@@ -334,6 +443,8 @@ public class PlotConfig implements IConfig {
 
             equals = equals && templateName.equals(otherPlotConfig.templateName);
             equals = equals && inheritTemplate.equals(otherPlotConfig.inheritTemplate);
+            equals = equals && getCanvasLayout() == otherPlotConfig.getCanvasLayout();
+            equals = equals && getCanvasPerRow() == otherPlotConfig.getCanvasPerRow();
         }
         return equals;
     }
@@ -342,6 +453,7 @@ public class PlotConfig implements IConfig {
     public int hashCode() {
         int hash = 7;
         hash = 31 * (hash + category.hashCode());
+        if(type != null) hash = 31 * (hash + type.hashCode());
         if(useLegend != null) hash = 31 * (hash + useLegend.hashCode());
         hash = 31 * (hash + name.hashCode());
         if(autonameConfig != null) hash = 31 * (hash + autonameConfig.hashCode());
@@ -351,6 +463,8 @@ public class PlotConfig implements IConfig {
         if(pointFilterConfig != null) hash = 31 * (hash + pointFilterConfig.hashCode());
         hash = 31 * (hash + templateName.hashCode());
         hash = 31 * (hash + inheritTemplate.hashCode());
+        hash = 31 * (hash + getCanvasLayout().hashCode());
+        hash = 31 * (hash + Integer.hashCode(getCanvasPerRow()));
         return hash;
     }
 }

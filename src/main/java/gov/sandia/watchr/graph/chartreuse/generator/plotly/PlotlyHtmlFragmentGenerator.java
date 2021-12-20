@@ -219,7 +219,8 @@ public class PlotlyHtmlFragmentGenerator {
         sb.append("range:[$$CANVAS_X_DISPLAYED_RANGE_START, $$CANVAS_X_DISPLAYED_RANGE_END],").append(OsUtil.getOSLineBreak());
         sb.append("titlefont: {color: $$CANVAS_X_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
         sb.append("tickfont: {color: $$CANVAS_X_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
-        sb.append("showgrid: $$CANVAS_DRAW_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("showgrid: $$CANVAS_DRAW_X_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("showticklabels: $$CANVAS_DRAW_X_AXIS_LABELS,").append(OsUtil.getOSLineBreak());
         sb.append("zeroline: $$CANVAS_DRAW_GRID_LINES").append(OsUtil.getOSLineBreak());
         sb.append("},").append(OsUtil.getOSLineBreak());
         sb.append("yaxis$$CANVAS_Y_INDEX: {").append(OsUtil.getOSLineBreak());
@@ -231,7 +232,8 @@ public class PlotlyHtmlFragmentGenerator {
         sb.append("range:[$$CANVAS_Y_DISPLAYED_RANGE_START, $$CANVAS_Y_DISPLAYED_RANGE_END],").append(OsUtil.getOSLineBreak());
         sb.append("titlefont: {color: $$CANVAS_Y_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
         sb.append("tickfont: {color: $$CANVAS_Y_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
-        sb.append("showgrid: $$CANVAS_DRAW_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("showgrid: $$CANVAS_DRAW_Y_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("showticklabels: $$CANVAS_DRAW_Y_AXIS_LABELS,").append(OsUtil.getOSLineBreak());
         sb.append("zeroline: $$CANVAS_DRAW_GRID_LINES").append(OsUtil.getOSLineBreak());
         sb.append("}").append(OsUtil.getOSLineBreak());
         return sb.toString();
@@ -245,24 +247,24 @@ public class PlotlyHtmlFragmentGenerator {
         sb.append("type: $$CANVAS_X_TYPE,").append(OsUtil.getOSLineBreak());
         sb.append("titlefont: {color: $$CANVAS_X_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
         sb.append("tickfont: {color: $$CANVAS_X_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
-        sb.append("showgrid: $$CANVAS_DRAW_GRID_LINES,").append(OsUtil.getOSLineBreak());
-        sb.append("zeroline: $$CANVAS_DRAW_AXIS_LINES").append(OsUtil.getOSLineBreak());
+        sb.append("showgrid: $$CANVAS_DRAW_X_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("zeroline: $$CANVAS_DRAW_GRID_LINES").append(OsUtil.getOSLineBreak());
         sb.append("},").append(OsUtil.getOSLineBreak());
         sb.append("yaxis: {").append(OsUtil.getOSLineBreak());
         sb.append("title: $$CANVAS_Y_AXIS_LABEL,").append(OsUtil.getOSLineBreak());
         sb.append("type: $$CANVAS_Y_TYPE,").append(OsUtil.getOSLineBreak());
         sb.append("titlefont: {color: $$CANVAS_Y_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
         sb.append("tickfont: {color: $$CANVAS_Y_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
-        sb.append("showgrid: $$CANVAS_DRAW_GRID_LINES,").append(OsUtil.getOSLineBreak());
-        sb.append("zeroline: $$CANVAS_DRAW_AXIS_LINES").append(OsUtil.getOSLineBreak());
+        sb.append("showgrid: $$CANVAS_DRAW_Y_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("zeroline: $$CANVAS_DRAW_GRID_LINES").append(OsUtil.getOSLineBreak());
         sb.append("},").append(OsUtil.getOSLineBreak());
         sb.append("zaxis: {").append(OsUtil.getOSLineBreak());
         sb.append("title: $$CANVAS_Z_AXIS_LABEL,").append(OsUtil.getOSLineBreak());
         sb.append("type: $$CANVAS_Z_TYPE,").append(OsUtil.getOSLineBreak());
         sb.append("titlefont: {color: $$CANVAS_Z_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
         sb.append("tickfont: {color: $$CANVAS_Z_AXIS_COLOR},").append(OsUtil.getOSLineBreak());
-        sb.append("showgrid: $$CANVAS_DRAW_GRID_LINES,").append(OsUtil.getOSLineBreak());
-        sb.append("zeroline: $$CANVAS_DRAW_AXIS_LINES").append(OsUtil.getOSLineBreak());
+        sb.append("showgrid: $$CANVAS_DRAW_Z_AXIS_LINES,").append(OsUtil.getOSLineBreak());
+        sb.append("zeroline: $$CANVAS_DRAW_GRID_LINES").append(OsUtil.getOSLineBreak());
         sb.append("}").append(OsUtil.getOSLineBreak());
         sb.append("}").append(OsUtil.getOSLineBreak());
         return sb.toString();
@@ -273,6 +275,45 @@ public class PlotlyHtmlFragmentGenerator {
         sb.append("var $TRACE_NAME = {").append(OsUtil.getOSLineBreak());
         sb.append("x: $TRACE_ARR_X,").append(OsUtil.getOSLineBreak());
         sb.append("y: $TRACE_ARR_Y,").append(OsUtil.getOSLineBreak());
+        sb.append("error_y: {").append(OsUtil.getOSLineBreak());
+        sb.append("  type: 'data',").append(OsUtil.getOSLineBreak());
+        sb.append("  symmetric: false,").append(OsUtil.getOSLineBreak());
+        sb.append("  visible: $TRACE_ERROR_ARR_Y_VISIBLE,").append(OsUtil.getOSLineBreak());
+        sb.append("  array: $TRACE_ERROR_ARR_Y_UPPER,").append(OsUtil.getOSLineBreak());
+        sb.append("  arrayminus: $TRACE_ERROR_ARR_Y_LOWER").append(OsUtil.getOSLineBreak());
+        sb.append("},").append(OsUtil.getOSLineBreak());
+        sb.append("mode: $TRACE_POINT_MODE,").append(OsUtil.getOSLineBreak());
+        sb.append("opacity: $TRACE_OPACITY,").append(OsUtil.getOSLineBreak());
+        sb.append("hovertemplate: $TRACE_HOVER_TEXT,").append(OsUtil.getOSLineBreak());
+        sb.append("text: $TRACE_ARR_METADATA,").append(OsUtil.getOSLineBreak());
+        sb.append("type: $TRACE_POINT_TYPE,").append(OsUtil.getOSLineBreak());
+        sb.append("name: $TRACE_LABEL,").append(OsUtil.getOSLineBreak());
+        sb.append("xaxis: $TRACE_PARENT_CANVAS_X,").append(OsUtil.getOSLineBreak());
+        sb.append("yaxis: $TRACE_PARENT_CANVAS_Y").append(OsUtil.getOSLineBreak());
+        sb.append("};").append(OsUtil.getOSLineBreak());
+        return sb.toString();        
+    }
+
+    public static String getTraceTreemap() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("var $TRACE_NAME = {").append(OsUtil.getOSLineBreak());
+        sb.append("type: $TRACE_POINT_TYPE,").append(OsUtil.getOSLineBreak());
+        sb.append("branchvalues: 'total',").append(OsUtil.getOSLineBreak());
+        sb.append("labels: $TRACE_ARR_X,").append(OsUtil.getOSLineBreak());
+        sb.append("parents: $TRACE_ARR_Y,").append(OsUtil.getOSLineBreak());
+        sb.append("values: $TRACE_ARR_Z,").append(OsUtil.getOSLineBreak());
+        sb.append("textinfo: 'label+value+percent parent+percent entry',").append(OsUtil.getOSLineBreak());
+        sb.append("marker: {'line': {'width': 2}}").append(OsUtil.getOSLineBreak());
+        sb.append("};").append(OsUtil.getOSLineBreak());
+        return sb.toString();        
+    }
+
+    public static String getTraceAreaPlot() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("var $TRACE_NAME = {").append(OsUtil.getOSLineBreak());
+        sb.append("x: $TRACE_ARR_X,").append(OsUtil.getOSLineBreak());
+        sb.append("y: $TRACE_ARR_Y,").append(OsUtil.getOSLineBreak());
+        sb.append("stackgroup: 'one',").append(OsUtil.getOSLineBreak());
         sb.append("error_y: {").append(OsUtil.getOSLineBreak());
         sb.append("  type: 'data',").append(OsUtil.getOSLineBreak());
         sb.append("  symmetric: false,").append(OsUtil.getOSLineBreak());

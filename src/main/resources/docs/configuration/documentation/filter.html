@@ -293,6 +293,7 @@ img {
 <body>
 <h1>Configuration Documentation: filter</h1>
 <p>The &quot;filter&quot; section of a Watchr config file provides a convenient way to selectively filter &quot;bad&quot; points that have already entered the database of previously-parsed data files.</p>
+<p>A &quot;filter&quot; section may be associated with a single plot (i.e. it is nested under a specific <a href="plot.html"><strong>plot</strong></a>), or it may be associated with all plots specified by a given configuration file (i.e. it is nested under the <a href="plots.html"><strong>&quot;plots&quot;</strong></a> section).</p>
 <h2>Properties</h2>
 <p>A filter section contains two JSON arrays - &quot;x&quot; and &quot;y&quot;, for filtering x and y data points respectively.  For example:</p>
 <pre><code>&quot;filter&quot;: {
@@ -302,12 +303,12 @@ img {
 </code></pre>
 
 <p>The previous example would filter all x data points that matched the string &quot;2.0&quot;.  Likewise, the previous example would filter all y data points that matched the string &quot;-1.0.&quot;</p>
-<p>Simple wildcards (i.e. asterisks) are observed for the specific values in the JSON arrays.</p>
+<p><a href="regex.html">Regular expressions</a> may be used to indicate partial matches for filtered values.</p>
 <h2>Child Elements</h2>
 <p>None.</p>
 <h2>Parent Element</h2>
 <ul>
-<li><a href="plot.html"><strong>plot</strong></a></li>
+<li><a href="plot.html"><strong>plot</strong></a> or <a href="plots.html"><strong>plots</strong></a> </li>
 </ul>
 
 </body>

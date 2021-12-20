@@ -69,16 +69,23 @@ public class WatchrDiff<E> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(path).append(", ").append(property.toString()).append(OsUtil.getOSLineBreak());
+
+        sb.append(OsUtil.getOSLineBreak());
+        sb.append("Path: ").append(path).append(", ");
+        sb.append(property.toString());
+        sb.append(OsUtil.getOSLineBreak());
+
         if(beforeValue != null) {
-            sb.append("\tBefore:").append(beforeValue.toString()).append(OsUtil.getOSLineBreak());
+            sb.append("\tBefore: ").append(beforeValue.toString());
         } else {
-            sb.append("\tBefore: NULL").append(OsUtil.getOSLineBreak());
+            sb.append("\tBefore: NULL");
         }
+        sb.append(OsUtil.getOSLineBreak());
+
         if(nowValue != null) {
-            sb.append("\tNow:").append(nowValue.toString()).append(OsUtil.getOSLineBreak());
+            sb.append("\tNow: ").append(nowValue.toString());
         } else {
-            sb.append("\tNow: NULL").append(OsUtil.getOSLineBreak());
+            sb.append("\tNow: NULL");
         }
         return sb.toString();
     }

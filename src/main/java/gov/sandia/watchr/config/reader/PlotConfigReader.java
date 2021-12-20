@@ -17,7 +17,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.PlotConfig;
@@ -38,10 +37,10 @@ public class PlotConfigReader extends AbstractExtractorConfigReader<List<PlotCon
     // CONSTRUCTOR //
     /////////////////
 
-    public PlotConfigReader(FileConfig fileConfig) {
+    public PlotConfigReader(FileConfig fileConfig, ILogger logger) {
+        super(logger);
         this.fileConfig = fileConfig;
         if(fileConfig == null) {
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, "PlotConfigReader: No file config defined."));
         }
     }
@@ -79,7 +78,7 @@ public class PlotConfigReader extends AbstractExtractorConfigReader<List<PlotCon
     /////////////
 
     private PlotConfig handleAsPlot(JsonElement jsonElement, FileConfig fileConfig, IConfig parent, int plotIndex) {
-        PlotConfig plotConfig = new PlotConfig(parent.getConfigPath() + "/" + Integer.toString(plotIndex));
+        PlotConfig plotConfig = new PlotConfig(parent.getConfigPath() + "/" + Integer.toString(plotIndex), parent.getLogger());
 
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
@@ -93,14 +92,17 @@ public class PlotConfigReader extends AbstractExtractorConfigReader<List<PlotCon
                 plotConfig.setName(value.getAsString());
             } else if(key.equals(Keywords.AUTONAME)) {
                 seenKeywords.add(Keywords.AUTONAME);
-                AutonameConfigReader nameConfigReader = new AutonameConfigReader();
+                AutonameConfigReader nameConfigReader = new AutonameConfigReader(fileConfig, logger);
                 plotConfig.setNameConfig(nameConfigReader.handle(value, plotConfig));
+            } else if(key.equals(Keywords.TYPE)) {
+                seenKeywords.add(Keywords.TYPE);
+                plotConfig.setType(value.getAsString());
             } else if(key.equals(Keywords.CATEGORY)) {
                 seenKeywords.add(Keywords.CATEGORY);
                 plotConfig.setCategory(value.getAsString());
             } else if(key.equals(Keywords.FILE_FILTER)) {
                 seenKeywords.add(Keywords.FILE_FILTER);
-                FileFilterConfigReader fileFilterConfigReader = new FileFilterConfigReader();
+                FileFilterConfigReader fileFilterConfigReader = new FileFilterConfigReader(logger);
                 plotConfig.setFileFilterConfig(fileFilterConfigReader.handle(value, plotConfig));
             } else if(key.equals(Keywords.TEMPLATE)) {
                 seenKeywords.add(Keywords.TEMPLATE);
@@ -110,21 +112,26 @@ public class PlotConfigReader extends AbstractExtractorConfigReader<List<PlotCon
                 plotConfig.setUseLegend(value.getAsBoolean());
             } else if(key.equals(Keywords.DATA_LINES)) {
                 seenKeywords.add(Keywords.DATA_LINES);
-                DataLineReader dataLineReader = new DataLineReader(fileConfig);
+                DataLineReader dataLineReader = new DataLineReader(fileConfig, logger);
                 plotConfig.getDataLines().addAll(dataLineReader.handle(value, plotConfig));
             } else if(key.equals(Keywords.FILTER)) {
                 seenKeywords.add(Keywords.FILTER);
-                FilterConfigReader filterConfigReader = new FilterConfigReader();
+                FilterConfigReader filterConfigReader = new FilterConfigReader(logger);
                 plotConfig.setPointFilterConfig(filterConfigReader.handle(value, plotConfig));
             } else if(key.equals(Keywords.RULES)) {
                 seenKeywords.add(Keywords.RULES);
-                RuleConfigReader ruleReader = new RuleConfigReader();
+                RuleConfigReader ruleReader = new RuleConfigReader(logger);
                 plotConfig.getPlotRules().addAll(ruleReader.handle(value, plotConfig));
             } else if(key.equals(Keywords.INHERIT)) {
                 seenKeywords.add(Keywords.INHERIT);
                 plotConfig.setInheritTemplate(value.getAsString());
+            } else if(key.equals(Keywords.CANVAS_LAYOUT)) {
+                seenKeywords.add(Keywords.CANVAS_LAYOUT);
+                plotConfig.setCanvasLayout(value.getAsString());
+            } else if(key.equals(Keywords.CANVAS_PER_ROW)) {
+                seenKeywords.add(Keywords.CANVAS_PER_ROW);
+                plotConfig.setCanvasPerRow(value.getAsInt());
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsPlot: Unrecognized element `" + key + "`."));
             }
         }

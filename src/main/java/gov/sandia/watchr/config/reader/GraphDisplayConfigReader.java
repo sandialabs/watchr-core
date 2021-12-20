@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.GraphDisplayConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
@@ -24,13 +23,17 @@ import gov.sandia.watchr.log.ILogger;
 
 public class GraphDisplayConfigReader extends AbstractConfigReader<GraphDisplayConfig> {
     
+    protected GraphDisplayConfigReader(ILogger logger) {
+        super(logger);
+    }
+
     //////////////
     // OVERRIDE //
     //////////////
 
     @Override
     public GraphDisplayConfig handle(JsonElement element, IConfig parent) {
-        GraphDisplayConfig graphDisplayConfig = new GraphDisplayConfig(parent.getConfigPath());
+        GraphDisplayConfig graphDisplayConfig = new GraphDisplayConfig(parent.getConfigPath(), logger);
 
         JsonObject jsonObject = element.getAsJsonObject();
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
@@ -54,8 +57,11 @@ public class GraphDisplayConfigReader extends AbstractConfigReader<GraphDisplayC
                 graphDisplayConfig.setGraphsPerPage(value.getAsInt());
             } else if(key.equals(Keywords.DISPLAYED_DECIMAL_PLACES)) {
                 graphDisplayConfig.setDisplayedDecimalPlaces(value.getAsInt());
+            } else if(key.equals(Keywords.SORT)) {
+                graphDisplayConfig.setSort(value.getAsString());
+            } else if(key.equals(Keywords.EXPORT_MODE)) {
+                graphDisplayConfig.setExportMode(value.getAsString());
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsGraphDisplayConfig: Unrecognized element `" + key + "`."));
             }
         }

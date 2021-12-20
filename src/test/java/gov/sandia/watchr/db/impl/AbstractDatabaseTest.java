@@ -1,8 +1,8 @@
 package gov.sandia.watchr.db.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -13,19 +13,27 @@ import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.config.GraphDisplayConfig;
+import gov.sandia.watchr.config.file.DefaultFileReader;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
+import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.util.CommonConstants;
 
 public class AbstractDatabaseTest {
     
     private TestDatabase db;
+    private StringOutputLogger testLogger;
+    private IFileReader fileReader;
 
     @Before
     public void setup() {
-        db = new TestDatabase();
+        testLogger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(testLogger);
+        db = new TestDatabase(testLogger, fileReader);
     }
 
     @Test
@@ -40,9 +48,19 @@ public class AbstractDatabaseTest {
         newPlot.setCategory("MyCategory");
         db.addPlot(newPlot);
 
-        PlotWindowModel retrievedPlot = db.getPlot("MyTestPlot", "MyCategory");
+        PlotWindowModel retrievedPlot = db.searchPlot("MyTestPlot", "MyCategory");
         assertTrue(newPlot.effectiveEquals(retrievedPlot));
     }
+
+    @Test
+    public void testGetPlotByName_DoNotReturnIfCategoryDoesntMatch() {
+        PlotWindowModel newPlot = new PlotWindowModel("MyTestPlot");
+        newPlot.setCategory("MyCategory");
+        db.addPlot(newPlot);
+
+        PlotWindowModel retrievedPlot = db.searchPlot("MyTestPlot", "MyOtherCategory");
+        assertNull(retrievedPlot);
+    }    
 
     @Test
     public void testGetPlotsByNameAndCategory() {
@@ -56,10 +74,10 @@ public class AbstractDatabaseTest {
         db.addPlot(plot2);
         db.addPlot(plot3);
 
-        Set<PlotWindowModel> retrievedPlots = db.getPlots("MyTestPlot*", "MyCategory");
-        assertTrue(retrievedPlots.contains(plot1));
-        assertTrue(retrievedPlots.contains(plot2));
-        assertFalse(retrievedPlots.contains(plot3));
+        assertNotNull(db.searchPlot("MyTestPlot1", "MyCategory"));
+        assertNotNull(db.searchPlot("MyTestPlot2", "MyCategory"));
+        assertNull(db.searchPlot("MyTestPlot3", "MyCategory"));
+        assertNotNull(db.searchPlot("MyTestPlot3", "OtherCategory"));
     }
 
     @Test
@@ -75,11 +93,11 @@ public class AbstractDatabaseTest {
         List<PlotWindowModel> childPlots = new ArrayList<>();
         childPlots.add(plot2);
         childPlots.add(plot3);
-        db.addChildPlots(plot1, childPlots);
+        db.setPlotsAsChildren(plot1, childPlots);
 
         db.deletePlot(plot1);
 
-        Set<PlotWindowModel> retrievedPlots = db.getAllPlots();
+        List<PlotWindowModel> retrievedPlots = db.getAllPlots();
         assertTrue(retrievedPlots.isEmpty());
     }
 
@@ -96,7 +114,7 @@ public class AbstractDatabaseTest {
         List<PlotWindowModel> childPlots = new ArrayList<>();
         childPlots.add(plot2);
         childPlots.add(plot3);
-        db.addChildPlots(plot1, childPlots);
+        db.setPlotsAsChildren(plot1, childPlots);
 
         PlotWindowModel parent = db.getParent(plot2.getName(), "MyChildPlot1");
         assertEquals(parent, plot1);
@@ -126,10 +144,26 @@ public class AbstractDatabaseTest {
 
         trace.firePropertyChangeListeners(PlotToken.TRACE_POINT_MODE);
         assertTrue(db.getDirtyPlotUUIDs().contains(plot.getUUID().toString()));
-    }    
+    }
+
+    @Test
+    public void testGetPlot_WithRegexCharactersInTitle() {
+        String regexViolatingPlotName = "Lorem Serial: Ipsum 4 ranks/1) ElementLoop  (Graph)";
+        PlotWindowModel plot = new PlotWindowModel(regexViolatingPlotName);       
+        PlotCanvasModel canvas = new PlotCanvasModel(plot.getUUID());
+        new PlotTraceModel(canvas.getUUID());
+        db.addPlot(plot);
+
+        PlotWindowModel returnedPlot = db.searchPlot(regexViolatingPlotName, "");
+        assertEquals(plot, returnedPlot);
+    }
 }
 
 class TestDatabase extends AbstractDatabase {
+
+    protected TestDatabase(ILogger logger, IFileReader fileReader) {
+        super(logger, fileReader);
+    }
 
     @Override
     public void loadState() {
@@ -147,5 +181,30 @@ class TestDatabase extends AbstractDatabase {
 
     public Set<String> getDirtyPlotUUIDs() {
         return dirtyPlotUUIDs;
+    }
+
+    @Override
+    public PlotWindowModel loadPlotUsingUUID(String uuid) {
+        return null;
+    }
+
+    @Override
+    public PlotWindowModel loadRootPlot() {
+        return null;
+    }
+
+    @Override
+    public void updateMetadata() {
+        // Do nothing
+    }
+
+    @Override
+    public PlotWindowModel loadPlotUsingInnerFields(String name, String category) {
+        for(PlotWindowModel plot : plots) {
+            if(plot.getName().equals(name) && plot.getCategory().equals(category)) {
+                return plot;
+            }
+        }
+        return null;
     }
 }

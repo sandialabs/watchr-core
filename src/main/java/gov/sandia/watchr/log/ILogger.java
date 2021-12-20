@@ -8,11 +8,14 @@
 package gov.sandia.watchr.log;
 
 import gov.sandia.watchr.config.WatchrConfigError;
+import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 
 public interface ILogger {
 
     public void log(WatchrConfigError errorObj);
     
+    public void logDebug(String message);
+
     public void logInfo(String message);
 
     public void logWarning(String message);
@@ -20,4 +23,8 @@ public interface ILogger {
     public void logError(String error);
 
     public void logError(String error, Throwable t);
+
+    public void setLoggingLevel(ErrorLevel loggingLevel);
+
+    public ErrorLevel getLoggingLevel();
 }

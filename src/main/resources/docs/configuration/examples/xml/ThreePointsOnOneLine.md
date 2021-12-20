@@ -1,4 +1,8 @@
-# Example:  Three points on one line
+# Example:  Scatter plot
+
+This example demonstrates plot types of type **scatter plot**.  A scatter plot is the type of plot you are probably most familiar with - a two-dimensional Cartesian axis with a series of points that represent x,y coordinates, with a line drawn between the points.
+
+The "scatter plot" plot type is explicitly set using the "type" property belonging to a "plot" element in the configuration below.  However, if no plot type is specified, Watchr will default to creating scatter plots.
 
 ## Watchr Config:  config.json
     {
@@ -9,7 +13,8 @@
 			},
 			"plot" : [
 				{
-					"name" : "Three Data Points on One Line",
+					"name" : "Scatter Plot Example",
+                    "type" : "scatterPlot",
 					"dataLines" : [
 						{
 							"name" : "Data Line",

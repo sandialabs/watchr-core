@@ -65,26 +65,6 @@ public class PlotModelUtil {
 	
 	/**
 	 * Attaches an existing {@link PlotTraceModel} to a new parent
-	 * {@link PlotWindowModel} that has default settings configured
-	 * automatically.  The PlotTraceModel will also receive a new
-	 * parent {@link PlotCanvasModel} that has default settings
-	 * configured.
-	 * 
-	 * @param traceModel The PlotTraceModel to give a new parent
-	 * PlotWindowModel and parent PlotCanvasModel.
-	 * @param xLabel
-	 * @param yLabel
-	 * @param zLabel
-	 * @return The new PlotWindowModel.
-	 */
-	public static PlotWindowModel newPlotWindow(PlotTraceModel traceModel, String xLabel, String yLabel, String zLabel) {
-		PlotWindowModel windowModel = new PlotWindowModel(newPlotCanvas(traceModel, xLabel, yLabel, zLabel));
-		windowModel.setName(traceModel.getName());
-		return windowModel;
-	}
-	
-	/**
-	 * Attaches an existing {@link PlotTraceModel} to a new parent
 	 * {@link PlotCanvasModel} that has default settings configured
 	 * automatically.
 	 * 
@@ -107,7 +87,8 @@ public class PlotModelUtil {
 			.setXAxisRGB(RgbUtil.blackRGB())
 			.setYAxisRGB(RgbUtil.blackRGB())
 			.setAxisPrecision(PlotCanvasModel.DEFAULT_CANVAS_DECIMAL_PRECISION)
-			.setDrawAxisLines(true)
+			.setDrawXAxisLines(true)
+			.setDrawYAxisLines(true)
 			.setDrawGridLines(true);
 		
 		if(traceModel.isThreeDimensional()) {

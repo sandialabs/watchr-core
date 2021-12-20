@@ -12,13 +12,24 @@ import java.util.List;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 
 public abstract class AbstractGenerator<E> {
 
+    protected final ILogger logger;
+
+    protected AbstractGenerator(ILogger logger) {
+        this.logger = logger;
+    }
+
     protected boolean diffed(IConfig config, List<WatchrDiff<?>> diffs, DiffCategory diffType) {
+        if(!diffs.isEmpty()) {
+            logger.logDebug("AbstractGenerator.diffed()");
+            logger.logDebug("Number of diffs: " + diffs.size());
+        }
         for(WatchrDiff<?> diff : diffs) {
-            if(diff.getPath().startsWith(config.getConfigPath()) && diff.getProperty() == diffType) {
+            if(diff.getProperty() == diffType && diff.getPath().startsWith(config.getConfigPath())) {
                 return true;
             }
         }
@@ -27,7 +38,7 @@ public abstract class AbstractGenerator<E> {
 
     protected WatchrDiff<?> getDiff(IConfig config, List<WatchrDiff<?>> diffs, DiffCategory diffType) {
         for(WatchrDiff<?> diff : diffs) {
-            if(diff.getPath().startsWith(config.getConfigPath()) && diff.getProperty() == diffType) {
+            if(diff.getProperty() == diffType && diff.getPath().startsWith(config.getConfigPath())) {
                 return diff;
             }
         }

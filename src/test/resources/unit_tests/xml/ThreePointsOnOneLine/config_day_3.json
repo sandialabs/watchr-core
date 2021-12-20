@@ -1,0 +1,34 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_day_3",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "name" : "Three Data Points on One Line",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
+    }
+}

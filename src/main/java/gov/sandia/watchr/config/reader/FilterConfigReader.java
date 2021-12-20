@@ -21,8 +21,13 @@ import gov.sandia.watchr.config.FilterConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
+import gov.sandia.watchr.log.ILogger;
 
 public class FilterConfigReader extends AbstractConfigReader<FilterConfig> {
+
+    protected FilterConfigReader(ILogger logger) {
+        super(logger);
+    }
 
     //////////////
     // OVERRIDE //
@@ -30,7 +35,7 @@ public class FilterConfigReader extends AbstractConfigReader<FilterConfig> {
 
     @Override
     public FilterConfig handle(JsonElement element, IConfig parent) {
-        FilterConfig filterConfig = new FilterConfig(parent.getConfigPath());
+        FilterConfig filterConfig = new FilterConfig(parent.getConfigPath(), logger);
 
         JsonObject jsonObject = element.getAsJsonObject();
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();

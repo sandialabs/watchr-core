@@ -1,7 +1,6 @@
 package gov.sandia.watchr.graph.chartreuse.model;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -58,15 +57,6 @@ public class PlotModelUtilTest {
 	}
 	
 	@Test
-	public void testNewPlotWindowModelFromTrace() {
-		PlotTraceModel traceModel = new PlotTraceModel(null);
-		PlotWindowModel windowModel = PlotModelUtil.newPlotWindow(traceModel, "", "", "");
-		
-		assertNotNull(traceModel.getParent());
-		assertEquals(windowModel, traceModel.getParent().getParent());
-	}
-	
-	@Test
 	public void testNewPlotCanvasModelFromTrace() {
 		PlotTraceModel traceModel = new PlotTraceModel(null);
 		traceModel.setPoints(
@@ -83,7 +73,8 @@ public class PlotModelUtilTest {
 		assertEquals("X", canvasModel.getXAxisLabel());
 		assertEquals("Y", canvasModel.getYAxisLabel());
 		assertEquals("Z", canvasModel.getZAxisLabel());
-		assertTrue(canvasModel.getDrawAxisLines());
+		assertTrue(canvasModel.getDrawXAxisLines());
+		assertTrue(canvasModel.getDrawYAxisLines());
 		assertTrue(canvasModel.getDrawGridLines());
 		assertEquals(RgbUtil.blackRGB(), canvasModel.getXAxisRGB());
 		assertEquals(RgbUtil.blackRGB(), canvasModel.getYAxisRGB());

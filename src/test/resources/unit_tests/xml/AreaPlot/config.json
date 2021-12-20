@@ -1,0 +1,43 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance*",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "type" : "areaPlot",
+                "legend" : "true",
+                "autoname" : {
+                    "useProperty" : "y/path",
+                    "formatByRemovingPrefix" : "R$\\/nightly_run_\\d{4}\\-\\d{2}\\-\\d{2}"
+                },
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/A",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "recurseChildGraphs" : "true"
+                            },
+                            "unit" : "seconds"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
+    }
+}

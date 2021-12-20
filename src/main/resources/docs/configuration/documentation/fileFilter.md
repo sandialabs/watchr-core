@@ -4,7 +4,7 @@ In addition to the "fileName" field provided in the top-level [**files**](files.
 
 ## Properties
 
-* **namePattern** : *string* : Allows you to specify a pattern for allowing only files that contain certain characters to be used for gathering plot data.  This field recognizes simple wildcards (i.e. asterisks).
+* **namePattern** : *string* : Allows you to specify a pattern for allowing only files that contain certain characters to be used for gathering plot data.  This field recognizes [regular expressions](regex.html).
 
 ## Child Elements
 

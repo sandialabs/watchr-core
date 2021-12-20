@@ -23,12 +23,12 @@ import com.google.gson.JsonParser;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.PlotsConfig;
 import gov.sandia.watchr.config.WatchrConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -38,14 +38,17 @@ public class WatchrConfigJsonReader extends AbstractConfigReader<WatchrConfig> {
     // FIELDS //
     ////////////
 
-    private final File startDir;
+    private final String startFileAbsPath;
+    private final IFileReader fileReader;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public WatchrConfigJsonReader(File startDir) {
-        this.startDir = startDir;
+    public WatchrConfigJsonReader(String startFileAbsPath, ILogger logger, IFileReader fileReader) {
+        super(logger);
+        this.startFileAbsPath = startFileAbsPath;
+        this.fileReader = fileReader;
     }
 
     ////////////
@@ -86,14 +89,14 @@ public class WatchrConfigJsonReader extends AbstractConfigReader<WatchrConfig> {
      */
     public WatchrConfig deserialize(String jsonFileContents) {
         
-        JsonObject jsonObject = new JsonParser().parse(jsonFileContents).getAsJsonObject();
+        JsonObject jsonObject = JsonParser.parseString(jsonFileContents).getAsJsonObject();
         return handle(jsonObject, null);
     }
      
     @Override
     public WatchrConfig handle(JsonElement element, IConfig parent) {
         JsonObject jsonObject = element.getAsJsonObject();
-        WatchrConfig watchrConfig = new WatchrConfig();
+        WatchrConfig watchrConfig = new WatchrConfig(logger, fileReader);
 
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
         for (Entry<String, JsonElement> entry : entrySet) {
@@ -101,14 +104,17 @@ public class WatchrConfigJsonReader extends AbstractConfigReader<WatchrConfig> {
             JsonElement value = entry.getValue();
             if(key.equals(Keywords.PLOTS)) {
                 seenKeywords.add(Keywords.PLOTS);
-                PlotsConfigReader plotsConfigReader = new PlotsConfigReader(startDir);
+                PlotsConfigReader plotsConfigReader = new PlotsConfigReader(startFileAbsPath, logger, fileReader);
                 watchrConfig.setPlotsConfig(plotsConfigReader.handle(value, watchrConfig));
             } else if (key.equals(Keywords.GRAPH_DISPLAY)) {
                 seenKeywords.add(Keywords.GRAPH_DISPLAY);
-                GraphDisplayConfigReader graphDisplayConfigReader = new GraphDisplayConfigReader();
+                GraphDisplayConfigReader graphDisplayConfigReader = new GraphDisplayConfigReader(logger);
                 watchrConfig.setGraphDisplayConfig(graphDisplayConfigReader.handle(value, watchrConfig));
+            } else if (key.equals(Keywords.LOGGING)) {
+                seenKeywords.add(Keywords.LOGGING);
+                LogConfigReader logConfigReader = new LogConfigReader(logger);
+                watchrConfig.setLogConfig(logConfigReader.handle(value, watchrConfig));
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "WatchrConfigJsonReader: Unrecognized element `" + key + "`."));
             }
         }

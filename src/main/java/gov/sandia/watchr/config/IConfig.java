@@ -10,10 +10,13 @@ package gov.sandia.watchr.config;
 import java.util.List;
 
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.ILogger;
 
 public interface IConfig {
     
     public void validate();
+
+    public ILogger getLogger();
 
     public String getConfigPath();
 

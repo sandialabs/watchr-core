@@ -87,7 +87,8 @@ public class ContourPlotCompositeTest {
 					.setViewHeight(500);
 			PlotCanvasModel canvasModel = new PlotCanvasModel(windowModel.getUUID())
 					.setDrawGridLines(true)
-					.setDrawAxisLines(true)
+					.setDrawXAxisLines(true)
+					.setDrawYAxisLines(true)
 					.setXAxisLabel("x1")
 					.setXAxisRGB(BLACK)
 					.setYAxisLabel("x2")

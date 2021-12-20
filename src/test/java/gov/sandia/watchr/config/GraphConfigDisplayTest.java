@@ -2,32 +2,32 @@ package gov.sandia.watchr.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.TestLogger;
-import gov.sandia.watchr.WatchrCoreApp;
-import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.GraphDisplayConfig.GraphDisplaySort;
+import gov.sandia.watchr.config.GraphDisplayConfig.LeafNodeStrategy;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.util.OsUtil;
 
 public class GraphConfigDisplayTest {
 
-    private TestLogger testLogger;
+    private StringOutputLogger testLogger;
 
     @Before
     public void setup() {
-        testLogger = new TestLogger();
-        WatchrCoreApp.getInstance().setLogger(testLogger);
+        testLogger = new StringOutputLogger();
     }    
     
     @Test
     public void testToString() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayRange(100);
         displayConfig.setDisplayedDecimalPlaces(3);
@@ -37,6 +37,7 @@ public class GraphConfigDisplayTest {
         displayConfig.setGraphsPerRow(10);
         displayConfig.setLastPlotDbLocation("lastPlotDbLocation");
         displayConfig.setNextPlotDbLocation("nextPlotDbLocation");
+        displayConfig.setLeafNodeStrategy(LeafNodeStrategy.TRAVEL_UP_TO_PARENT);
         displayConfig.setPage(10);
 
         String expectedStr = "nextPlotDbLocation: nextPlotDbLocation" + OsUtil.getOSLineBreak() +
@@ -49,14 +50,14 @@ public class GraphConfigDisplayTest {
                              "graphsPerRow: 10" + OsUtil.getOSLineBreak() +
                              "graphsPerPage: 10" + OsUtil.getOSLineBreak() +
                              "displayedDecimalPlaces: 3" + OsUtil.getOSLineBreak() +
-                             "travelUpIfEmpty: false" + OsUtil.getOSLineBreak();
+                             "leafNodeStrategy: TRAVEL_UP_TO_PARENT" + OsUtil.getOSLineBreak();
         String actualStr = displayConfig.toString();
         assertEquals(expectedStr, actualStr);
     }
 
     @Test
     public void testValidate_GoodBoi() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayRange(100);
         displayConfig.setDisplayedDecimalPlaces(3);
@@ -69,13 +70,13 @@ public class GraphConfigDisplayTest {
         displayConfig.setPage(10);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(0, errors.size());
     }
 
     @Test
     public void testValidate_BadPage() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayRange(100);
         displayConfig.setDisplayedDecimalPlaces(3);
@@ -89,15 +90,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setPage(0);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Page must start at 1.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Page must start at 1."));
     }
 
     @Test
     public void testValidate_BadDisplayRange() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayedDecimalPlaces(3);
         displayConfig.setGraphHeight(400);
@@ -111,15 +112,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setDisplayRange(0);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Display range must be at least 1.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Display range must be at least 1."));
     }     
 
     @Test
     public void testValidate_BadGraphWidth() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayedDecimalPlaces(3);
         displayConfig.setGraphHeight(400);
@@ -133,15 +134,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setGraphWidth(0);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Graph width must be at least 1 pixel.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Graph width must be at least 1 pixel."));
     }
 
     @Test
     public void testValidate_BadGraphHeight() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayedDecimalPlaces(3);
         displayConfig.setGraphsPerPage(10);
@@ -155,15 +156,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setGraphHeight(0);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Graph height must be at least 1 pixel.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Graph height must be at least 1 pixel."));
     }
 
     @Test
     public void testValidate_BadGraphsPerRow() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayedDecimalPlaces(3);
         displayConfig.setGraphsPerPage(10);
@@ -177,15 +178,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setGraphsPerRow(0);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Must have at least 1 graph per row.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Must have at least 1 graph per row."));
     }
 
     @Test
     public void testValidate_BadGraphsPerPage() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setDisplayedDecimalPlaces(3);
         displayConfig.setLastPlotDbLocation("lastPlotDbLocation");
@@ -199,15 +200,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setGraphsPerPage(0);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Must have at least 1 graph per page.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Must have at least 1 graph per page."));
     }
     
     @Test
     public void testValidate_BadDecimalPlaces() {
-        GraphDisplayConfig displayConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig displayConfig = new GraphDisplayConfig("", testLogger);
         displayConfig.setDisplayCategory("Category");
         displayConfig.setLastPlotDbLocation("lastPlotDbLocation");
         displayConfig.setNextPlotDbLocation("nextPlotDbLocation");
@@ -221,15 +222,15 @@ public class GraphConfigDisplayTest {
         displayConfig.setDisplayedDecimalPlaces(-1);
         
         displayConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("Number of displayed decimal places cannot be a negative number.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("Number of displayed decimal places cannot be a negative number."));
     }    
 
     @Test
     public void testCopyAndEquals() {
-        GraphDisplayConfig graphConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig graphConfig = new GraphDisplayConfig("", testLogger);
         graphConfig.setNextPlotDbLocation("nextPlotDbLocation");
         graphConfig.setLastPlotDbLocation("lastPlotDbLocation");
         graphConfig.setPage(2);
@@ -247,7 +248,7 @@ public class GraphConfigDisplayTest {
 
     @Test
     public void testCopyAndNotEquals() {
-        GraphDisplayConfig graphConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig graphConfig = new GraphDisplayConfig("", testLogger);
         graphConfig.setNextPlotDbLocation("nextPlotDbLocation");
         graphConfig.setLastPlotDbLocation("lastPlotDbLocation");
         graphConfig.setPage(2);
@@ -266,7 +267,7 @@ public class GraphConfigDisplayTest {
 
     @Test
     public void testCopyAndHashCode() {
-        GraphDisplayConfig graphConfig = new GraphDisplayConfig("");
+        GraphDisplayConfig graphConfig = new GraphDisplayConfig("", testLogger);
         graphConfig.setNextPlotDbLocation("nextPlotDbLocation");
         graphConfig.setLastPlotDbLocation("lastPlotDbLocation");
         graphConfig.setPage(2);
@@ -284,7 +285,7 @@ public class GraphConfigDisplayTest {
 
     @Test
     public void testDiffs() {
-        GraphDisplayConfig graphConfig = new GraphDisplayConfig("/my/path/prefix");
+        GraphDisplayConfig graphConfig = new GraphDisplayConfig("/my/path/prefix", testLogger);
         graphConfig.setNextPlotDbLocation("nextPlotDbLocation");
         graphConfig.setLastPlotDbLocation("lastPlotDbLocation");
         graphConfig.setPage(2);
@@ -296,7 +297,7 @@ public class GraphConfigDisplayTest {
         graphConfig.setGraphsPerPage(20);
         graphConfig.setDisplayedDecimalPlaces(10);
 
-        GraphDisplayConfig graphConfig2 = new GraphDisplayConfig("/my/path/prefix");
+        GraphDisplayConfig graphConfig2 = new GraphDisplayConfig("/my/path/prefix", testLogger);
         graphConfig2.setDisplayCategory("displayCategory2");
         graphConfig2.setDisplayRange(151);
         graphConfig2.setGraphWidth(1001);
@@ -304,9 +305,10 @@ public class GraphConfigDisplayTest {
         graphConfig2.setGraphsPerRow(5);
         graphConfig2.setGraphsPerPage(21);
         graphConfig2.setDisplayedDecimalPlaces(11);
+        graphConfig2.setSort(GraphDisplaySort.DESCENDING);
         
         List<WatchrDiff<?>> diffs = graphConfig.diff(graphConfig2);
-        assertEquals(7, diffs.size());
+        assertEquals(8, diffs.size());
 
         WatchrDiff<?> diff1 = diffs.get(0);
         assertEquals(DiffCategory.DISPLAY_CATEGORY, diff1.getProperty());
@@ -349,5 +351,11 @@ public class GraphConfigDisplayTest {
         assertEquals("/my/path/prefix/graphDisplayConfig", diff7.getPath());
         assertEquals(10, diff7.getBeforeValue());
         assertEquals(11, diff7.getNowValue()); 
+
+        WatchrDiff<?> diff8 = diffs.get(7);
+        assertEquals(DiffCategory.SORT, diff8.getProperty());
+        assertEquals("/my/path/prefix/graphDisplayConfig", diff8.getPath());
+        assertEquals(GraphDisplaySort.ASCENDING, diff8.getBeforeValue());
+        assertEquals(GraphDisplaySort.DESCENDING, diff8.getNowValue()); 
     }     
 }

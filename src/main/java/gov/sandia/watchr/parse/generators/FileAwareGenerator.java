@@ -7,13 +7,13 @@
 ******************************************************************************/
 package gov.sandia.watchr.parse.generators;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
 import gov.sandia.watchr.config.FileConfig;
+import gov.sandia.watchr.config.file.IFileReader;
 
 public abstract class FileAwareGenerator<E> extends AbstractGenerator<E> {
     
@@ -28,6 +28,7 @@ public abstract class FileAwareGenerator<E> extends AbstractGenerator<E> {
     /////////////////
 
     protected FileAwareGenerator(FileConfig fileConfig) {
+        super(fileConfig.getLogger());
         this.fileConfig = fileConfig;
     }
 
@@ -35,34 +36,37 @@ public abstract class FileAwareGenerator<E> extends AbstractGenerator<E> {
     // GETTERS //
     /////////////
 
-    protected File getReportLocation() {
-        if(fileConfig != null) {
-            return fileConfig.getStartDir();
-        }
-        return null;
-    }
-
-    protected List<File> getReports(File startDir) {
-        List<File> reports = new ArrayList<>();
+    protected List<String> getReports(String startDirAbsolutePath) {
+        List<String> reports = new ArrayList<>();
 
         if(fileConfig != null) {
+            IFileReader fileReader = fileConfig.getFileReader();
             String extension = fileConfig.getFileExtension();
-            String fileNamePattern = fileConfig.getFileNamePattern();
+            String fileNamePattern = fileConfig.getFileNamePatternAsRegex();
             boolean recurseSubdirectories = fileConfig.shouldRecurseDirectories();
 
-            for(File file : startDir.listFiles()) {
-                if(file.isFile()) {
-                    if(FilenameUtils.getBaseName(file.getName()).matches(fileNamePattern) &&
-                       FilenameUtils.getExtension(file.getName()).equals(extension)) {
-                        reports.add(file);
+            logger.logDebug("Getting contents from " + startDirAbsolutePath + "...");
+            List<String> childPaths = fileReader.getFolderContents(startDirAbsolutePath);
+
+            for(String childFile : childPaths) {
+                if(fileReader.isFile(childFile)) {
+                    logger.logDebug("Loading file " + childFile);
+                    if(FilenameUtils.getBaseName(fileReader.getName(childFile)).matches(fileNamePattern) &&
+                       FilenameUtils.getExtension(fileReader.getName(childFile)).equals(extension)) {
+                        logger.logDebug("Adding file " + childFile);
+                        reports.add(childFile);
                     }
-                } else if(file.isDirectory() && recurseSubdirectories) {
-                    List<File> subdirectoryReports = getReports(file);
+                } else if(fileReader.isDirectory(childFile) && recurseSubdirectories) {
+                    logger.logDebug("Loading subdirectory " + childFile);
+                    List<String> subdirectoryReports = getReports(childFile);
                     reports.addAll(subdirectoryReports);
+                } else {
+                    logger.logDebug(childFile + " is not a file or a subdirectory.");
                 }
             }
         }
 
+        logger.logDebug("Returning reports of size " + reports.size());
         return reports;
     }
 }

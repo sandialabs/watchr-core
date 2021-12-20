@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<performance-report date="2021-04-07T22:21:21" name="nightly_run_2021-04-07">
+    <timing name="A" value="50.0">
+        <timing name="B" value="20.0">
+            <timing name="D" value="5.0"/>
+            <timing name="E" value="15.0"/>
+        </timing>
+        <timing name="C" value="30.0">
+            <timing name="F" value="20.0"/>
+            <timing name="G" value="10.0"/>
+        </timing>
+    </timing>
+</performance-report>

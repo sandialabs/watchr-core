@@ -2,6 +2,8 @@ package gov.sandia.watchr.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -12,64 +14,67 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.TestLogger;
-import gov.sandia.watchr.WatchrCoreApp;
+import gov.sandia.watchr.config.file.DefaultFileReader;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.StringOutputLogger;
 
 public class PlotsConfigTest {
 
-    private TestLogger testLogger;
+    private StringOutputLogger testLogger;
+    private IFileReader fileReader;
 
     @Before
     public void setup() {
-        testLogger = new TestLogger();
-        WatchrCoreApp.getInstance().setLogger(testLogger);
+        testLogger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(testLogger);
     }     
 
     @Test
     public void testValidate_EmptyFileConfig() {
-        CategoryConfiguration categoryConfig = new CategoryConfiguration("");
-        FileConfig fileConfig = new FileConfig("");
+        CategoryConfiguration categoryConfig = new CategoryConfiguration("", testLogger);
+        FileConfig fileConfig = new FileConfig("", testLogger, fileReader);
 
-        PlotsConfig plotsConfig = new PlotsConfig("");
+        PlotsConfig plotsConfig = new PlotsConfig("", testLogger, fileReader);
         plotsConfig.setCategoryConfig(categoryConfig);
         plotsConfig.setFileConfig(fileConfig);
 
         plotsConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(3, errors.size());
 
-        assertEquals("A directory for parseable reports was not provided.", errors.get(0).getMessage());
-        assertEquals("Pattern for finding report files cannot be blank!", errors.get(1).getMessage());
-        assertEquals("No file type extension was provided.  It is strongly recommend that at least one " +
-                     "file extension is specified so Watchr knows how to parse your report files.", errors.get(2).getMessage());
+        assertTrue(errors.get(0).contains("A directory for parseable reports was not provided."));
+        assertTrue(errors.get(1).contains("Pattern for finding report files cannot be blank!"));
+        assertTrue(errors.get(2).contains("No file type extension was provided.  It is strongly recommend that at least one " +
+                     "file extension is specified so Watchr knows how to parse your report files."));
     }
 
     @Test
     public void testValidate_HappyPath() {
-        CategoryConfiguration categoryConfig = new CategoryConfiguration("");
-        FileConfig fileConfig = new FileConfig(new File("."), "");
+        CategoryConfiguration categoryConfig = new CategoryConfiguration("", testLogger);
+        File startFile = new File(".");
+        FileConfig fileConfig = new FileConfig(startFile.getAbsolutePath(), "", testLogger, fileReader);
         fileConfig.setFileExtension("xml");
         fileConfig.setFileNamePattern("test");
 
-        PlotsConfig plotsConfig = new PlotsConfig("");
+        PlotsConfig plotsConfig = new PlotsConfig("", testLogger, fileReader);
         plotsConfig.setCategoryConfig(categoryConfig);
         plotsConfig.setFileConfig(fileConfig);
 
         plotsConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(0, errors.size());
     }    
 
     @Test
     public void testCopyAndEquals() {
         try {
-            File startFile = Files.createTempDirectory(null).toFile();
-            CategoryConfiguration categoryConfig = new CategoryConfiguration("");
-            FileConfig fileConfig = new FileConfig(startFile, "");
+            File startFile = Files.createTempDirectory("testCopyAndEquals").toFile();
+            CategoryConfiguration categoryConfig = new CategoryConfiguration("", testLogger);
+            FileConfig fileConfig = new FileConfig(startFile.getAbsolutePath(), "", testLogger, fileReader);
             fileConfig.setFileExtension("xml");
             fileConfig.setFileNamePattern("test");
 
-            PlotsConfig plotsConfig = new PlotsConfig("");
+            PlotsConfig plotsConfig = new PlotsConfig("", testLogger, fileReader);
             plotsConfig.setCategoryConfig(categoryConfig);
             plotsConfig.setFileConfig(fileConfig);
 
@@ -82,12 +87,13 @@ public class PlotsConfigTest {
 
     @Test
     public void testCopyAndNotEquals() {
-        CategoryConfiguration categoryConfig = new CategoryConfiguration("");
-        FileConfig fileConfig = new FileConfig(new File("."), "");
+        CategoryConfiguration categoryConfig = new CategoryConfiguration("", testLogger);
+        File startFile = new File(".");
+        FileConfig fileConfig = new FileConfig(startFile.getAbsolutePath(), "", testLogger, fileReader);
         fileConfig.setFileExtension("xml");
         fileConfig.setFileNamePattern("test");
 
-        PlotsConfig plotsConfig = new PlotsConfig("");
+        PlotsConfig plotsConfig = new PlotsConfig("", testLogger, fileReader);
         plotsConfig.setCategoryConfig(categoryConfig);
         plotsConfig.setFileConfig(fileConfig);
 
@@ -99,15 +105,15 @@ public class PlotsConfigTest {
     @Test
     public void testCopyAndHashCode() {
         try {
-            File startFile = Files.createTempDirectory(null).toFile();
+            File startFile = Files.createTempDirectory("testCopyAndHashCode").toFile();
 
-            CategoryConfiguration categoryConfig = new CategoryConfiguration("");
+            CategoryConfiguration categoryConfig = new CategoryConfiguration("", testLogger);
             categoryConfig.getCategories().add("category");
-            FileConfig fileConfig = new FileConfig(startFile, "");
+            FileConfig fileConfig = new FileConfig(startFile.getAbsolutePath(), "", testLogger, fileReader);
             fileConfig.setFileExtension("xml");
             fileConfig.setFileNamePattern("test");
 
-            PlotsConfig plotsConfig = new PlotsConfig("");
+            PlotsConfig plotsConfig = new PlotsConfig("", testLogger, fileReader);
             plotsConfig.setCategoryConfig(categoryConfig);
             plotsConfig.setFileConfig(fileConfig);
 
@@ -116,5 +122,11 @@ public class PlotsConfigTest {
         } catch(IOException e) {
             fail(e.getMessage());
         }
-    }     
+    }
+
+    @Test
+    public void testGetPointFilterConfig() {
+        PlotsConfig plotsConfig = new PlotsConfig("/my/path/prefix/plots", testLogger, fileReader);
+        assertNotNull(plotsConfig.getPointFilterConfig());
+    }
 }

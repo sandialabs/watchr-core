@@ -308,6 +308,14 @@ img {
 <pre><code>&quot;getPath&quot;: &quot;{1}/{2}/performance*&quot;
 </code></pre>
 
+<p>The following will obtain a range of results from a JSON array.  This expression will first look for an element beginning the text &quot;performance.&quot;  Once it has found it, it will retrieve the first three children of the JSON element, as indicated by the 0-2 range (in other words, begin with the child element at index 0, and proceed to the element at index 2).</p>
+<pre><code>&quot;getPath&quot;: &quot;performance*/{0-2}&quot;
+</code></pre>
+
+<p>The following will obtain a range of results from a JSON array.  This expression will first look for an element beginning the text &quot;performance.&quot;  Once it has found it, it will retrieve <em>all</em> children from the JSON element, as indicated by the 0-N range (in other words, begin with the child element at index 0, and proceed to the nth child element).</p>
+<pre><code>&quot;getPath&quot;: &quot;performance*/{0-N}&quot;
+</code></pre>
+
 
 </body>
 </html>

@@ -13,6 +13,7 @@ import java.util.List;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
+import gov.sandia.watchr.log.ILogger;
 
 public class FilterConfig implements IConfig {
 
@@ -20,6 +21,7 @@ public class FilterConfig implements IConfig {
     // FIELDS //
     ////////////
 
+    private final ILogger logger;
     private final List<PlotTracePoint> filterPoints;
     private final String configPath;
 
@@ -27,12 +29,14 @@ public class FilterConfig implements IConfig {
     // CONSTRUCTOR //
     /////////////////
 
-    public FilterConfig(String configPathPrefix) {
+    public FilterConfig(String configPathPrefix, ILogger logger) {
+        this.logger = logger;
         this.filterPoints = new ArrayList<>();
         this.configPath = configPathPrefix + "/filterConfig";
     }
 
     public FilterConfig(FilterConfig copy) {
+        this.logger = copy.getLogger();
         this.filterPoints = new ArrayList<>();
         for(PlotTracePoint point : copy.getFilterPoints()) {
             this.filterPoints.add(new PlotTracePoint(point));
@@ -48,9 +52,18 @@ public class FilterConfig implements IConfig {
         return filterPoints;
     }
 
+    public boolean isBlank() {
+        return filterPoints.isEmpty();
+    }
+
     @Override
     public String getConfigPath() {
         return configPath;
+    } 
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
     } 
 
     //////////////
@@ -97,5 +110,5 @@ public class FilterConfig implements IConfig {
         int hash = 7;
         hash = 31 * (hash + filterPoints.hashCode());
         return hash;
-    } 
+    }
 }

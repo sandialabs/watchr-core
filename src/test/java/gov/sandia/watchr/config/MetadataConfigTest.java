@@ -8,37 +8,39 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.TestLogger;
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.DefaultFileReader;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.StringOutputLogger;
 
 public class MetadataConfigTest {
 
-    private TestLogger testLogger;
+    private StringOutputLogger testLogger;
+    private IFileReader fileReader;
 
     @Before
     public void setup() {
-        testLogger = new TestLogger();
-        WatchrCoreApp.getInstance().setLogger(testLogger);
-    }    
+        testLogger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(testLogger);
+    }
 
     @Test
     public void testValidate_HappyPath() {
-        FileConfig fileConfig = new FileConfig("");
+        FileConfig fileConfig = new FileConfig("", testLogger, fileReader);
 
         MetadataConfig metadataConfig = new MetadataConfig(fileConfig, "");
         metadataConfig.setName("name");
         metadataConfig.setLink("link");
 
         metadataConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = testLogger.getLog();
         assertEquals(0, errors.size());
     }
 
     @Test
     public void testCopyAndEquals() {
-        FileConfig fileConfig = new FileConfig("");
+        FileConfig fileConfig = new FileConfig("", testLogger, fileReader);
         MetadataConfig metadataConfig = new MetadataConfig(fileConfig, "");
         metadataConfig.setName("name");
         metadataConfig.setLink("link");
@@ -49,7 +51,7 @@ public class MetadataConfigTest {
 
     @Test
     public void testCopyAndNotEquals() {
-        FileConfig fileConfig = new FileConfig("");
+        FileConfig fileConfig = new FileConfig("", testLogger, fileReader);
         MetadataConfig metadataConfig = new MetadataConfig(fileConfig, "");
         metadataConfig.setName("name");
         metadataConfig.setLink("link");
@@ -61,7 +63,7 @@ public class MetadataConfigTest {
 
     @Test
     public void testCopyAndHashCode() {
-        FileConfig fileConfig = new FileConfig("");
+        FileConfig fileConfig = new FileConfig("", testLogger, fileReader);
         MetadataConfig metadataConfig = new MetadataConfig(fileConfig, "");
         metadataConfig.setName("name");
         metadataConfig.setLink("link");
@@ -72,7 +74,7 @@ public class MetadataConfigTest {
 
     @Test
     public void testDiffs() {
-        FileConfig fileConfig = new FileConfig("");
+        FileConfig fileConfig = new FileConfig("", testLogger, fileReader);
         MetadataConfig metadataConfig = new MetadataConfig(fileConfig, "/my/path/prefix");
         metadataConfig.setName("name");
         metadataConfig.setLink("link");

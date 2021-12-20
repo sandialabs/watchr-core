@@ -7,17 +7,16 @@
 ******************************************************************************/
 package gov.sandia.watchr.config;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
@@ -43,29 +42,33 @@ public class HierarchicalExtractor implements IConfig {
     private final Map<String, String> properties = new HashMap<>();
 
     private final String configPath;
+    private final ILogger logger;
+    private final IFileReader fileReader;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public HierarchicalExtractor(FileConfig fileConfig, String configPathPrefix, String extractorName) {
+    public HierarchicalExtractor(
+            FileConfig fileConfig, String configPathPrefix, String extractorName) {
         this.fileConfig = fileConfig;
         this.ambiguityStrategy = new AmbiguityStrategy(configPathPrefix);
+        this.logger = fileConfig.getLogger();
+        this.fileReader = fileConfig.getFileReader();
 
         this.configPath = configPathPrefix + "/" + extractorName;
-        if(fileConfig != null) {
-            this.extractionStrategyType =
-               ExtractionStrategyFactory.getInstance().getTypeFromExtension(fileConfig.getFileExtension());
-        } else {
-            this.extractionStrategyType = null;
-        }
+        this.extractionStrategyType =
+            ExtractionStrategyFactory.getInstance().getTypeFromExtension(fileConfig.getFileExtension());
     }
 
-    public HierarchicalExtractor(FileConfig fileConfig, String configPathPrefix) {
+    public HierarchicalExtractor(
+            FileConfig fileConfig, String configPathPrefix) {
         this.fileConfig = fileConfig;
         this.ambiguityStrategy = new AmbiguityStrategy(configPathPrefix);
         this.configPath = configPathPrefix;
         this.extractionStrategyType = ExtractionStrategyFactory.getInstance().getTypeFromExtension(fileConfig.getFileExtension());
+        this.logger = fileConfig.getLogger();
+        this.fileReader = fileConfig.getFileReader();
     }
 
     public HierarchicalExtractor(HierarchicalExtractor copy) {
@@ -74,6 +77,8 @@ public class HierarchicalExtractor implements IConfig {
         this.configPath = copy.getConfigPath();
         this.extractionStrategyType = ExtractionStrategyFactory.getInstance().getTypeFromExtension(fileConfig.getFileExtension());
         this.properties.putAll(copy.properties);
+        this.logger = copy.logger;
+        this.fileReader = copy.fileReader;
     }
 
     /////////////
@@ -105,6 +110,11 @@ public class HierarchicalExtractor implements IConfig {
         return configPath;
     }
 
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
+
     /////////////
     // SETTERS //
     /////////////
@@ -121,10 +131,6 @@ public class HierarchicalExtractor implements IConfig {
         this.ambiguityStrategy = ambiguityStrategy;
     }
 
-    public void setUnit(String unit) {
-        properties.put(Keywords.UNIT, unit);
-    }
-
     public void setProperty(String propertyKey, String propertyValue) {
         properties.put(propertyKey, propertyValue);
     }
@@ -133,10 +139,11 @@ public class HierarchicalExtractor implements IConfig {
     // UTILITY //
     /////////////
 
-    public List<ExtractionResult> extract(File targetFile) throws WatchrParseException {
-        ExtractionStrategy extractionStrategy =
-            ExtractionStrategyFactory.getInstance().create(extractionStrategyType, properties, ambiguityStrategy);
-        return extractionStrategy.extract(targetFile);
+    public List<ExtractionResult> extract(String fileAbsPath) throws WatchrParseException {
+        ExtractionStrategy<?> extractionStrategy =
+            ExtractionStrategyFactory.getInstance().create(
+                extractionStrategyType, properties, ambiguityStrategy, logger, fileReader);
+        return extractionStrategy.extract(fileAbsPath);
     }
 
     @Override
@@ -188,7 +195,6 @@ public class HierarchicalExtractor implements IConfig {
 
     @Override
     public void validate() {
-        ILogger logger = WatchrCoreApp.getInstance().getLogger();
         if(fileConfig == null) {
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, "File configuration is not set for extractor."));
         }

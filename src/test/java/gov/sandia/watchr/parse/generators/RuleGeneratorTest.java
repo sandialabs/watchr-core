@@ -6,21 +6,30 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.config.RuleConfig;
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotModelUtil;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
+import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.util.RGB;
 
 public class RuleGeneratorTest {
     
+    private StringOutputLogger testLogger;
+
+    @Before
+    public void setup() {
+        testLogger = new StringOutputLogger();
+    }
+
     @Test
     public void testRulesWithSuccess() {
         try {
@@ -34,7 +43,7 @@ public class RuleGeneratorTest {
             avgValues.add(new PlotTracePoint("3.0", "2.0"));
 
             List<RuleConfig> rules = new ArrayList<>();
-            RuleConfig rule1 = new RuleConfig("");
+            RuleConfig rule1 = new RuleConfig("", testLogger);
             rule1.setCondition("average > dataLine");
             rule1.setAction("fail");
 
@@ -49,7 +58,7 @@ public class RuleGeneratorTest {
             avgTraceModel.setDerivativeLineType(DerivativeLineType.AVERAGE);
             canvasModel.addTraceModel(avgTraceModel);
 
-            RuleGenerator ruleGenerator = new RuleGenerator(traceModel);
+            RuleGenerator ruleGenerator = new RuleGenerator(traceModel, testLogger);
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
     
@@ -72,7 +81,7 @@ public class RuleGeneratorTest {
             avgValues.add(new PlotTracePoint("3.0", "4.0"));
 
             List<RuleConfig> rules = new ArrayList<>();
-            RuleConfig rule1 = new RuleConfig("");
+            RuleConfig rule1 = new RuleConfig("", testLogger);
             rule1.setCondition("average > dataLine");
             rule1.setAction("fail");
 
@@ -87,7 +96,7 @@ public class RuleGeneratorTest {
                 .setDerivativeLineType(DerivativeLineType.AVERAGE);
             canvasModel.addTraceModel(avgTraceModel);
 
-            RuleGenerator ruleGenerator = new RuleGenerator(traceModel);
+            RuleGenerator ruleGenerator = new RuleGenerator(traceModel, testLogger);
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
             assertEquals(windowModel.getBackgroundColor(), new RGB(235, 156, 156));
@@ -109,7 +118,7 @@ public class RuleGeneratorTest {
             stdDevValues.add(new PlotTracePoint("3.0", "3.0"));
 
             List<RuleConfig> rules = new ArrayList<>();
-            RuleConfig rule1 = new RuleConfig("");
+            RuleConfig rule1 = new RuleConfig("", testLogger);
             rule1.setCondition("dataLine == standardDeviation");
             rule1.setAction("warn");
 
@@ -124,7 +133,7 @@ public class RuleGeneratorTest {
                 .setDerivativeLineType(DerivativeLineType.STANDARD_DEVIATION);
             canvasModel.addTraceModel(stdDevTraceModel);
 
-            RuleGenerator ruleGenerator = new RuleGenerator(traceModel);
+            RuleGenerator ruleGenerator = new RuleGenerator(traceModel, testLogger);
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
             assertEquals(windowModel.getBackgroundColor(), new RGB(239, 228, 176));
@@ -146,7 +155,7 @@ public class RuleGeneratorTest {
             stdDevValues.add(new PlotTracePoint("3.0", "2.0"));
 
             List<RuleConfig> rules = new ArrayList<>();
-            RuleConfig rule1 = new RuleConfig("");
+            RuleConfig rule1 = new RuleConfig("", testLogger);
             rule1.setCondition("standardDeviationOffset < dataLine");
             rule1.setAction("warn");
 
@@ -161,12 +170,12 @@ public class RuleGeneratorTest {
                 .setDerivativeLineType(DerivativeLineType.STANDARD_DEVIATION_OFFSET);
             canvasModel.addTraceModel(stdDevTraceModel);
 
-            RuleGenerator ruleGenerator = new RuleGenerator(traceModel);
+            RuleGenerator ruleGenerator = new RuleGenerator(traceModel, testLogger);
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
             assertEquals(windowModel.getBackgroundColor(), new RGB(239, 228, 176));
         } catch(WatchrParseException e) {
             fail(e.getMessage());
         }
-    }
+    } 
 }

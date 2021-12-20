@@ -12,8 +12,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.TestFileUtils;
-import gov.sandia.watchr.config.DerivativeLine;
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.AverageDerivativeLine;
+import gov.sandia.watchr.config.derivative.DerivativeLine;
+import gov.sandia.watchr.config.derivative.RollingDerivativeLine;
+import gov.sandia.watchr.config.derivative.StdDevPositiveOffsetDerivativeLine;
+import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
@@ -21,6 +24,7 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotModelUtil;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceOptions;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
+import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.util.ArrayUtil;
 
@@ -32,23 +36,25 @@ public class DerivativeLineGeneratorTest {
     private List<DerivativeLine> lines;
     private PlotTraceModel mainDataLine;
 
+    private StringOutputLogger testLogger;
+
     @Before
     public void setup() {
+        testLogger = new StringOutputLogger();
+
         junkXData = new ArrayList<>();
         junkYData = new ArrayList<>();
         Random rand = new Random(1138);
 
         for(int i = 1; i <= 100; i++) {
-            junkXData.add(new Integer(i).toString());
-            junkYData.add(new Double(rand.nextDouble()*100.0).toString());
+            junkXData.add(Integer.valueOf(i).toString());
+            junkYData.add(Double.valueOf(rand.nextDouble()*100.0).toString());
         }
 
-        DerivativeLine averageLine = new DerivativeLine("");
-        averageLine.setType(DerivativeLineType.AVERAGE);
+        RollingDerivativeLine averageLine = new AverageDerivativeLine("", testLogger);
         averageLine.setRollingRange(30);
         averageLine.setIgnoreFilteredData(false);
-        DerivativeLine stdDevLine = new DerivativeLine("");
-        stdDevLine.setType(DerivativeLineType.STANDARD_DEVIATION_OFFSET);
+        RollingDerivativeLine stdDevLine = new StdDevPositiveOffsetDerivativeLine("", testLogger);
         stdDevLine.setRollingRange(30);
         stdDevLine.setIgnoreFilteredData(false);
 
@@ -68,7 +74,7 @@ public class DerivativeLineGeneratorTest {
     @Test
     public void testNewDerivateLines() {
         try {
-            DerivativeLineGenerator derivateLineGenerator = new DerivativeLineGenerator(mainDataLine);
+            DerivativeLineGenerator derivateLineGenerator = new DerivativeLineGenerator(mainDataLine, testLogger);
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             derivateLineGenerator.generate(lines, diffs);
 
@@ -88,7 +94,7 @@ public class DerivativeLineGeneratorTest {
     @Test
     public void testUpdateDerivateLinesAfterFilter() {
         try {
-            DerivativeLineGenerator derivateLineGenerator = new DerivativeLineGenerator(mainDataLine);
+            DerivativeLineGenerator derivateLineGenerator = new DerivativeLineGenerator(mainDataLine, testLogger);
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             derivateLineGenerator.generate(lines, diffs);
 
@@ -105,12 +111,12 @@ public class DerivativeLineGeneratorTest {
             options.sortAlongDimension = Dimension.X;
             assertEquals("63.22491512439361", avgPlotTraceModel.getPoints(options).get(0).y);
             assertEquals("63.22491512439361", stdDevPlotTraceModel.getPoints(options).get(0).y);
-            assertEquals("50.62852188332792", avgPlotTraceModel.getPoints(options).get(25).y);
-            assertEquals("82.10424068213396", stdDevPlotTraceModel.getPoints(options).get(25).y);
-            assertEquals("51.40874307909452", avgPlotTraceModel.getPoints(options).get(50).y);
-            assertEquals("79.51475833561194", stdDevPlotTraceModel.getPoints(options).get(50).y);
-            assertEquals("48.22879534494226", avgPlotTraceModel.getPoints(options).get(75).y);
-            assertEquals("74.85223654139949", stdDevPlotTraceModel.getPoints(options).get(75).y);
+            assertEquals("50.6285", avgPlotTraceModel.getPoints(options).get(25).y);
+            assertEquals("82.1042", stdDevPlotTraceModel.getPoints(options).get(25).y);
+            assertEquals("51.4087", avgPlotTraceModel.getPoints(options).get(50).y);
+            assertEquals("79.5148", stdDevPlotTraceModel.getPoints(options).get(50).y);
+            assertEquals("48.2288", avgPlotTraceModel.getPoints(options).get(75).y);
+            assertEquals("74.8522", stdDevPlotTraceModel.getPoints(options).get(75).y);
 
             List<PlotTracePoint> filteredValues = new ArrayList<>(mainDataLine.getFilterValues());
             filteredValues.add(new PlotTracePoint("20.0", ""));
@@ -135,12 +141,12 @@ public class DerivativeLineGeneratorTest {
 
             assertEquals("63.22491512439361", avgPlotTraceModel.getPoints(options).get(0).y);
             assertEquals("63.22491512439361", stdDevPlotTraceModel.getPoints(options).get(0).y);
-            assertEquals("50.62852188332792", avgPlotTraceModel.getPoints(options).get(25).y);
-            assertEquals("82.10424068213396", stdDevPlotTraceModel.getPoints(options).get(25).y);
-            assertEquals("51.40874307909452", avgPlotTraceModel.getPoints(options).get(50).y);
-            assertEquals("79.51475833561194", stdDevPlotTraceModel.getPoints(options).get(50).y);
-            assertEquals("48.22879534494226", avgPlotTraceModel.getPoints(options).get(75).y);
-            assertEquals("74.85223654139949", stdDevPlotTraceModel.getPoints(options).get(75).y);
+            assertEquals("50.6285", avgPlotTraceModel.getPoints(options).get(25).y);
+            assertEquals("82.1042", stdDevPlotTraceModel.getPoints(options).get(25).y);
+            assertEquals("51.4087", avgPlotTraceModel.getPoints(options).get(50).y);
+            assertEquals("79.5148", stdDevPlotTraceModel.getPoints(options).get(50).y);
+            assertEquals("48.2288", avgPlotTraceModel.getPoints(options).get(75).y);
+            assertEquals("74.8522", stdDevPlotTraceModel.getPoints(options).get(75).y);
         } catch(WatchrParseException e) {
             fail(e.getMessage());
         }

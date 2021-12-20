@@ -19,7 +19,7 @@
 				"template" : "plot_template",
 				"autoname" : {
 					"useProperty" : "y/path",
-					"formatByRemovingPrefix" : "\\/nightly_run_\\d{4}_\\d{2}_\\d{2}"
+					"formatByRemovingPrefix" : "R$\\/nightly_run_\\d{4}_\\d{2}_\\d{2}"
 				},
 				"category" : "cpu-time-max",
 				"dataLines" : [
@@ -143,6 +143,10 @@
 		"graphHeight" : 450,
 		"graphsPerRow" : 3,
 		"graphsPerPage" : 15,
-		"displayedDecimalPlaces" : 3
+		"displayedDecimalPlaces" : 3,
+        "exportMode" : "perCategory"
+	},
+	"logging" : {
+		"level" : "DEBUG"
 	}
 }

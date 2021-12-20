@@ -102,6 +102,7 @@ public abstract class PlotTraceGenerator {
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_HOVER_TEXT, level,               () -> {return processHoverTextFormatting(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_NAME,  level,                    () -> {return processPlotName(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_LABEL, level,                    () -> {return processPlotLabel(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_OPACITY, level,                  () -> {return processOpacity(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_ORIENTATION, level,              () -> {return processOrientation(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_PARENT_CANVAS_X, level,          () -> {return processParentCanvasX(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.TRACE_PARENT_CANVAS_Y, level,          () -> {return processParentCanvasY(); });
@@ -143,6 +144,7 @@ public abstract class PlotTraceGenerator {
 	public abstract String processErrorArrZVisible();
 	public abstract String processHoverTextFormatting();
 	public abstract String processIterCount();
+	public abstract String processOpacity();
 	public abstract String processOrientation();
 	public abstract String processParentCanvasX();
 	public abstract String processParentCanvasY();

@@ -7,6 +7,8 @@
 ******************************************************************************/
 package gov.sandia.watchr.util;
 
+import java.util.Random;
+
 /**
  * Utility methods related to {@link RGB} objects.
  * 
@@ -14,6 +16,9 @@ package gov.sandia.watchr.util;
  *
  */
 public class RgbUtil {
+
+    private static final String RANDOM = "random";
+    private static final Random rand = new Random();
 
 	private RgbUtil() {}
 	
@@ -25,13 +30,24 @@ public class RgbUtil {
 	}
 
 	public static RGB parseColor(String color) {
-        String[] rgbs = color.split(",");
-        if(rgbs.length == 3) {
-            return new RGB(
-                Integer.parseInt(rgbs[0]),
-                Integer.parseInt(rgbs[1]),
-                Integer.parseInt(rgbs[2])
-            );
+        if(color.equals(RANDOM)) {
+            return new RGB(rand.nextInt(200), rand.nextInt(200), rand.nextInt(200));
+        } else {
+            String[] rgbs = color.split(",");
+            if(rgbs.length == 3) {
+                return new RGB(
+                    Integer.parseInt(rgbs[0].trim()),
+                    Integer.parseInt(rgbs[1].trim()),
+                    Integer.parseInt(rgbs[2].trim())
+                );
+            } else if(rgbs.length == 4) {
+                return new RGBA(
+                    Integer.parseInt(rgbs[0].trim()),
+                    Integer.parseInt(rgbs[1].trim()),
+                    Integer.parseInt(rgbs[2].trim()),
+                    Double.parseDouble(rgbs[3].trim())
+                );
+            }
         }
         return null;
     }

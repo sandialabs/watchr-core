@@ -14,32 +14,33 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.TestLogger;
-import gov.sandia.watchr.WatchrCoreApp;
-import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.DefaultFileReader;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.StringOutputLogger;
 
 public class FileConfigTest {
 
-    private TestLogger testLogger;
+    private StringOutputLogger logger;
+    private IFileReader fileReader;
 
     @Before
     public void setup() {
-        testLogger = new TestLogger();
-        WatchrCoreApp.getInstance().setLogger(testLogger);
+        logger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(logger);
     }
     
     @Test
     public void testValidate_GoodBoi() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testValidate_GoodBoi").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("report");
             fileConfig.setFileExtension("xml");
 
             fileConfig.validate();
-            List<WatchrConfigError> errors = testLogger.getErrors();
+            List<String> errors = logger.getLog();
             assertEquals(0, errors.size());
         } catch(IOException e) {
             fail(e.getMessage());
@@ -48,31 +49,31 @@ public class FileConfigTest {
 
     @Test
     public void testValidate_MissingDirectory() {
-        FileConfig fileConfig = new FileConfig("");
+        FileConfig fileConfig = new FileConfig("", logger, fileReader);
         fileConfig.setFileNamePattern("report");
         fileConfig.setFileExtension("xml");
 
         fileConfig.validate();
-        List<WatchrConfigError> errors = testLogger.getErrors();
+        List<String> errors = logger.getLog();
         assertEquals(1, errors.size());
-        assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-        assertEquals("A directory for parseable reports was not provided.", errors.get(0).getMessage());
+        assertTrue(errors.get(0).contains("ERROR"));
+        assertTrue(errors.get(0).contains("A directory for parseable reports was not provided."));
     } 
 
     @Test
     public void testValidate_NonexistentDirectory() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testValidate_NonexistentDirectory").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             startDir.delete();
             fileConfig.setFileNamePattern("report");
             fileConfig.setFileExtension("xml");
 
             fileConfig.validate();
-            List<WatchrConfigError> errors = testLogger.getErrors();
+            List<String> errors = logger.getLog();
             assertEquals(1, errors.size());
-            assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-            assertTrue(errors.get(0).getMessage().endsWith(" does not exist."));
+            assertTrue(errors.get(0).contains("ERROR"));
+            assertTrue(errors.get(0).endsWith(" does not exist."));
         } catch(IOException e) {
             fail(e.getMessage());
         }
@@ -81,16 +82,16 @@ public class FileConfigTest {
     @Test
     public void testValidate_BlankFileExtension() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testValidate_BlankFileExtension").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("report");
 
             fileConfig.validate();
-            List<WatchrConfigError> errors = testLogger.getErrors();
+            List<String> errors = logger.getLog();
             assertEquals(1, errors.size());
-            assertEquals(ErrorLevel.WARNING, errors.get(0).getLevel());
-            assertEquals("No file type extension was provided.  It is strongly recommend that at least one file extension " +
-                         "is specified so Watchr knows how to parse your report files.", errors.get(0).getMessage());
+            assertTrue(errors.get(0).contains("WARNING"));
+            assertTrue(errors.get(0).contains("No file type extension was provided.  It is strongly recommend that at least one file extension " +
+                         "is specified so Watchr knows how to parse your report files."));
         } catch(IOException e) {
             fail(e.getMessage());
         }
@@ -99,15 +100,15 @@ public class FileConfigTest {
     @Test
     public void testValidate_BlankFilePattern() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testValidate_BlankFileExtension").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileExtension("xml");
 
             fileConfig.validate();
-            List<WatchrConfigError> errors = testLogger.getErrors();
+            List<String> errors = logger.getLog();
             assertEquals(1, errors.size());
-            assertEquals(ErrorLevel.ERROR, errors.get(0).getLevel());
-            assertEquals("Pattern for finding report files cannot be blank!", errors.get(0).getMessage());
+            assertTrue(errors.get(0).contains("ERROR"));
+            assertTrue(errors.get(0).contains("Pattern for finding report files cannot be blank!"));
         } catch(IOException e) {
             fail(e.getMessage());
         }
@@ -116,8 +117,8 @@ public class FileConfigTest {
     @Test
     public void testCopyAndEquals() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testCopyAndEquals").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileExtension("xml");
             fileConfig.setFileNamePattern("pattern");
             fileConfig.setIgnoreOldFiles(true);
@@ -133,8 +134,8 @@ public class FileConfigTest {
     @Test
     public void testCopyAndNotEquals() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testCopyAndNotEquals").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileExtension("xml");
             fileConfig.setFileNamePattern("pattern");
             fileConfig.setIgnoreOldFiles(true);
@@ -151,8 +152,8 @@ public class FileConfigTest {
     @Test
     public void testCopyAndHashCode() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "");
+            File startDir = Files.createTempDirectory("testCopyAndHashCode").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileExtension("xml");
             fileConfig.setFileNamePattern("pattern");
             fileConfig.setIgnoreOldFiles(true);
@@ -168,15 +169,15 @@ public class FileConfigTest {
     @Test
     public void testDiffs() {
         try {
-            File startDir = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig = new FileConfig(startDir, "/my/path/prefix");
+            File startDir = Files.createTempDirectory("testDiffs1").toFile();
+            FileConfig fileConfig = new FileConfig(startDir.getAbsolutePath(), "/my/path/prefix", logger, fileReader);
             fileConfig.setFileExtension("xml");
             fileConfig.setFileNamePattern("pattern");
             fileConfig.setIgnoreOldFiles(true);
             fileConfig.setRecurseDirectories(true);
 
-            File startDir2 = Files.createTempDirectory(null).toFile();
-            FileConfig fileConfig2 = new FileConfig(startDir2, "/my/path/prefix");
+            File startDir2 = Files.createTempDirectory("testDiffs2").toFile();
+            FileConfig fileConfig2 = new FileConfig(startDir2.getAbsolutePath(), "/my/path/prefix", logger, fileReader);
             fileConfig2.setFileExtension("json");
             fileConfig2.setFileNamePattern("pattern2");
             fileConfig2.setIgnoreOldFiles(false);
@@ -188,8 +189,8 @@ public class FileConfigTest {
             WatchrDiff<?> diff1 = diffs.get(0);
             assertEquals(DiffCategory.START_DIR, diff1.getProperty());
             assertEquals("/my/path/prefix/fileConfig", diff1.getPath());
-            assertEquals(startDir, diff1.getBeforeValue());
-            assertEquals(startDir2, diff1.getNowValue());
+            assertEquals(startDir.getAbsolutePath(), diff1.getBeforeValue());
+            assertEquals(startDir2.getAbsolutePath(), diff1.getNowValue());
 
             WatchrDiff<?> diff2 = diffs.get(1);
             assertEquals(DiffCategory.FILENAME_PATTERN, diff2.getProperty());

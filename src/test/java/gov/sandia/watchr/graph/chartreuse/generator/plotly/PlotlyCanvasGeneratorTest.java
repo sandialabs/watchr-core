@@ -65,7 +65,8 @@ public class PlotlyCanvasGeneratorTest {
 				.setViewWidth(500);
 		canvasModel = new PlotCanvasModel(windowModel.getUUID())
 				.setDrawGridLines(true)
-				.setDrawAxisLines(true)
+				.setDrawXAxisLines(true)
+				.setDrawYAxisLines(true)
 				.setXAxisLabel("x1")
 				.setYAxisLabel("rosen_out");
 		

@@ -13,7 +13,8 @@ The graphDisplay section of a Watchr config document is concerned with propertie
 * **graphWidth** : *int* : The number of pixels used for a single graph's width.
 * **graphHeight** : *int* : The number of pixels used for a single graph's height.
 * **graphsPerRow** : *int* : Since Watchr lays out rendered plots in a grid, this property can be used to dictate the number of plots in a row of the grid.
-* **graphsPerPage** : *int* : Watchr also has the ability to divvy graphs across multiple HTML pages, if the number of plots on a single page becomes too cumbersome.  This property dictates how many graphs will display on a single page.  
+* **graphsPerPage** : *int* : Watchr also has the ability to divvy graphs across multiple HTML pages, if the number of plots on a single page becomes too cumbersome.  This property dictates how many graphs will display on a single page.
+* **sort** : *enumerated string* : Can be "ascending", "descending", or "none" to indicate the type of sort that should be applied to the displayed plots.  If this property is absent, Watchr defaults to using an ascending sort.
 
 ## Child Elements
 

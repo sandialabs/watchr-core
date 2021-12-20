@@ -26,6 +26,15 @@ More complicated specifications may result in many rendered graphs (for example,
 ## Properties
 
 * **name** : *string* : The name of the plot.  If using [auto-naming](autoname.html), it is not necessary to provide a name for each plot.
+* **type** : *enumerated string* : The type of plot that Watchr will generate.  If left blank, Watchr will create scatter plots.
+ * *Allowed types*:  areaPlot, scatterPlot, treeMap 
+* **canvasLayout** : *enumerated string* : If multiple data lines are present on your graph, you can include this property to cause them to be laid out across multiple canvases, where a "canvas" describes a single set of X/Y axes.  The value for this property can be one of the following strings:
+ * *shared* : This is the default option.  All lines will be drawn on the same canvas with a shared scale.
+ * *independent* : All lines will be drawn overlaid on the same canvas, but each line will be drawn at a unique scale to maximize its visibility.  Any scaling information needed to differentiate the relative size of each line will be included off to the side of the canvas.
+ * *grid* : Each line will have its own canvas, and the canvases will be arranged in a grid.  You can specify the length of a row in the grid with the extra property **canvasPerRow**.
+ * *stackX* : Each line will have its own canvas, and the canvases will be arranged in a horizontal row.
+ * *stackY* : Each line will have its own canvas, and the canvases will be arranged in a vertical column.
+* **canvasPerRow** : *integer* : If "canvasLayout" is specified with a value of "grid", you can use this property to specify how many canvases should occupy one row of the grid.  This property has a default value of "1" if not specified.
 * **category** : *string* : The specific category that this plot belongs to.  Categories may be used to filter or group plots together.  See the [categories](categories.html) section for more information.
 * **legend** : *boolean* : Whether or not to display a legend next to the plot.
 * **template** : *string* : An arbitrary label you may apply to a single plot to indicate that it is a template for other plots.  Other plots may inherit this plot's properties using the *inherit* field.  See the page on [templates](templates.html) for more information.

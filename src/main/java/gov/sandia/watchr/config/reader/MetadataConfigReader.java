@@ -17,7 +17,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.MetadataConfig;
@@ -38,10 +37,10 @@ public class MetadataConfigReader extends AbstractExtractorConfigReader<List<Met
     // CONSTRUCTOR //
     /////////////////
 
-    public MetadataConfigReader(FileConfig fileConfig) {
+    public MetadataConfigReader(FileConfig fileConfig, ILogger logger) {
+        super(logger);
         this.fileConfig = fileConfig;
         if(fileConfig == null) {
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
             logger.log(new WatchrConfigError(ErrorLevel.ERROR, "MetadataConfigReader: No file config defined."));
         }
     }
@@ -72,7 +71,6 @@ public class MetadataConfigReader extends AbstractExtractorConfigReader<List<Met
                     seenKeywords.add(Keywords.EXTRACTOR);
                     handleDataForExtractor(value, metadata.getMetadataExtractor(), metadata);
                 } else {
-                    ILogger logger = WatchrCoreApp.getInstance().getLogger();
                     logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsMetadata: Unrecognized element `" + key + "`."));
                 }
             }

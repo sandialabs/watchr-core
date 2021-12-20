@@ -10,14 +10,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.DataLine;
-import gov.sandia.watchr.config.DerivativeLine;
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.MetadataConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.derivative.DerivativeLine;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.util.RgbUtil;
@@ -26,16 +25,14 @@ public class DataLineReader extends AbstractExtractorConfigReader<List<DataLine>
 
     private final FileConfig fileConfig;
 
-    public DataLineReader(FileConfig fileConfig) {
+    public DataLineReader(FileConfig fileConfig, ILogger logger) {
+        super(logger);
         this.fileConfig = fileConfig;
     }
 
     @Override
     public Set<String> getRequiredKeywords() {
-        Set<String> requiredKeywords = new HashSet<>();
-        requiredKeywords.add(Keywords.X);
-        requiredKeywords.add(Keywords.Y);
-        return requiredKeywords;
+        return new HashSet<>();
     }
 
     @Override
@@ -61,6 +58,10 @@ public class DataLineReader extends AbstractExtractorConfigReader<List<DataLine>
                 if(key.equals(Keywords.NAME)) {
                     seenKeywords.add(Keywords.NAME);
                     line.setName(value.getAsString());
+                } else if(key.equals(Keywords.AUTONAME)) {
+                    seenKeywords.add(Keywords.AUTONAME);
+                    AutonameConfigReader nameConfigReader = new AutonameConfigReader(fileConfig, logger);
+                    line.setNameConfig(nameConfigReader.handle(value, line));
                 } else if(key.equals(Keywords.X)) {
                     seenKeywords.add(Keywords.X);
                     handleDataForExtractor(value, line.getXExtractor(), line);
@@ -69,19 +70,24 @@ public class DataLineReader extends AbstractExtractorConfigReader<List<DataLine>
                     handleDataForExtractor(value, line.getYExtractor(), line);
                 } else if(key.equals(Keywords.DERIVATIVE_LINES)) {
                     seenKeywords.add(Keywords.DERIVATIVE_LINES);
-                    DerivativeLineReader derivativeLineReader = new DerivativeLineReader();
+                    DerivativeLineReader derivativeLineReader = new DerivativeLineReader(logger);
                     List<DerivativeLine> derivativeLines = derivativeLineReader.handle(value, line);
                     line.getDerivativeLines().addAll(derivativeLines);
                 } else if (key.equals(Keywords.METADATA)) {
                     seenKeywords.add(Keywords.METADATA);
-                    MetadataConfigReader metadataConfigReader = new MetadataConfigReader(fileConfig);
+                    MetadataConfigReader metadataConfigReader = new MetadataConfigReader(fileConfig, logger);
                     List<MetadataConfig> metadataList = metadataConfigReader.handle(value, line);
                     line.getMetadata().addAll(metadataList);
                 } else if(key.equals(Keywords.COLOR)) {
                     seenKeywords.add(Keywords.COLOR);
                     line.setColor(RgbUtil.parseColor(value.getAsString()));
+                } else if(key.equals(Keywords.INHERIT)) {
+                    seenKeywords.add(Keywords.INHERIT);
+                    line.setInheritTemplate(value.getAsString());
+                } else if(key.equals(Keywords.TEMPLATE)) {
+                    seenKeywords.add(Keywords.TEMPLATE);
+                    line.setTemplateName(value.getAsString());
                 } else {
-                    ILogger logger = WatchrCoreApp.getInstance().getLogger();
                     logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsDataLines: Unrecognized element `" + key + "`."));
                 }
             }
@@ -95,7 +101,7 @@ public class DataLineReader extends AbstractExtractorConfigReader<List<DataLine>
                                             "This would lead to a combinatorial explosion of plots, which is " +
                                             "probably not what you want.  The Y dimension will take precedence " +
                                             "for recursively considering child data.";
-                    ILogger logger = WatchrCoreApp.getInstance().getLogger();
+
                     logger.log(new WatchrConfigError(ErrorLevel.WARNING, warningMessage));
                 }
             }

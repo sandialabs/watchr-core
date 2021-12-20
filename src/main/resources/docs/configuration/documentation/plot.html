@@ -315,6 +315,23 @@ img {
 <h2>Properties</h2>
 <ul>
 <li><strong>name</strong> : <em>string</em> : The name of the plot.  If using <a href="autoname.html">auto-naming</a>, it is not necessary to provide a name for each plot.</li>
+<li>
+<strong>type</strong> : <em>enumerated string</em> : The type of plot that Watchr will generate.  If left blank, Watchr will create scatter plots.
+<ul>
+<li><em>Allowed types</em>:  areaPlot, scatterPlot, treeMap </li>
+</ul>
+</li>
+<li>
+<strong>canvasLayout</strong> : <em>enumerated string</em> : If multiple data lines are present on your graph, you can include this property to cause them to be laid out across multiple canvases, where a &quot;canvas&quot; describes a single set of X/Y axes.  The value for this property can be one of the following strings:
+<ul>
+<li><em>shared</em> : This is the default option.  All lines will be drawn on the same canvas with a shared scale.</li>
+<li><em>independent</em> : All lines will be drawn overlaid on the same canvas, but each line will be drawn at a unique scale to maximize its visibility.  Any scaling information needed to differentiate the relative size of each line will be included off to the side of the canvas.</li>
+<li><em>grid</em> : Each line will have its own canvas, and the canvases will be arranged in a grid.  You can specify the length of a row in the grid with the extra property <strong>canvasPerRow</strong>.</li>
+<li><em>stackX</em> : Each line will have its own canvas, and the canvases will be arranged in a horizontal row.</li>
+<li><em>stackY</em> : Each line will have its own canvas, and the canvases will be arranged in a vertical column.</li>
+</ul>
+</li>
+<li><strong>canvasPerRow</strong> : <em>integer</em> : If &quot;canvasLayout&quot; is specified with a value of &quot;grid&quot;, you can use this property to specify how many canvases should occupy one row of the grid.  This property has a default value of &quot;1&quot; if not specified.</li>
 <li><strong>category</strong> : <em>string</em> : The specific category that this plot belongs to.  Categories may be used to filter or group plots together.  See the <a href="categories.html">categories</a> section for more information.</li>
 <li><strong>legend</strong> : <em>boolean</em> : Whether or not to display a legend next to the plot.</li>
 <li><strong>template</strong> : <em>string</em> : An arbitrary label you may apply to a single plot to indicate that it is a template for other plots.  Other plots may inherit this plot's properties using the <em>inherit</em> field.  See the page on <a href="templates.html">templates</a> for more information.</li>

@@ -27,16 +27,25 @@ Watchr uses a single JSON configuration file to drive all of its operations.  Th
 					1. [**strategy**](configuration/documentation/strategy.html) 
 		2. [**rules**](configuration/documentation/rules.html)
 		3. [**autoname**](configuration/documentation/autoname.html)
+			1. [**extractor**](configuration/documentation/extractor.html)
+				1. [**strategy**](configuration/documentation/strategy.html) 
 		4. [**filter**](configuration/documentation/filter.html)
-		5. [**fileFilter**](configuration/documentation/fileFilter.html)		
+		5. [**fileFilter**](configuration/documentation/fileFilter.html)
+	4. [**filter**](configuration/documentation/filter.html)
 2. [**graphDisplay**](configuration/documentation/graphDisplay.html)
+3. [**logging**](configuration/documentation/logging.html)
 
 ## Configuration Examples
 
 ### Getting Started
 
 1. **Hello World Example** : [**XML**](configuration/examples/xml/HelloWorldExample.html) | [**JSON**](configuration/examples/json/HelloWorldExample.html)
-2. **Multiple Points on a Data Line** : [**XML**](configuration/examples/xml/ThreePointsOnOneLine.html)
+
+### Plot Types
+
+1. **Scatter Plot** : [**XML**](configuration/examples/xml/ThreePointsOnOneLine.html)
+2. **Treemap** : [**XML**](configuration/examples/xml/Treemap.html)
+3. **Area Plot** : [**XML**](configuration/examples/xml/AreaPlot.html)
 
 ### Topics
 
@@ -48,7 +57,8 @@ Watchr uses a single JSON configuration file to drive all of its operations.  Th
 6. **Metadata Example**: [**XML**](configuration/examples/xml/MetadataExample.html)
 7. **Point Filter Example**: [**JSON**](configuration/examples/json/PointFilterExample.html)
 8. **Rule Example** : [**JSON**](configuration/examples/json/RuleExample.html)
-9. **Template Example** : [**XML**](configuration/examples/xml/TemplateExample.html)
+9. **Slope Derivative Line Example** : [**JSON**](configuration/examples/json/SlopeLineExample.html)
+10. **Template Example** : [**XML**](configuration/examples/xml/TemplateExample.html)
 
 ## Other
 

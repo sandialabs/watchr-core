@@ -77,7 +77,7 @@ public class PlotWindowModel {
 	}
 	
 	public PlotWindowModel(PlotWindowModel copy) {
-	    this.uuid = UUID.randomUUID();
+	    this.uuid =UUID.randomUUID();
 		PlotRelationshipManager.addWindowModel(this);
 		
         name = copy.getName();
@@ -236,6 +236,20 @@ public class PlotWindowModel {
 			finalTable.add(columnList);
 		}
 		return finalTable;
+	}
+
+	public int getNextCanvasRow(int preferredRowSize) {
+		int canvasCount = getCanvasModels().size();
+		if(canvasCount < preferredRowSize) {
+			return 0;
+		} else {
+			return (canvasCount / preferredRowSize);
+		}
+	}
+
+	public int getNextCanvasColumn(int preferredRowSize) {
+		int canvasCount = getCanvasModels().size();
+		return canvasCount % preferredRowSize;
 	}
 
 	public boolean isFailing() {
@@ -462,24 +476,7 @@ public class PlotWindowModel {
 	
 	@Override
 	public int hashCode() {
-		int hashCode = uuid.hashCode();
-		hashCode = hashCode + getVersion().hashCode();
-		hashCode = hashCode + getName().hashCode();
-		
-		if(getFont() != null) {
-			hashCode = hashCode + getFont().hashCode();
-		}
-		
-		hashCode = hashCode + getViewHeight();
-		hashCode = hashCode + getViewWidth();
-		hashCode = hashCode + (getLegendVisible() ? 1 : 0);
-		
-		for(PlotCanvasModel canvasModel : canvasModels) {
-			int index = canvasModels.indexOf(canvasModel);
-			hashCode = hashCode + ((index + 1) * canvasModel.hashCode());
-		}
-		
-		return hashCode;
+		return uuid.hashCode();
 	}
 	
 	@Override

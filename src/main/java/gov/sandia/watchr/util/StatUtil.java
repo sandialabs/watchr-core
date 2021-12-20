@@ -24,7 +24,7 @@ public class StatUtil {
         for(double value : arr) {
             ret += value;
         }
-        ret = ret / arr.length * 1.0;
+        ret = ret / (arr.length * 1.0);
         return ret;
     }
 

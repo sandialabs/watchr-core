@@ -25,5 +25,8 @@
                 ]
             }
         ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
     }
 }

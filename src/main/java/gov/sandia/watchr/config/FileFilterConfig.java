@@ -12,6 +12,8 @@ import java.util.List;
 
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.util.StringUtil;
 
 public class FileFilterConfig implements IConfig {
 
@@ -21,18 +23,21 @@ public class FileFilterConfig implements IConfig {
 
     private String namePattern = "";
     private final String configPath;
+    private final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public FileFilterConfig(String configPathPrefix) {
+    public FileFilterConfig(String configPathPrefix, ILogger logger) {
         this.configPath = configPathPrefix + "/fileFilterConfig";
+        this.logger = logger;
     }
 
     public FileFilterConfig(FileFilterConfig copy) {
         this.configPath = copy.getConfigPath();
         this.namePattern = copy.getNamePattern();
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -43,10 +48,19 @@ public class FileFilterConfig implements IConfig {
         return namePattern;
     }
 
+    public String getNamePatternAsRegex() {
+        return StringUtil.convertToRegex(namePattern);
+    }
+
     @Override
     public String getConfigPath() {
         return configPath;
-    }    
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }  
 
     /////////////
     // SETTERS //
@@ -103,5 +117,5 @@ public class FileFilterConfig implements IConfig {
         int hash = 7;
         hash = 31 * (hash + namePattern.hashCode());
         return hash;
-    }  
+    }
 }

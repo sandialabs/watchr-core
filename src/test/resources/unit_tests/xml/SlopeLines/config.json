@@ -1,0 +1,51 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "xml"
+        },
+        "plot" : [
+            {
+                "name" : "Slope Lines",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getElement" : "performance-report",
+                            "getPath": "*",
+                            "getKey" : "date",
+                            "unit" : "date"
+                        },
+                        "y" : {
+                            "getElement" : "performance-report|timing",
+                            "getPath": "*/measurement",
+                            "getPathAttribute": "name",
+                            "getKey" : "value",
+                            "unit" : "seconds"
+                        },
+                        "derivativeLines" : [
+                            {
+                                "type" : "slope",
+                                "name" : "Horizontal Line",
+                                "y" : "50.0"
+                            },
+                            {
+                                "type" : "slope",
+                                "name" : "Vertical Line",
+                                "x" : "50.0"
+                            },
+                            {
+                                "type" : "slope",
+                                "name" : "Slope Line",
+                                "y" : "50.0 * x + 25.0"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
+    }
+}

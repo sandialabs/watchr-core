@@ -7,7 +7,7 @@
 ******************************************************************************/
 package gov.sandia.watchr.parse.extractors.strategy;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
@@ -24,16 +24,20 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
+import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.parse.extractors.ExtractionResult;
+import gov.sandia.watchr.util.StringUtil;
 
-public class XmlExtractionStrategy extends ExtractionStrategy {
+public class XmlExtractionStrategy extends ExtractionStrategy<Element> {
     
     ////////////
     // FIELDS //
     ////////////
 
+    private String fileAbsPath;
     private String elementPattern = "";
     private String pathAttribute = "";
 
@@ -41,8 +45,10 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
     // CONSTRUCTOR //
     /////////////////
     
-    protected XmlExtractionStrategy(Map<String, String> properties, AmbiguityStrategy strategy) {
-        super(properties, strategy);
+    protected XmlExtractionStrategy(
+            Map<String, String> properties, AmbiguityStrategy strategy,
+            ILogger logger, IFileReader fileReader) {
+        super(properties, strategy, logger, fileReader);
         this.elementPattern = properties.getOrDefault(Keywords.GET_ELEMENT, "");
         this.pathAttribute  = properties.getOrDefault(Keywords.GET_PATH_ATTRIBUTE, "");
     }
@@ -64,14 +70,16 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
     //////////////
 
     @Override
-    public List<ExtractionResult> extract(File targetFile) throws WatchrParseException {
+    public List<ExtractionResult> extract(String fileAbsPath) throws WatchrParseException {
+        this.fileAbsPath = fileAbsPath;
+        String fileContents = fileReader.readFromFile(fileAbsPath);
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
             DocumentBuilder dBuilder = factory.newDocumentBuilder();
             
-            Document document = dBuilder.parse(targetFile);
+            Document document = dBuilder.parse(new ByteArrayInputStream(fileContents.getBytes()));
             Element root = document.getDocumentElement();
 
             Deque<String> stops = getPathStops();
@@ -104,13 +112,10 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
         hash = 31 * (hash + elementPattern.hashCode());
         hash = 31 * (hash + pathAttribute.hashCode());
         return hash;
-    }    
+    }
 
-    /////////////
-    // PRIVATE //
-    /////////////
-
-    private List<ExtractionResult> getNextPathStop(String path, Deque<String> remainingStops, Element element) {
+    @Override
+    protected List<ExtractionResult> getNextPathStop(String pathSoFar, Deque<String> remainingStops, Element element) {
         List<ExtractionResult> results = null;
         
         String elementName = element.getNodeName();
@@ -122,9 +127,9 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
             if(!remainingStops.isEmpty()) {
                 nextStop = remainingStops.pop();
             }
-            nextStop = nextStop.replace("*", ".*");
+            nextStop = StringUtil.convertToRegex(nextStop);
             if(pathAttributeValue.matches(nextStop)) {
-                List<ExtractionResult> nextResults = handleNormalStop(path, pathAttributeValue, remainingStops, element);
+                List<ExtractionResult> nextResults = handleNormalStop(pathSoFar, pathAttributeValue, remainingStops, element);
                 if(nextResults != null) {
                     results = new ArrayList<>();
                     results.addAll(nextResults);
@@ -137,6 +142,10 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
         }
         return results;
     }
+
+    /////////////
+    // PRIVATE //
+    /////////////
 
     private List<ExtractionResult> handleNormalStop(String path, String pathAttributeValue, Deque<String> remainingStops, Element element) {
         List<ExtractionResult> results = null;
@@ -193,7 +202,7 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
         } else {
             String value = getXmlAttributeValue(element.getAttributes(), key);
             if(StringUtils.isNotBlank(value)) {
-                result = new ExtractionResult(path, key, value);
+                result = new ExtractionResult(fileAbsPath, path, key, value);
             }
         }
 
@@ -202,7 +211,7 @@ public class XmlExtractionStrategy extends ExtractionStrategy {
 
     private ExtractionResult handleXmlElementForRecursiveChildren(Element element, String path, Deque<String> remainingStops) {
         String value = getXmlAttributeValue(element.getAttributes(), key);
-        ExtractionResult result = new ExtractionResult(path, key, value);
+        ExtractionResult result = new ExtractionResult(fileAbsPath, path, key, value);
         List<ExtractionResult> childResults = new ArrayList<>();
         boolean firstMatchOnly = strategy.shouldGetFirstMatchOnly();
 

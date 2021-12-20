@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import gov.sandia.watchr.TestFileUtils;
 import gov.sandia.watchr.graph.chartreuse.ChartreuseTestsUtil;
+import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.util.RGB;
@@ -31,7 +32,8 @@ public class PlotCanvasModelTest {
 		canvasModel1.setXLogScale(true);
 		canvasModel1.setYLogScale(true);
 		canvasModel1.setZLogScale(true);
-		canvasModel1.setDrawAxisLines(true);
+		canvasModel1.setDrawXAxisLines(true);
+		canvasModel1.setDrawYAxisLines(true);
 		canvasModel1.setDrawGridLines(true);
 		canvasModel1.setXAxisRangeStart(-100);
 		canvasModel1.setXAxisRangeEnd(100);
@@ -56,7 +58,8 @@ public class PlotCanvasModelTest {
 		assertTrue(canvasModel2.getXLogScale());
 		assertTrue(canvasModel2.getYLogScale());
 		assertTrue(canvasModel2.getZLogScale());
-		assertTrue(canvasModel2.getDrawAxisLines());
+		assertTrue(canvasModel2.getDrawXAxisLines());
+		assertTrue(canvasModel2.getDrawYAxisLines());
 		assertTrue(canvasModel2.getDrawGridLines());
 		assertEquals(-100, canvasModel2.getXAxisRangeStart(), 1.0e-4);
 		assertEquals(100, canvasModel2.getXAxisRangeEnd(), 1.0e-4);
@@ -119,6 +122,62 @@ public class PlotCanvasModelTest {
 		canvasModel1.setXAxisLabel("xAxisLabel");
 		canvasModel1.setYAxisLabel("yAxisLabel");
 		assertEquals("PlotCanvasModel: [xAxisLabel/yAxisLabel]", canvasModel1.toString());
+	}
+
+	@Test
+	public void testGetSmallestValueAcrossTraces_ForNumberValues() {
+		PlotCanvasModel canvasModel1 = new PlotCanvasModel(null);
+		PlotTraceModel traceModel1 = new PlotTraceModel(canvasModel1.getUUID());
+		PlotTraceModel traceModel2 = new PlotTraceModel(canvasModel1.getUUID());
+
+		traceModel1.add(new PlotTracePoint("1.0", "100.0"));
+		traceModel1.add(new PlotTracePoint("-100.0", "-200.0"));
+		traceModel2.add(new PlotTracePoint("2.0", "100.0"));
+		traceModel2.add(new PlotTracePoint("-99.0", "200.0"));
+
+		assertEquals("-100.0", canvasModel1.getSmallestValueAcrossTraces(Dimension.X));
+	}
+
+	@Test
+	public void testGetLargestValueAcrossTraces_ForNumberValues() {
+		PlotCanvasModel canvasModel1 = new PlotCanvasModel(null);
+		PlotTraceModel traceModel1 = new PlotTraceModel(canvasModel1.getUUID());
+		PlotTraceModel traceModel2 = new PlotTraceModel(canvasModel1.getUUID());
+
+		traceModel1.add(new PlotTracePoint("1.0", "100.0"));
+		traceModel1.add(new PlotTracePoint("-100.0", "-200.0"));
+		traceModel2.add(new PlotTracePoint("2.0", "100.0"));
+		traceModel2.add(new PlotTracePoint("-99.0", "200.0"));
+
+		assertEquals("200.0", canvasModel1.getLargestValueAcrossTraces(Dimension.Y));
+	}
+
+	@Test
+	public void testGetSmallestValueAcrossTraces_ForDateValues() {
+		PlotCanvasModel canvasModel1 = new PlotCanvasModel(null);
+		PlotTraceModel traceModel1 = new PlotTraceModel(canvasModel1.getUUID());
+		PlotTraceModel traceModel2 = new PlotTraceModel(canvasModel1.getUUID());
+
+		traceModel1.add(new PlotTracePoint("2021-04-16", "100.0"));
+		traceModel1.add(new PlotTracePoint("2020-03-09", "-200.0"));
+		traceModel2.add(new PlotTracePoint("2020-01-01", "100.0"));
+		traceModel2.add(new PlotTracePoint("2021-12-31", "200.0"));
+
+		assertEquals("2020-01-01", canvasModel1.getSmallestValueAcrossTraces(Dimension.X));
+	}
+
+	@Test
+	public void testGetLargestValueAcrossTraces_ForDateValues() {
+		PlotCanvasModel canvasModel1 = new PlotCanvasModel(null);
+		PlotTraceModel traceModel1 = new PlotTraceModel(canvasModel1.getUUID());
+		PlotTraceModel traceModel2 = new PlotTraceModel(canvasModel1.getUUID());
+
+		traceModel1.add(new PlotTracePoint("2021-04-16", "100.0"));
+		traceModel1.add(new PlotTracePoint("2020-03-09", "-200.0"));
+		traceModel2.add(new PlotTracePoint("2020-01-01", "100.0"));
+		traceModel2.add(new PlotTracePoint("2021-12-31", "200.0"));
+
+		assertEquals("2021-12-31", canvasModel1.getLargestValueAcrossTraces(Dimension.X));
 	}
 }
 

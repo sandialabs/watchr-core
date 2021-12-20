@@ -28,6 +28,7 @@ public class CategoryListGenerator extends AbstractGenerator<CategoryConfigurati
     /////////////////
 
     public CategoryListGenerator(IDatabase db) {
+        super(db.getLogger());
         this.db = db;
     }
 

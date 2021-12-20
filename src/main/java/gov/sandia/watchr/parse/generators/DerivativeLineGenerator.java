@@ -10,10 +10,11 @@ package gov.sandia.watchr.parse.generators;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.math.NumberUtils;
-
-import gov.sandia.watchr.config.DerivativeLine;
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.DerivativeLine;
+import gov.sandia.watchr.config.derivative.DerivativeLineFactory;
+import gov.sandia.watchr.config.derivative.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.RollingDerivativeLine;
+import gov.sandia.watchr.config.derivative.SlopeDerivativeLine;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
@@ -23,9 +24,8 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceOptions;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
+import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.util.ArrayUtil;
-import gov.sandia.watchr.util.StatUtil;
 
 public class DerivativeLineGenerator extends AbstractGenerator<List<DerivativeLine>> {
 
@@ -40,7 +40,8 @@ public class DerivativeLineGenerator extends AbstractGenerator<List<DerivativeLi
     // CONSTRUCTOR //
     /////////////////
 
-    public DerivativeLineGenerator(PlotTraceModel traceModel) {
+    public DerivativeLineGenerator(PlotTraceModel traceModel, ILogger logger) {
+        super(logger);
         this.traceModel = traceModel;
         this.diffs = new ArrayList<>();
     }
@@ -61,21 +62,27 @@ public class DerivativeLineGenerator extends AbstractGenerator<List<DerivativeLi
     /////////////
 
     private void updateDerivativeLine(PlotTraceModel traceModel, List<DerivativeLine> derivativeLines) {
+        logger.logDebug("DerivativeLineGenerator.updateDerivativeLine()");
         PlotCanvasModel canvasModel = traceModel.getParent();
-        if (canvasModel != null) {
-            // Look for associated derivative line.
-            for (DerivativeLine derivativeLine : derivativeLines) {
-                PlotTraceModel derivateLineTraceModel = canvasModel.findDerivativeLine(derivativeLine.getType());
+        if(canvasModel != null) {
+            logger.logDebug("Look for associated derivative line.");
+            for(DerivativeLine derivativeLine : derivativeLines) {
+                DerivativeLineType type = DerivativeLineFactory.getInstance().getTypeFromObject(derivativeLine);
+                PlotTraceModel derivateLineTraceModel = canvasModel.findDerivativeLine(type);
+                logger.logDebug("Looking for derivative line of type " + type.toString());
                 if(derivateLineTraceModel != null) {
-                    // We found the associated derivative line, now update it.
+                    logger.logDebug("We found the associated derivative line, now recalculate it.");
                     recalculateDerivativeLine(traceModel, derivateLineTraceModel, derivativeLine);
                 } else {
-                    // If we couldn't find it, add a new one.
+                    logger.logDebug("We couldn't find the associated derivative line, so create a new one.");
                     createNewDerivativeLine(traceModel, derivativeLine);
                 }
 
-                if(derivateLineTraceModel != null && diffed(derivativeLine, diffs, DiffCategory.DERIVATIVE_LINE_COLOR)) {
-                    derivateLineTraceModel.setPrimaryRGB(derivativeLine.getColor());
+                if(derivateLineTraceModel != null) {
+                    logger.logDebug("Check to see if derivative line color has diffed...");
+                    if(diffed(derivativeLine, diffs, DiffCategory.DERIVATIVE_LINE_COLOR)) {
+                        derivateLineTraceModel.setPrimaryRGB(derivativeLine.getColor());
+                    }
                 }
             }
         }
@@ -83,12 +90,14 @@ public class DerivativeLineGenerator extends AbstractGenerator<List<DerivativeLi
 
     private void createNewDerivativeLine(PlotTraceModel mainReferenceTrace,
             DerivativeLine derivativeLineConfiguration) {
+        logger.logDebug("DerivativeLineGenerator.createNewDerivativeLine()");
 
         PlotTraceModel newDerivativeTrace = new PlotTraceModel(mainReferenceTrace.getParentUUID());
+        DerivativeLineType type = DerivativeLineFactory.getInstance().getTypeFromObject(derivativeLineConfiguration);
 
         newDerivativeTrace
             .setName(mainReferenceTrace.getName())
-            .setDerivativeLineType(derivativeLineConfiguration.getType());
+            .setDerivativeLineType(type);
 
         newDerivativeTrace.set(PlotToken.TRACE_POINT_TYPE, PlotType.SCATTER_PLOT);
         newDerivativeTrace.set(PlotToken.TRACE_POINT_MODE, "Circle");
@@ -97,6 +106,7 @@ public class DerivativeLineGenerator extends AbstractGenerator<List<DerivativeLi
         newDerivativeTrace.setPrimaryRGB(derivativeLineConfiguration.getColor());
 
         if(!mainReferenceTrace.getPoints().isEmpty()) {
+            logger.logDebug("Calculate new derivative line for graph with " + mainReferenceTrace.getPoints().size() + " points.");
             recalculateDerivativeLine(mainReferenceTrace, newDerivativeTrace, derivativeLineConfiguration);
         }
     }
@@ -104,42 +114,36 @@ public class DerivativeLineGenerator extends AbstractGenerator<List<DerivativeLi
     private void recalculateDerivativeLine(
             PlotTraceModel mainDataLine, PlotTraceModel derivativeLine,
             DerivativeLine derivativeLineConfiguration) {
+        logger.logDebug("DerivativeLineGenerator.recalculateDerivativeLine()");
 
         if(!mainDataLine.isEmpty2D()) {
+            logger.logDebug("Line is not empty, so proceed.");
             PlotTraceOptions options = new PlotTraceOptions();
             options.sortAlongDimension = Dimension.X;
-            List<PlotTracePoint> points = new ArrayList<>(mainDataLine.getPoints(options));
-            
-            derivativeLine.clear();
-            derivativeLine.add(points.get(0));
 
-            for(int i = 1; i < points.size(); i++) {
-                String lastXValue = points.get(i).x;
+            if(derivativeLineConfiguration instanceof RollingDerivativeLine) {
+                logger.logDebug("Configuration is RollingDerivativeLine");
+                RollingDerivativeLine rollingLineConfig = (RollingDerivativeLine) derivativeLineConfiguration;
 
-                int rangeSize = derivativeLineConfiguration.getRollingRange();
-                if(i < derivativeLineConfiguration.getRollingRange()) {
-                    rangeSize = i;
-                }
+                logger.logDebug("Retrieve points from the original ine, with options...");
+                logger.logDebug("Line size: " + mainDataLine.getPoints().size());
+                List<PlotTracePoint> points = new ArrayList<>(mainDataLine.getPoints(options));
+                List<PlotTracePoint> newDerivativeLinePoints = rollingLineConfig.calculateRollingLine(points);
 
-                List<Double> listRangeToInspect = new ArrayList<>();
-                for(int j = i; j >= i-rangeSize; j--) {
-                    if(NumberUtils.isCreatable(points.get(j).y)) {
-                        listRangeToInspect.add(Double.parseDouble(points.get(j).y));
-                    }
-                }
+                derivativeLine.clear();
+                derivativeLine.addAll(newDerivativeLinePoints);
+                
+            } else if(derivativeLineConfiguration instanceof SlopeDerivativeLine) {
+                logger.logDebug("Configuration is SlopeDerivativeLine");
+                SlopeDerivativeLine slopeLineConfig = (SlopeDerivativeLine) derivativeLineConfiguration;
+                List<PlotTracePoint> points = new ArrayList<>(mainDataLine.getPoints(options));
+                List<PlotTracePoint> newDerivativeLinePoints = slopeLineConfig.calculateSlopeLine(points);
 
-                double newValue;
-                if (derivativeLineConfiguration.getType() == DerivativeLineType.AVERAGE) {
-                    newValue = StatUtil.avg(ArrayUtil.asDoubleArrFromDoubleList(listRangeToInspect));
-                } else if (derivativeLineConfiguration.getType() == DerivativeLineType.STANDARD_DEVIATION) {
-                    newValue = StatUtil.stdDev(ArrayUtil.asDoubleArrFromDoubleList(listRangeToInspect));
-                } else { // DerivativeLineType.STANDARD_DEVIATION_OFFSET
-                    newValue = StatUtil.avg(ArrayUtil.asDoubleArrFromDoubleList(listRangeToInspect)) +
-                               StatUtil.stdDev(ArrayUtil.asDoubleArrFromDoubleList(listRangeToInspect));
-                }
-
-                derivativeLine.add(new PlotTracePoint(lastXValue, Double.toString(newValue)));
-            }
-        }                
+                derivativeLine.clear();
+                derivativeLine.addAll(newDerivativeLinePoints);
+            }  
+        } else {
+            logger.logDebug("Main data line had no points.");
+        }
     }    
 }

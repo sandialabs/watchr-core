@@ -12,6 +12,7 @@ import java.util.List;
 
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.ILogger;
 
 public class MetadataConfig implements IConfig {
 
@@ -28,15 +29,17 @@ public class MetadataConfig implements IConfig {
     private final FileConfig fileConfig;
 
     private final String configPath;
+    private final ILogger logger;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public MetadataConfig(FileConfig fileConfig,  String pathPrefix) {
+    public MetadataConfig(FileConfig fileConfig, String pathPrefix) {
         this.metadataExtractor = new HierarchicalExtractor(fileConfig, pathPrefix, "metadata");
         this.fileConfig = fileConfig;
         this.configPath = pathPrefix + "/metadataConfig";
+        this.logger = fileConfig.getLogger();
     }
 
     public MetadataConfig(MetadataConfig copy) {
@@ -45,6 +48,7 @@ public class MetadataConfig implements IConfig {
         this.fileConfig = new FileConfig(copy.getFileConfig());
         this.metadataExtractor = new HierarchicalExtractor(copy.getMetadataExtractor());
         this.configPath = copy.getConfigPath();
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -70,7 +74,12 @@ public class MetadataConfig implements IConfig {
     @Override
     public String getConfigPath() {
         return configPath;
-    }   
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    } 
 
     /////////////
     // SETTERS //
@@ -138,5 +147,5 @@ public class MetadataConfig implements IConfig {
         hash = 31 * (hash + metadataExtractor.hashCode());
         hash = 31 * (hash + fileConfig.hashCode());
         return hash;
-    }   
+    }  
 }

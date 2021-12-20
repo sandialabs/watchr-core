@@ -15,40 +15,85 @@ import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 
 public class Log4jLogger implements ILogger {
 
+    ////////////
+    // FIELDS //
+    ////////////
+
     private static Logger log = LogManager.getRootLogger();
+    private ErrorLevel loggingLevel = ErrorLevel.INFO;
+
+    /////////
+    // LOG //
+    /////////
+
+    @Override
+    public void logDebug(String message) {
+        if(loggingLevel.ordinal() <= ErrorLevel.DEBUG.ordinal()) {
+            log.debug(message);
+        }
+    }
 
     @Override
     public void logInfo(String message) {
-        log.info(message);
+        if(loggingLevel.ordinal() <= ErrorLevel.INFO.ordinal()) {
+            log.info(message);
+        }
     }
 
     @Override
     public void logWarning(String message) {
-        log.warn(message);
+        if(loggingLevel.ordinal() <= ErrorLevel.WARNING.ordinal()) {
+            log.warn(message);
+        }
     }
 
     @Override
     public void logError(String error) {
-        log.error(error);
+        if(loggingLevel.ordinal() <= ErrorLevel.ERROR.ordinal()) {
+            log.error(error);
+        }
     }
 
     @Override
     public void logError(String error, Throwable t) {
-        log.error(error, t);
+        if(loggingLevel.ordinal() <= ErrorLevel.ERROR.ordinal()) {
+            log.error(error, t);
+        }
     }
 
     @Override
     public void log(WatchrConfigError errorObj) {
         ErrorLevel level = errorObj.getLevel();
-        String time = errorObj.getTime();
+        String prefix = errorObj.getTime() + " [" + level.toString() + "] ";
         String message = errorObj.getMessage();
+        int loggingOrdinal = loggingLevel.ordinal();
 
-        if(level == ErrorLevel.INFO) {
-            logInfo(time + ": " + message);
-        } else if(level == ErrorLevel.WARNING) {
-            logWarning(time + ": " + message);
-        } else if(level == ErrorLevel.ERROR) {
-            logError(time + ": " + message);
+        if(level == ErrorLevel.DEBUG && loggingOrdinal <= ErrorLevel.DEBUG.ordinal()) {
+            logDebug(prefix + ": " + message);
+        } else if(level == ErrorLevel.INFO && loggingOrdinal <= ErrorLevel.INFO.ordinal()) {
+            logInfo(prefix + ": " + message);
+        } else if(level == ErrorLevel.WARNING && loggingOrdinal <= ErrorLevel.WARNING.ordinal()) {
+            logWarning(prefix + ": " + message);
+        } else if(level == ErrorLevel.ERROR && loggingOrdinal <= ErrorLevel.ERROR.ordinal()) {
+            logError(prefix + ": " + message);
         }
+    }
+
+    /////////////
+    // SETTERS //
+    /////////////
+
+    @Override
+    public void setLoggingLevel(ErrorLevel loggingLevel) {
+        this.loggingLevel = loggingLevel;
+    }
+
+    /////////////
+    // GETTERS //
+    /////////////
+
+    @Override
+    public ErrorLevel getLoggingLevel() {
+        return loggingLevel;
     }
 }

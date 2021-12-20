@@ -8,22 +8,36 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import gov.sandia.watchr.config.file.DefaultFileReader;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
+import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.parse.extractors.ExtractionResult;
 import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
 
 public class HierarchicalExtractorTest {
     
+    private ILogger logger;
+    private IFileReader fileReader;
+
+    @Before
+    public void setup() {
+        logger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(logger);
+    }
+
     @Test
     public void testExtract_TopLevel() {
         try {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -33,7 +47,8 @@ public class HierarchicalExtractorTest {
             extractor.setProperty(Keywords.GET_ELEMENT, "performance-report");
             extractor.setKey("date");
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
             assertEquals("/nightly_run_2018_01_08", result.getPath());
             assertEquals("date", result.getKey());
@@ -53,7 +68,7 @@ public class HierarchicalExtractorTest {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -67,7 +82,8 @@ public class HierarchicalExtractorTest {
             strategy.setShouldGetFirstMatchOnly(false);
             extractor.setAmbiguityStrategy(strategy);
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
             assertEquals("/nightly_run_2018_01_08/TestTiming/Test", result.getPath());
             assertEquals("cpu-time-max", result.getKey());
@@ -86,7 +102,7 @@ public class HierarchicalExtractorTest {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -100,7 +116,8 @@ public class HierarchicalExtractorTest {
             strategy.setShouldGetFirstMatchOnly(false);
             extractor.setAmbiguityStrategy(strategy);
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
             assertEquals("/nightly_run_2018_01_08/TestTiming/Test", result.getPath());
             assertEquals("cpu-time-max", result.getKey());
@@ -119,7 +136,7 @@ public class HierarchicalExtractorTest {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -129,7 +146,8 @@ public class HierarchicalExtractorTest {
             extractor.setProperty(Keywords.GET_ELEMENT, "performance-report|timing|metadata");
             extractor.setKey("value");
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
             assertEquals("/nightly_run_2018_01_08/TestTiming/codeBase", result.getPath());
             assertEquals("value", result.getKey());
@@ -147,7 +165,7 @@ public class HierarchicalExtractorTest {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -161,7 +179,8 @@ public class HierarchicalExtractorTest {
             strategy.setShouldGetFirstMatchOnly(false);
             extractor.setAmbiguityStrategy(strategy);
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
             assertEquals("/nightly_run_2018_01_08/TestTiming/Test/Domain/Procedure myProcedure/Mesh output", result.getPath());
             assertEquals("cpu-time-max", result.getKey());
@@ -179,7 +198,7 @@ public class HierarchicalExtractorTest {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -193,7 +212,8 @@ public class HierarchicalExtractorTest {
             strategy.setShouldGetFirstMatchOnly(false);
             extractor.setAmbiguityStrategy(strategy);
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
             assertEquals("/nightly_run_2018_01_08/TestTiming/Test/Domain/Procedure myProcedure/Initialize", result.getPath());
             assertEquals("cpu-time-max", result.getKey());
@@ -211,7 +231,7 @@ public class HierarchicalExtractorTest {
             ClassLoader classLoader = HierarchicalExtractorTest.class.getClassLoader();
             URL reportXmlDirUrl = classLoader.getResource("system_tests/reports/xml_reports_basic");
             File reportXmlDir = new File(reportXmlDirUrl.toURI());
-            FileConfig fileConfig = new FileConfig(reportXmlDir, "");
+            FileConfig fileConfig = new FileConfig(reportXmlDir.getAbsolutePath(), "", logger, fileReader);
             fileConfig.setFileNamePattern("basic_report_2");
             fileConfig.setFileExtension("xml");
             HierarchicalExtractor extractor = new HierarchicalExtractor(fileConfig, "");
@@ -226,7 +246,8 @@ public class HierarchicalExtractorTest {
             strategy.setShouldRecurseToChildGraphs(true);
             extractor.setAmbiguityStrategy(strategy);
 
-            List<ExtractionResult> results = extractor.extract(new File(reportXmlDir, "basic_report_2.xml"));
+            File basicReport2 = new File(reportXmlDir, "basic_report_2.xml");
+            List<ExtractionResult> results = extractor.extract(basicReport2.getAbsolutePath());
             ExtractionResult result = results.get(0);
 
             assertEquals("/nightly_run_2018_01_08", result.getPath());

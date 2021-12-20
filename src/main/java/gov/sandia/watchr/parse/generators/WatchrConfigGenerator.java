@@ -28,6 +28,7 @@ public class WatchrConfigGenerator extends AbstractGenerator<WatchrConfig> {
     /////////////////
 
     public WatchrConfigGenerator(IDatabase db) {
+        super(db.getLogger());
         this.db = db;
     }
 
@@ -44,5 +45,6 @@ public class WatchrConfigGenerator extends AbstractGenerator<WatchrConfig> {
         }
 
         db.setWatchrConfig(new WatchrConfig(config));
+        db.updateMetadata();
     }
 }

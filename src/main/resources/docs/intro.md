@@ -37,7 +37,7 @@ Watchr is a Java application designed to help you gather and visualize data over
 
 To get the basic functionality that Watchr provides, you will need to build **watchr-core** at minimum:
 
-    git clone git@github.com:sandialabs/watchr-core.git watchr-core
+    git clone git@gitlab-ex.sandia.gov:SEMS/watchr-core.git watchr-core
     cd watchr-core
 
 If building watchr-core as a standalone application:

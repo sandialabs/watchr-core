@@ -9,24 +9,18 @@ package gov.sandia.watchr.parse.generators;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.DataLine;
-import gov.sandia.watchr.config.DerivativeLine;
 import gov.sandia.watchr.config.FileFilterConfig;
 import gov.sandia.watchr.config.FilterConfig;
-import gov.sandia.watchr.config.HierarchicalExtractor;
-import gov.sandia.watchr.config.MetadataConfig;
 import gov.sandia.watchr.config.NameConfig;
 import gov.sandia.watchr.config.PlotConfig;
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.log.ILogger;
-import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
+import gov.sandia.watchr.parse.generators.line.TemplateDataLineGenerator;
 
-public class TemplatePlotConfigGenerator {
+public class TemplatePlotConfigGenerator extends AbstractTemplateGenerator {
 
     ////////////
     // FIELDS //
@@ -38,7 +32,8 @@ public class TemplatePlotConfigGenerator {
     // CONSTRUCTOR //
     /////////////////
 
-    public TemplatePlotConfigGenerator(List<PlotConfig> allPlotConfigs) {
+    public TemplatePlotConfigGenerator(List<PlotConfig> allPlotConfigs, ILogger logger) {
+        super(logger);
         this.allPlotConfigs = new ArrayList<>();
         this.allPlotConfigs.addAll(allPlotConfigs);
     }
@@ -47,12 +42,11 @@ public class TemplatePlotConfigGenerator {
     // PUBLIC //
     ////////////
     
-    public PlotConfig handleDataLineGenerationForTemplate(PlotConfig childConfig) {
+    public PlotConfig handlePlotGenerationForTemplate(PlotConfig childConfig) {
         PlotConfig templateConfig = getTemplatePlotConfig(childConfig.getInheritTemplate());
         if(templateConfig != null) {
             return applyChildOverTemplate(templateConfig, childConfig);
         } else {
-            ILogger logger = WatchrCoreApp.getInstance().getLogger();
             logger.logError("Plot depends on template " + childConfig.getInheritTemplate() + ", but this template does not exist in the configuration.");
         }
         return null;
@@ -63,9 +57,11 @@ public class TemplatePlotConfigGenerator {
     /////////////
 
     private PlotConfig getTemplatePlotConfig(String templateName) {
-        for(PlotConfig plotConfig : allPlotConfigs) {
-            if(plotConfig.getTemplateName().equals(templateName)) {
-                return plotConfig;
+        if(StringUtils.isNotBlank(templateName)) {
+            for(PlotConfig plotConfig : allPlotConfigs) {
+                if(plotConfig.getTemplateName().equals(templateName)) {
+                    return plotConfig;
+                }
             }
         }
         return null;
@@ -80,7 +76,6 @@ public class TemplatePlotConfigGenerator {
         if(childConfig.shouldUseLegend() != null) {
             newConfig.setUseLegend(childConfig.shouldUseLegend());
         }
-
         if(StringUtils.isNotBlank(childConfig.getName())) {
             newConfig.setName(childConfig.getName());
         }
@@ -97,113 +92,52 @@ public class TemplatePlotConfigGenerator {
         newConfig.setTemplateName(childConfig.getTemplateName());
         newConfig.setInheritTemplate("");
 
-        if(!newConfig.getDataLines().isEmpty()) {
-            applyChildDataLinesOverTemplate(newConfig, templateConfig.getDataLines(), childConfig.getDataLines());
-        }
+        applyTemplateDataLinesInTemplatePlot(newConfig);
+        applyTemplateDataLinesInInheritPlot(newConfig, childConfig);
 
-        if(!newConfig.getPlotRules().isEmpty()) {
+        if(!childConfig.getPlotRules().isEmpty()) {
             applyRulesOverTemplate(newConfig.getPlotRules(), childConfig.getPlotRules());
         }
         return newConfig;
     }
 
-    private void applyChildDataLinesOverTemplate(PlotConfig targetConfig, List<DataLine> templateDataLines, List<DataLine> childDataLines) {
-        for(int i = 0; i < templateDataLines.size() && i < childDataLines.size(); i++) {
-            DataLine newDataLine = new DataLine(templateDataLines.get(i));
-            DataLine childDataLine = childDataLines.get(i);
-
-            if(StringUtils.isNotBlank(childDataLine.getName())) {
-                newDataLine.setName(childDataLine.getName());
-            }
-            if(childDataLine.getColor() != null) {
-                newDataLine.setColor(childDataLine.getColor());
-            }
-
-            applyChildExtractorOverTemplate(newDataLine.getXExtractor(), childDataLine.getXExtractor());
-            applyChildExtractorOverTemplate(newDataLine.getYExtractor(), childDataLine.getYExtractor());
-            applyDerivativeLinesOverTemplate(newDataLine.getDerivativeLines(), childDataLine.getDerivativeLines());
-            applyMetadataOverTemplate(newDataLine.getMetadata(), childDataLine.getMetadata());
-
-            if(i < targetConfig.getDataLines().size()) {
-                targetConfig.getDataLines().set(i, newDataLine);
+    private void applyTemplateDataLinesInTemplatePlot(PlotConfig templateConfig) {
+        List<DataLine> newDataLines = new ArrayList<>();
+        for(DataLine line : templateConfig.getDataLines()) {
+            boolean dependsOnTemplate = StringUtils.isNotBlank(line.getInheritTemplate());
+            if(dependsOnTemplate) {
+                TemplateDataLineGenerator templateDataLineGenerator =
+                    new TemplateDataLineGenerator(templateConfig.getDataLines(), logger);
+                DataLine newLine = templateDataLineGenerator.handleDataLineGenerationForTemplate(line);
+                newDataLines.add(newLine);
             } else {
-                targetConfig.getDataLines().add(newDataLine);
+                newDataLines.add(line);
             }
         }
+        templateConfig.getDataLines().clear();
+        templateConfig.getDataLines().addAll(newDataLines);
     }
 
-    private void applyChildExtractorOverTemplate(HierarchicalExtractor newExtractor, HierarchicalExtractor childExtractor) {
-        if(newExtractor != null && childExtractor != null) {
-            if(childExtractor.getAmbiguityStrategy() != null && newExtractor.getAmbiguityStrategy() == null) {
-                AmbiguityStrategy newStrategy = new AmbiguityStrategy(childExtractor.getConfigPath());
+    private void applyTemplateDataLinesInInheritPlot(PlotConfig templateConfig, PlotConfig inheritPlotConfig) {
+        for(DataLine newDataLine : inheritPlotConfig.getDataLines()) {
+            String inheritName = newDataLine.getInheritTemplate();
+            boolean dependsOnTemplate = StringUtils.isNotBlank(inheritName);
+            if(dependsOnTemplate) {
+                TemplateDataLineGenerator templateDataLineGenerator =
+                    new TemplateDataLineGenerator(templateConfig.getDataLines(), logger);
+                DataLine replacedDataLine = templateDataLineGenerator.handleDataLineGenerationForTemplate(newDataLine);
 
-                newStrategy.setIterateWithOtherExtractor(
-                    childExtractor.getAmbiguityStrategy().getIterateWithOtherExtractor());
-                newStrategy.setShouldGetFirstMatchOnly(
-                    childExtractor.getAmbiguityStrategy().shouldGetFirstMatchOnly());
-                newStrategy.setShouldRecurseToChildGraphs(
-                    childExtractor.getAmbiguityStrategy().shouldRecurseToChildGraphs());
-
-                newExtractor.setAmbiguityStrategy(newStrategy);
-            }
-        
-            for(Entry<String,String> entry : childExtractor.getProperties().entrySet()) {
-                newExtractor.setProperty(entry.getKey(), entry.getValue());
-            }
-        }
-    }
-
-    private void applyRulesOverTemplate(List<RuleConfig> templateRules, List<RuleConfig> childRules) {
-        List<RuleConfig> newRules = new ArrayList<>();
-
-        for(RuleConfig childRule : childRules) {
-            boolean found = false;
-            for(RuleConfig templateRule : templateRules) {
-                if(templateRule.getCondition().equals(childRule.getCondition())) {
-                    templateRule.setAction(childRule.getAction());
-                    found = true;
-                    break;
+                // Replace line from template.
+                for(DataLine parentLine : templateConfig.getDataLines()) {
+                    if(parentLine.getTemplateName().equals(inheritName)) {
+                        templateConfig.getDataLines().remove(parentLine);
+                        templateConfig.getDataLines().add(replacedDataLine);
+                        break;
+                    }
                 }
-            }
-            if(!found) {
-                newRules.add(childRule);
-            }
-        }
-
-        templateRules.addAll(newRules);
-    }
-
-    private void applyMetadataOverTemplate(List<MetadataConfig> templateMetadataConfigs, List<MetadataConfig> childMetadataConfigs) {
-        for(int i = 0; i < templateMetadataConfigs.size() && i < childMetadataConfigs.size(); i++) {
-            MetadataConfig newMetadataConfig = new MetadataConfig(templateMetadataConfigs.get(i));
-            MetadataConfig childMetadataConfig = childMetadataConfigs.get(i);
-
-            if(StringUtils.isNotBlank(childMetadataConfig.getName())) {
-                newMetadataConfig.setName(childMetadataConfig.getName());
-            }
-            applyChildExtractorOverTemplate(newMetadataConfig.getMetadataExtractor(), childMetadataConfig.getMetadataExtractor());
-        }
-    }
-
-    private void applyDerivativeLinesOverTemplate(List<DerivativeLine> templateDerivativeLines, List<DerivativeLine> childDerivativeLines) {
-        List<DerivativeLine> newDerivativeLines = new ArrayList<>();
-
-        for(DerivativeLine childDerivativeLine : childDerivativeLines) {
-            boolean found = false;
-            for(DerivativeLine templateDerivativeLine : templateDerivativeLines) {
-                if(templateDerivativeLine.getType() == childDerivativeLine.getType()) {
-                    templateDerivativeLine.setColor(childDerivativeLine.getColor());
-                    templateDerivativeLine.setIgnoreFilteredData(childDerivativeLine.shouldIgnoreFilteredData());
-                    templateDerivativeLine.setRollingRange(childDerivativeLine.getRollingRange());
-                    found = true;
-                    break;
-                }
-            }
-            if(!found) {
-                newDerivativeLines.add(childDerivativeLine);
+            } else {
+                templateConfig.getDataLines().add(newDataLine);
             }
         }
-
-        templateDerivativeLines.addAll(newDerivativeLines);
     }
 }

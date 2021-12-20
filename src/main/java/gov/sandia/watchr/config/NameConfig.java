@@ -14,11 +14,11 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.util.StringUtil;
 
 public class NameConfig implements IConfig {
 
@@ -26,22 +26,31 @@ public class NameConfig implements IConfig {
     // FIELDS //
     ////////////
 
-    private String nameUseProperty = "";
     private String nameFormatRemovePrefix = "";
+
+    private String nameUseProperty = "";
+    private HierarchicalExtractor nameUseExtractor;
+
     private final String configPath;
+    private final ILogger logger;
 
     //////////////////
     // CONSTRUCTORS //
     //////////////////
 
-    public NameConfig(String configPathPrefix) {
+    public NameConfig(FileConfig fileConfig, String configPathPrefix) {
+        this.nameUseExtractor = new HierarchicalExtractor(fileConfig, configPathPrefix + "/nameConfig", "autoname");
         this.configPath = configPathPrefix + "/nameConfig";
+        this.logger = fileConfig.getLogger();
     }
 
     public NameConfig(NameConfig copy) {
         this.nameUseProperty = copy.getNameUseProperty();
+        this.nameUseExtractor = copy.getNameUseExtractor();
         this.nameFormatRemovePrefix = copy.getNameFormatRemovePrefix();
+
         this.configPath = copy.getConfigPath();
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -56,10 +65,19 @@ public class NameConfig implements IConfig {
         return nameFormatRemovePrefix;
     }
 
+    public HierarchicalExtractor getNameUseExtractor() {
+        return nameUseExtractor;
+    }
+
     @Override
     public String getConfigPath() {
         return configPath;
-    }   
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
+    }
 
     /////////////
     // SETTERS //
@@ -78,7 +96,7 @@ public class NameConfig implements IConfig {
     /////////////
 
     public boolean isBlank() {
-        return StringUtils.isBlank(nameUseProperty);
+        return StringUtils.isBlank(nameUseProperty) && nameUseExtractor.getProperties().isEmpty();
     }
 
     //////////////
@@ -87,11 +105,10 @@ public class NameConfig implements IConfig {
 
     @Override
     public void validate() {
-        ILogger logger = WatchrCoreApp.getInstance().getLogger();
-
         if(StringUtils.isNotBlank(nameFormatRemovePrefix)) {
             try {
-                Pattern.compile(nameFormatRemovePrefix);
+                String regex = StringUtil.convertToRegex(nameFormatRemovePrefix);
+                Pattern.compile(regex);
             } catch(PatternSyntaxException e) {
                 logger.log(new WatchrConfigError(ErrorLevel.ERROR, e.getMessage()));
             }
@@ -115,6 +132,7 @@ public class NameConfig implements IConfig {
             diff.setNowValue(otherNameConfig.nameFormatRemovePrefix);
             diffList.add(diff);
         }
+        diffList.addAll(nameUseExtractor.diff(otherNameConfig.getNameUseExtractor()));
         
         return diffList;
     }
@@ -132,6 +150,7 @@ public class NameConfig implements IConfig {
 			NameConfig otherNameConfig = (NameConfig) other;
             equals = nameUseProperty.equals(otherNameConfig.nameUseProperty);
             equals = equals && nameFormatRemovePrefix.equals(otherNameConfig.nameFormatRemovePrefix);
+            equals = equals && nameUseExtractor.equals(otherNameConfig.nameUseExtractor);
         }
         return equals;
     }
@@ -141,6 +160,7 @@ public class NameConfig implements IConfig {
         int hash = 7;
         hash = 31 * (hash + nameUseProperty.hashCode());
         hash = 31 * (hash + nameFormatRemovePrefix.hashCode());
+        hash = 31 * (hash + nameUseExtractor.hashCode());
         return hash;
-    }   
+    } 
 }

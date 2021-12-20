@@ -1,5 +1,6 @@
 package gov.sandia.watchr.util;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -16,5 +17,31 @@ public class StringUtilTest {
         assertTrue(StringUtil.hasIllegalCharacters("! @ # $ %"));
         assertFalse(StringUtil.hasIllegalCharacters("A-B-C"));
         assertFalse(StringUtil.hasIllegalCharacters("A_B_C"));
+    }
+
+    @Test
+    public void testConvertToRegex_SimpleAsterisks() {
+        assertEquals("a", StringUtil.convertToRegex("a"));
+        assertEquals(".*a", StringUtil.convertToRegex("*a"));
+        assertEquals("a.*", StringUtil.convertToRegex("a*"));
+        assertEquals(".*a.*", StringUtil.convertToRegex("*a*"));
+    }
+
+    @Test
+    public void testConvertToRegex_Malformed() {
+        assertEquals("^a", StringUtil.convertToRegex("^a"));
+        assertEquals("a$", StringUtil.convertToRegex("a$"));
+    }
+
+    @Test
+    public void testConvertToRegex_Exact() {
+        assertEquals("^a.*b[0-9]$", StringUtil.convertToRegex("R$^a.*b[0-9]$"));
+    }
+
+    @Test
+    public void testEscapeRegexCharacters() {
+        assertEquals("HelloWorld", StringUtil.escapeRegexCharacters("HelloWorld"));
+        assertEquals("\\(HelloWorld\\)", StringUtil.escapeRegexCharacters("(HelloWorld)"));
+        assertEquals("\\s\\(HelloWorld\\)\\s", StringUtil.escapeRegexCharacters(" (HelloWorld) "));
     }
 }

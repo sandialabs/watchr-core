@@ -21,7 +21,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.graph.chartreuse.CommonPlotTerms;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
@@ -29,6 +29,7 @@ import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.util.ListUtil;
 import gov.sandia.watchr.util.RGB;
 import gov.sandia.watchr.util.RgbUtil;
+import gov.sandia.watchr.util.StringUtil;
 
 /**
  * A plot trace model is the most basic grouping of information that can be visualized in Chartreuse.
@@ -307,9 +308,9 @@ public class PlotTraceModel {
 			notAllBlank = notAllBlank || StringUtils.isNotBlank(filterValue.y);
 			notAllBlank = notAllBlank || StringUtils.isNotBlank(filterValue.z);
 
-			String filterValueXRegex = filterValue.x.replace("*", ".*").replace("-", "\\-");
-			String filterValueYRegex = filterValue.y.replace("*", ".*").replace("-", "\\-");
-			String filterValueZRegex = filterValue.z.replace("*", ".*").replace("-", "\\-");
+			String filterValueXRegex = StringUtil.convertToRegex(filterValue.x);
+			String filterValueYRegex = StringUtil.convertToRegex(filterValue.y);
+			String filterValueZRegex = StringUtil.convertToRegex(filterValue.z);;
 
 			if((point.x.matches(filterValueXRegex) || StringUtils.isBlank(filterValueXRegex)) &&
 			   (point.y.matches(filterValueYRegex) || StringUtils.isBlank(filterValueYRegex)) &&
@@ -440,6 +441,11 @@ public class PlotTraceModel {
 		this.filterValues.addAll(points);
 		return this;
 	}
+
+	public PlotTraceModel applyFilterValues(List<PlotTracePoint> points) {
+		this.filterValues.addAll(points);
+		return this;
+	}
 	
 	public PlotTraceModel setPrimaryRGB(RGB rgb) {
 		if(rgbs.isEmpty()) {
@@ -454,6 +460,10 @@ public class PlotTraceModel {
 
 	public void add(PlotTracePoint point) {
 		points.add(point);
+	}
+
+	public void addAll(List<PlotTracePoint> points) {
+		this.points.addAll(points);
 	}
 
 	public void clear() {

@@ -32,6 +32,7 @@ public enum PlotType {
 	// 2D Traces //
 	///////////////
 	
+	AREA_PLOT("Area Plot"),
 	BOX_PLOT("Box Plot"),
 	BAR_CHART("Bar Chart"),	
 	BAR_CHART_CATEGORICAL("Bar Chart (Categorical Data)"),
@@ -41,6 +42,7 @@ public enum PlotType {
 	PIE_CHART("Pie Chart"),
 	SCATTER_PLOT("Scatter Plot"),
 	SCATTER_PLOT_CATEGORICAL("Scatter Plot (Categorical Axes)"),
+	TREE_MAP("Tree Map"),
 	
 	///////////////
 	// 3D Traces //

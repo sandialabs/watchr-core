@@ -10,11 +10,16 @@ package gov.sandia.watchr.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import gov.sandia.watchr.config.derivative.DerivativeLine;
+import gov.sandia.watchr.config.derivative.DerivativeLineFactory;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategyFactory;
 import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategyType;
 import gov.sandia.watchr.util.RGB;
+import gov.sandia.watchr.util.RGBA;
 
 public class DataLine implements IConfig {
     
@@ -31,7 +36,15 @@ public class DataLine implements IConfig {
     private RGB color;
 
     private String name = "";
+    private NameConfig autonameConfig;
+
+    private String templateName = "";
+    private String inheritTemplate = "";
+
     private final String configPath;
+    private final FileConfig fileConfig;
+    private final ILogger logger;
+    private final IFileReader fileReader;
 
     /////////////////
     // CONSTRUCTOR //
@@ -40,19 +53,24 @@ public class DataLine implements IConfig {
     public DataLine(FileConfig fileConfig, String configPathPrefix) {
         metadataList = new ArrayList<>();
 
-        if(fileConfig != null) {
-            this.extractorType = ExtractionStrategyFactory.getInstance().getTypeFromExtension(fileConfig.getFileExtension());
-            this.xExtractor = new HierarchicalExtractor(fileConfig, configPathPrefix, "x");
-            this.yExtractor = new HierarchicalExtractor(fileConfig, configPathPrefix, "y");
-        } else {
-            this.extractorType = null;
-        }
+        this.fileConfig = fileConfig;
+        this.logger = fileConfig.getLogger();
+        this.fileReader = fileConfig.getFileReader();
+
+        this.extractorType = ExtractionStrategyFactory.getInstance().getTypeFromExtension(fileConfig.getFileExtension());
+        this.xExtractor = new HierarchicalExtractor(fileConfig, configPathPrefix, "x");
+        this.yExtractor = new HierarchicalExtractor(fileConfig, configPathPrefix, "y");
 
         this.derivativeLines = new ArrayList<>();
         this.configPath = configPathPrefix + "/dataLine";
     }
 
     public DataLine(DataLine copy) {
+        this.configPath = copy.getConfigPath();
+        this.logger = copy.logger;
+        this.fileConfig = copy.fileConfig;
+        this.fileReader = copy.fileReader;
+
         metadataList = new ArrayList<>();
         for(MetadataConfig metadata : copy.getMetadata()) {
             metadataList.add(new MetadataConfig(metadata));
@@ -64,7 +82,8 @@ public class DataLine implements IConfig {
 
         derivativeLines = new ArrayList<>();
         for(DerivativeLine derivativeLine : copy.getDerivativeLines()) {
-            derivativeLines.add(new DerivativeLine(derivativeLine));
+            DerivativeLine newDerivativeLine = DerivativeLineFactory.getInstance().create(configPath, derivativeLine, true, logger);
+            derivativeLines.add(newDerivativeLine);
         }
 
         if(copy.getColor() != null) {
@@ -72,7 +91,12 @@ public class DataLine implements IConfig {
         }
 
         this.name = copy.getName();
-        this.configPath = copy.getConfigPath();
+        if(copy.getNameConfig() != null) {
+            this.autonameConfig = new NameConfig(copy.getNameConfig());
+        }
+
+        this.templateName = copy.getTemplateName();
+        this.inheritTemplate = copy.getInheritTemplate();        
     }
 
     /////////////
@@ -107,9 +131,26 @@ public class DataLine implements IConfig {
         return name;
     }
 
+    public NameConfig getNameConfig() {
+        return autonameConfig;
+    }
+
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public String getInheritTemplate() {
+        return inheritTemplate;
+    }    
+
     @Override
     public String getConfigPath() {
         return configPath;
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
     }
 
     /////////////
@@ -132,6 +173,10 @@ public class DataLine implements IConfig {
         this.color = new RGB(r,g,b);
     }
 
+    public void setColor(int r, int g, int b, double a) {
+        this.color = new RGBA(r,g,b,a);
+    }
+
     public void setColor(RGB color) {
         this.color = color;
     }
@@ -139,6 +184,18 @@ public class DataLine implements IConfig {
     public void setName(String name) {
         this.name = name;
     }
+
+    public void setNameConfig(NameConfig nameConfig) {
+        this.autonameConfig = nameConfig;
+    }
+
+    public void setInheritTemplate(String inheritTemplate) {
+        this.inheritTemplate = inheritTemplate;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
+    }    
 
     //////////////
     // OVERRIDE //
@@ -152,6 +209,9 @@ public class DataLine implements IConfig {
         for(MetadataConfig metadata : metadataList) {
             metadata.validate();
         }
+        if(autonameConfig != null) {
+            autonameConfig.validate();
+        }
     }
 
     @Override
@@ -159,11 +219,11 @@ public class DataLine implements IConfig {
         DataLine otherDataLine = (DataLine) other;
         List<WatchrDiff<?>> diffList = new ArrayList<>();
 
-        if(getXExtractor() != null) {
-            diffList.addAll(getXExtractor().diff(otherDataLine.getXExtractor()));
+        if(xExtractor != null && !xExtractor.equals(otherDataLine.xExtractor)) {
+            diffList.addAll(xExtractor.diff(otherDataLine.xExtractor));
         }
-        if(getYExtractor() != null) {
-            diffList.addAll(getYExtractor().diff(otherDataLine.getYExtractor()));
+        if(yExtractor != null && !yExtractor.equals(otherDataLine.yExtractor)) {
+            diffList.addAll(yExtractor.diff(otherDataLine.yExtractor));
         }
 
         if(name != null && !name.equals(otherDataLine.name)) {
@@ -172,8 +232,30 @@ public class DataLine implements IConfig {
             diff.setNowValue(otherDataLine.name);
             diffList.add(diff);
         }
+        if(!templateName.equals(otherDataLine.templateName)) {
+            WatchrDiff<String> diff = new WatchrDiff<>(configPath, DiffCategory.TEMPLATE_NAME);
+            diff.setBeforeValue(templateName);
+            diff.setNowValue(otherDataLine.templateName);
+            diffList.add(diff);
+        }
+        if(!inheritTemplate.equals(otherDataLine.inheritTemplate)) {
+            WatchrDiff<String> diff = new WatchrDiff<>(configPath, DiffCategory.INHERIT_TEMPLATE);
+            diff.setBeforeValue(inheritTemplate);
+            diff.setNowValue(otherDataLine.inheritTemplate);
+            diffList.add(diff);
+        }
 
-        if((color != null ^ otherDataLine.color != null) || (color != null && otherDataLine.color != null)) {
+        if(autonameConfig == null ^ otherDataLine.autonameConfig == null) {
+            WatchrDiff<NameConfig> diff = new WatchrDiff<>(configPath, DiffCategory.NAME_CONFIG);
+            diff.setBeforeValue(autonameConfig);
+            diff.setNowValue(otherDataLine.autonameConfig);
+            diffList.add(diff);
+        } else if(autonameConfig != null && otherDataLine.autonameConfig != null && !autonameConfig.equals(otherDataLine.autonameConfig)) {
+            diffList.addAll(autonameConfig.diff(otherDataLine.autonameConfig));
+        }        
+
+        if((color == null ^ otherDataLine.color == null) ||
+           (color != null && otherDataLine.color != null && !color.equals(otherDataLine.color))) {
             WatchrDiff<RGB> diff = new WatchrDiff<>(configPath, DiffCategory.LINE_COLOR);
             diff.setBeforeValue(color);
             diff.setNowValue(otherDataLine.color);
@@ -189,7 +271,12 @@ public class DataLine implements IConfig {
             // Check for new elements added to list
             int newStart = metadataList.size();
             for(int i = newStart; i < otherDataLine.metadataList.size(); i++) {
-                MetadataConfig dummyMetadata = new MetadataConfig(new FileConfig(""), otherDataLine.getConfigPath());
+                MetadataConfig dummyMetadata =
+                    new MetadataConfig(
+                        new FileConfig(
+                            "", logger, fileConfig.getFileReader()),
+                            otherDataLine.getConfigPath()
+                        );
                 MetadataConfig otherMetadata = otherDataLine.metadataList.get(i);
                 diffList.addAll(dummyMetadata.diff(otherMetadata));
             }
@@ -203,8 +290,8 @@ public class DataLine implements IConfig {
             // Check for new elements added to list
             int newStart = derivativeLines.size();
             for(int i = newStart; i < otherDataLine.derivativeLines.size(); i++) {
-                DerivativeLine derivativeLine = new DerivativeLine(otherDataLine.getConfigPath());
                 DerivativeLine otherDerivativeLine = otherDataLine.derivativeLines.get(i);
+                DerivativeLine derivativeLine = DerivativeLineFactory.getInstance().create(configPath, otherDerivativeLine, false, logger);
                 diffList.addAll(derivativeLine.diff(otherDerivativeLine));
             }
         }
@@ -227,6 +314,8 @@ public class DataLine implements IConfig {
             equals = xExtractor.equals(otherDataLine.xExtractor);
             equals = equals && yExtractor.equals(otherDataLine.yExtractor);
             equals = equals && name.equals(otherDataLine.name);
+            equals = equals && templateName.equals(otherDataLine.templateName);
+            equals = equals && inheritTemplate.equals(otherDataLine.inheritTemplate);
             equals = equals && metadataList.equals(otherDataLine.metadataList);
             equals = equals && derivativeLines.equals(otherDataLine.derivativeLines);
 
@@ -235,6 +324,11 @@ public class DataLine implements IConfig {
             } else if(color != null && otherDataLine.color != null) {
                 equals = equals && color.equals(otherDataLine.color);
             }
+
+            equals = equals &&
+                ((autonameConfig == null && otherDataLine.autonameConfig == null) ||
+                 (autonameConfig != null && otherDataLine.autonameConfig != null &&
+                  autonameConfig.equals(otherDataLine.autonameConfig)));            
         }
         return equals;
     }
@@ -243,6 +337,9 @@ public class DataLine implements IConfig {
     public int hashCode() {
         int hash = 7;
         hash = 31 * (hash + name.hashCode());
+        if(autonameConfig != null) hash = 31 * (hash + autonameConfig.hashCode());
+        hash = 31 * (hash + templateName.hashCode());
+        hash = 31 * (hash + inheritTemplate.hashCode());
         hash = 31 * (hash + xExtractor.hashCode());
         hash = 31 * (hash + yExtractor.hashCode());
         hash = 31 * (hash + metadataList.hashCode());

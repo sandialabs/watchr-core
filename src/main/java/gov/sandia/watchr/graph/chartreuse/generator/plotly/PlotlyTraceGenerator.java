@@ -33,6 +33,7 @@ import gov.sandia.watchr.util.ArrayUtil;
 import gov.sandia.watchr.util.ListUtil;
 import gov.sandia.watchr.util.OsUtil;
 import gov.sandia.watchr.util.RGB;
+import gov.sandia.watchr.util.RGBA;
 
 public class PlotlyTraceGenerator extends PlotTraceGenerator {
 	
@@ -82,14 +83,20 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 	
 	@Override
 	public String getTemplateFileAsString(PlotType type) {
-		if(type == PlotType.SCATTER_PLOT || type == PlotType.SCATTER_PLOT_CATEGORICAL) {
+		if(type == PlotType.SCATTER_PLOT ||
+		   type == PlotType.SCATTER_PLOT_CATEGORICAL) {
 			return PlotlyHtmlFragmentGenerator.getTraceScatter2D();
-		}else if(type == PlotType.SURFACE_3D_PLOT) {
+		} else if(type == PlotType.SURFACE_3D_PLOT) {
 			return PlotlyHtmlFragmentGenerator.getTraceSurface3D();
 		} else if(type == PlotType.HEAT_MAP_CATEGORICAL || type == PlotType.HEAT_MAP_3D) {
 			return PlotlyHtmlFragmentGenerator.getTraceColoredTable();
 		} else if(type == PlotType.CONTOUR_PLOT) {
 			return PlotlyHtmlFragmentGenerator.getTraceContour();
+		} else if(type == PlotType.TREE_MAP) {
+			options.displayRange = -1;
+			return PlotlyHtmlFragmentGenerator.getTraceTreemap();
+		} else if(type == PlotType.AREA_PLOT) {
+			return PlotlyHtmlFragmentGenerator.getTraceAreaPlot();
 		}
 		return "";
 	}
@@ -113,10 +120,10 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 		PlotTraceModel trace = getTraceModel();
 		StringBuilder sb = new StringBuilder();
 		sb.append("'");
+		sb.append(trace.getName());
 		if(trace.getDerivativeLineType() != null) {
+			sb.append(" - ");
 			sb.append(trace.getDerivativeLineType().get());
-		} else {
-			sb.append(trace.getName());
 		}
 		sb.append("'");
 		return sb.toString();
@@ -319,7 +326,9 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 	public String processPointType() {
 		PlotType plotType = traceModel.getPointType();
 		
-		if(plotType == PlotType.SCATTER_PLOT || plotType == PlotType.SCATTER_PLOT_CATEGORICAL) {
+		if(plotType == PlotType.SCATTER_PLOT ||
+		   plotType == PlotType.SCATTER_PLOT_CATEGORICAL ||
+		   plotType == PlotType.AREA_PLOT) {
 			return "'scatter'";
 		} else if(plotType == PlotType.BOX_PLOT) {
 			return "'box'";
@@ -337,6 +346,8 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 			return "'bar'";
 		} else if(plotType == PlotType.PARALLEL_COORD_PLOT) {
 			return "'parcoords'";
+		} else if(plotType == PlotType.TREE_MAP) {
+			return "'treemap'";
 		} else {
 			return "";
 		}
@@ -349,6 +360,15 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
     	    return "'rgb(" + rgb.red + ", " + rgb.green + ", " + rgb.blue + ")'";
     	}
     	return "'rgb(0, 0, 0)'";
+	}
+
+	@Override
+	public String processOpacity() {
+	    RGB rgb = traceModel.getPrimaryColor();
+    	if(rgb instanceof RGBA) {
+    	    return Double.toString(((RGBA)rgb).alpha);
+    	}
+    	return "1";
 	}
 	
 	@Override

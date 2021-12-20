@@ -9,17 +9,13 @@ package gov.sandia.watchr.graph.chartreuse.generator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
-import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
-import gov.sandia.watchr.util.ArrayUtil;
 import gov.sandia.watchr.util.OsUtil;
 import gov.sandia.watchr.util.TokenStringUtil;
 
@@ -86,7 +82,12 @@ public abstract class PlotCanvasGenerator {
 		String replacedTokensFileString = getTemplateFileAsString(plotType);
 		
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_TRACES, level,                   () -> { return processTraces(canvasModel.getTraceModels()); });
-		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_AXIS_LINES, level,          () -> { return processCanvasDrawAxisLines(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_X_AXIS_LABELS, level,        () -> { return processCanvasDrawXAxisLabels(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_Y_AXIS_LABELS, level,        () -> { return processCanvasDrawYAxisLabels(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_Z_AXIS_LABELS, level,        () -> { return processCanvasDrawZAxisLabels(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_X_AXIS_LINES, level,        () -> { return processCanvasDrawXAxisLines(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_Y_AXIS_LINES, level,        () -> { return processCanvasDrawYAxisLines(); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_Z_AXIS_LINES, level,        () -> { return processCanvasDrawZAxisLines(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_DRAW_GRID_LINES, level,          () -> { return processCanvasDrawGridLines(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_X_AUTOSCALE, level,              () -> { return processCanvasXAutoscale(); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.CANVAS_X_AXIS_COLOR, level,             () -> { return processCanvasXAxisColor(); });
@@ -118,54 +119,24 @@ public abstract class PlotCanvasGenerator {
 	}
 	
 	public String processTraces(List<PlotTraceModel> traceModels) throws IOException {
+		List<PlotTraceModel> sortedList = new ArrayList<>(traceModels);
 		StringBuilder sb = new StringBuilder();
-		for(PlotTraceModel traceModel : new ArrayList<>(traceModels)) {
+		Collections.sort(sortedList, (PlotTraceModel p1, PlotTraceModel p2) -> {
+			if(p1.getDerivativeLineType() == null && p2.getDerivativeLineType() == null) {
+				return p1.getName().compareTo(p2.getName());
+			} else if(p1.getDerivativeLineType() != null && p2.getDerivativeLineType() == null) {
+				return 1;
+			} else if(p1.getDerivativeLineType() == null && p2.getDerivativeLineType() != null) {
+				return -1;
+			}
+			return 0;
+		});
+
+		for(PlotTraceModel traceModel : sortedList) {
 			sb.append(traceGenerator.generatePlotTrace(traceModel, traceModel.getPointType(), displayRange));
 			sb.append(OsUtil.getOSLineBreak());
-			
-			// Linear regression lines
-			if(traceModel.getPropertyAsBoolean(PlotToken.TRACE_DRAW_LINEAR_REGRESSION_LINE)) {
-				sb.append(processLinRegTraceModel(traceModel));
-			}
 		}
 		return sb.toString();
-	}
-	
-	private String processLinRegTraceModel(PlotTraceModel parentTraceModel) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		
-		double[] xData = ArrayUtil.asDoubleArrFromStringList(new ArrayList<>(parentTraceModel.getDimensionValues(Dimension.X)));
-		double[] yData = ArrayUtil.asDoubleArrFromStringList(new ArrayList<>(parentTraceModel.getDimensionValues(Dimension.Y)));
-
-		Pair<Double, Double> linearRegression = ArrayUtil.getLinearRegression(xData, yData);
-				 
-		double minX = ArrayUtil.getMinFromStringList(new ArrayList<>(parentTraceModel.getDimensionValues(Dimension.X)));
-		double maxX = ArrayUtil.getMaxFromStringList(new ArrayList<>(parentTraceModel.getDimensionValues(Dimension.X)));
-		
-		double slope = linearRegression.getLeft();
-		double intercept = linearRegression.getRight();
-		
-		double minY = slope * minX + intercept;
-		double maxY = slope * maxX + intercept;
-		 
-		List<PlotTracePoint> linRegData = new ArrayList<>();
-		linRegData.add(new PlotTracePoint(minX, minY));
-		linRegData.add(new PlotTracePoint(maxX, maxY));
-		 
-		PlotTraceModel linRegTraceModel = (new PlotTraceModel(parentTraceModel.getParentUUID(), parentTraceModel))
-			 .setPoints(linRegData)
-			 .setName("Linear Regression: " + parentTraceModel.getName())
-			 .set(PlotToken.TRACE_DRAW_LINES, true);
-		
-		parentTraceModel.getParent().addTraceModel(linRegTraceModel);
-		 
-		sb.append(traceGenerator.generatePlotTrace(linRegTraceModel, PlotType.DEFAULT, displayRange));
-	    sb.append(OsUtil.getOSLineBreak());
-	    
-	    // Remove the new trace model from the parent canvas after we're done with it.
-	    parentTraceModel.getParent().removeTraceModel(linRegTraceModel);
-	    
-	    return sb.toString();
 	}
 
 	//////////////
@@ -173,8 +144,18 @@ public abstract class PlotCanvasGenerator {
 	//////////////
 	
 	public abstract String getTemplateFileAsString(PlotType type);
-		
-	public abstract String processCanvasDrawAxisLines();
+
+	public abstract String processCanvasDrawXAxisLabels();
+
+	public abstract String processCanvasDrawYAxisLabels();
+
+	public abstract String processCanvasDrawZAxisLabels();
+
+	public abstract String processCanvasDrawXAxisLines();
+
+	public abstract String processCanvasDrawYAxisLines();
+
+	public abstract String processCanvasDrawZAxisLines();
 	
 	public abstract String processCanvasDrawGridLines();
 		

@@ -14,6 +14,7 @@ import java.util.Map;
 
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.log.ILogger;
 
 public class RuleConfig implements IConfig {
 
@@ -26,14 +27,16 @@ public class RuleConfig implements IConfig {
     private Map<String, String> actionProperties;
 
     private final String configPath;
+    private final ILogger logger;
 
     //////////////////
     // CONSTRUCTORS //
     //////////////////
 
-    public RuleConfig(String configPathPrefix) {
+    public RuleConfig(String configPathPrefix, ILogger logger) {
         this.configPath = configPathPrefix + "/ruleConfig";
         this.actionProperties = new HashMap<>();
+        this.logger = logger;
     }
 
     public RuleConfig(RuleConfig copy) {
@@ -43,6 +46,7 @@ public class RuleConfig implements IConfig {
 
         this.actionProperties = new HashMap<>();
         this.actionProperties.putAll(copy.actionProperties);
+        this.logger = copy.getLogger();
     }
 
     /////////////
@@ -152,5 +156,10 @@ public class RuleConfig implements IConfig {
     @Override
     public String getConfigPath() {
         return configPath;
+    }
+
+    @Override
+    public ILogger getLogger() {
+        return logger;
     }          
 }

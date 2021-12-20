@@ -51,5 +51,8 @@
 				]
             }
         ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
     }
 }

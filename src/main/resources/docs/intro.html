@@ -327,7 +327,15 @@ img {
 <p>To get the basic functionality that Watchr provides, you will need to build <strong>watchr-core</strong> at minimum:</p>
 <pre><code>git clone git@gitlab-ex.sandia.gov:SEMS/watchr-core.git watchr-core
 cd watchr-core
-mvn clean install
+</code></pre>
+
+<p>If building watchr-core as a standalone application:</p>
+<pre><code>mvn package appassembler:assemble
+sh target/appassembler/bin/watchr
+</code></pre>
+
+<p>If building watchr-core as a dependency for another Maven jar:</p>
+<pre><code>mvn clean install
 </code></pre>
 
 

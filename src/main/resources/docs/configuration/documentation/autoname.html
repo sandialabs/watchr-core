@@ -300,13 +300,15 @@ img {
 <ul>
 <li>&quot;x&quot; and &quot;y&quot; refer to the extractor used to generate the main data line.</li>
 <li>&quot;key&quot; refers to the specific field used to identify the plottable data.</li>
-<li>&quot;path&quot; refers to the entire path taken through the data file to arrive at the plottable data.</li>
+<li>&quot;path&quot; refers to the entire path taken through the data file to arrive at the plottable data. </li>
 </ul>
 </li>
-<li><strong>formatByRemovingPrefix</strong> : <em>string</em> : Allows Watchr to remove the beginning portion of the string returned by &quot;useProperty.&quot;  This field accepts fully-featured Java regular expressions.</li>
+<li><strong>formatByRemovingPrefix</strong> : <em>string</em> : Allows Watchr to remove the beginning portion of the string returned by &quot;useProperty.&quot;  This field recognizes <a href="regex.html">regular expressions</a>.</li>
 </ul>
 <h2>Child Elements</h2>
-<p>None.</p>
+<ul>
+<li><a href="extractor.html"><strong>extractor</strong></a> - if &quot;useProperty&quot; is not specified in this section, you may alternately decide to use an extractor to dynamically extract the name of the plot from a different section of your data file.</li>
+</ul>
 <h2>Parent Element</h2>
 <ul>
 <li><a href="plot.html"><strong>plot</strong></a></li>

@@ -7,7 +7,6 @@
 ******************************************************************************/
 package gov.sandia.watchr.parse.extractors.strategy;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -15,11 +14,13 @@ import java.util.List;
 import java.util.Map;
 
 import gov.sandia.watchr.config.HierarchicalExtractor;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
+import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.parse.extractors.ExtractionResult;
 
-public abstract class ExtractionStrategy {
+public abstract class ExtractionStrategy<E> {
     
     protected final Map<String, String> properties;
 
@@ -27,7 +28,10 @@ public abstract class ExtractionStrategy {
     protected final String path;
     protected final String key;
 
-    protected ExtractionStrategy(Map<String, String> properties, AmbiguityStrategy strategy) {
+    protected final ILogger logger;
+    protected final IFileReader fileReader;
+
+    protected ExtractionStrategy(Map<String, String> properties, AmbiguityStrategy strategy, ILogger logger, IFileReader fileReader) {
         this.properties = new HashMap<>();
         this.properties.putAll(properties);
 
@@ -35,6 +39,8 @@ public abstract class ExtractionStrategy {
         this.key = properties.getOrDefault(Keywords.GET_KEY, "");
 
         this.strategy = strategy;
+        this.logger = logger;
+        this.fileReader = fileReader;
     }
 
     protected Deque<String> getPathStops() {
@@ -46,5 +52,7 @@ public abstract class ExtractionStrategy {
         return stack;
     }
 
-    public abstract List<ExtractionResult> extract(File targetFile) throws WatchrParseException;
+    public abstract List<ExtractionResult> extract(String fileAbsPath) throws WatchrParseException;
+
+    protected abstract List<ExtractionResult> getNextPathStop(String pathSoFar, Deque<String> remainingStops, E element);
 }

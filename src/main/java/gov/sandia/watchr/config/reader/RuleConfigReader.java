@@ -12,7 +12,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
@@ -21,6 +20,10 @@ import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
 public class RuleConfigReader extends AbstractExtractorConfigReader<List<RuleConfig>> {
+
+    protected RuleConfigReader(ILogger logger) {
+        super(logger);
+    }
 
     @Override
     public Set<String> getRequiredKeywords() {
@@ -38,7 +41,7 @@ public class RuleConfigReader extends AbstractExtractorConfigReader<List<RuleCon
             JsonElement arrayElement = jsonArray.get(i);
             JsonObject jsonObject = arrayElement.getAsJsonObject();
             Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-            RuleConfig plotRule = new RuleConfig(parent.getConfigPath() + "/" + Integer.toString(i));
+            RuleConfig plotRule = new RuleConfig(parent.getConfigPath() + "/" + Integer.toString(i), logger);
 
             for(Entry<String, JsonElement> entry : entrySet) {
                 String key = entry.getKey();
@@ -54,7 +57,6 @@ public class RuleConfigReader extends AbstractExtractorConfigReader<List<RuleCon
                     seenKeywords.add(Keywords.ACTION_PROPERTIES);
                     plotRule.getActionProperties().putAll(handleAsActionProperties(value));
                 } else {
-                    ILogger logger = WatchrCoreApp.getInstance().getLogger();
                     logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsRules: Unrecognized element `" + key + "`."));
                 }
             }

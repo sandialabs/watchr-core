@@ -17,6 +17,7 @@
                 "dataLines" : [
                     {
                         "name" : "Data Line",
+                        "template" : "line_template",
                         "x" : {
                             "getElement" : "performance-report",
                             "getPath": "*",
@@ -33,11 +34,12 @@
                     }
                 ]
             },{
-				"inherit" : "plot_template",
                 "name" : "Plot for cpu-time-min",
 				"category" : "cpu-time-min",
+                "inherit" : "plot_template",
 				"dataLines" : [
 					{
+                        "inherit" : "line_template",
 						"y" : {
 							"getKey" : "cpu-time-min"
 						}
@@ -49,6 +51,7 @@
 				"category" : "cpu-time-sum",
 				"dataLines" : [
 					{
+                        "inherit" : "line_template",
 						"y" : {
 							"getKey" : "cpu-time-sum"
 						}
@@ -56,5 +59,8 @@
 				]
 			}
         ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
     }
 }

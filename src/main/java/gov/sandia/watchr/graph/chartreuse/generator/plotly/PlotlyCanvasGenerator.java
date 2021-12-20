@@ -67,8 +67,33 @@ public class PlotlyCanvasGenerator extends PlotCanvasGenerator {
 	}
 
 	@Override
-	public String processCanvasDrawAxisLines() {
-		return Boolean.toString(canvasModel.getDrawAxisLines());
+	public String processCanvasDrawXAxisLines() {
+		return Boolean.toString(canvasModel.getDrawXAxisLines());
+	}
+
+	@Override
+	public String processCanvasDrawYAxisLines() {
+		return Boolean.toString(canvasModel.getDrawYAxisLines());
+	}
+
+	@Override
+	public String processCanvasDrawZAxisLines() {
+		return Boolean.toString(canvasModel.getDrawZAxisLines());
+	}
+
+	@Override
+	public String processCanvasDrawXAxisLabels() {
+		return Boolean.toString(canvasModel.getDrawXAxisLabels());
+	}
+
+	@Override
+	public String processCanvasDrawYAxisLabels() {
+		return Boolean.toString(canvasModel.getDrawYAxisLabels());
+	}
+
+	@Override
+	public String processCanvasDrawZAxisLabels() {
+		return Boolean.toString(canvasModel.getDrawZAxisLabels());
 	}
 
 	@Override

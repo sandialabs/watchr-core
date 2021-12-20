@@ -7,7 +7,6 @@
 ******************************************************************************/
 package gov.sandia.watchr.config.reader;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,10 +16,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import gov.sandia.watchr.config.CategoryConfiguration;
+import gov.sandia.watchr.config.FilterConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.PlotConfig;
 import gov.sandia.watchr.config.PlotsConfig;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
+import gov.sandia.watchr.log.ILogger;
 
 public class PlotsConfigReader extends AbstractConfigReader<PlotsConfig> {
 
@@ -28,14 +30,17 @@ public class PlotsConfigReader extends AbstractConfigReader<PlotsConfig> {
     // FIELDS //
     ////////////
 
-    private final File startDir;
+    private final String startDirectoryAbsolutePath;
+    private final IFileReader fileReader;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public PlotsConfigReader(File startDir) {
-        this.startDir = startDir;
+    public PlotsConfigReader(String startDirectoryAbsolutePath, ILogger logger, IFileReader fileReader) {
+        super(logger);
+        this.startDirectoryAbsolutePath = startDirectoryAbsolutePath;
+        this.fileReader = fileReader;
     }
 
     //////////////
@@ -44,7 +49,7 @@ public class PlotsConfigReader extends AbstractConfigReader<PlotsConfig> {
 
     @Override
     public PlotsConfig handle(JsonElement jsonElement, IConfig parent) {
-        PlotsConfig plotsConfig = new PlotsConfig(parent.getConfigPath());
+        PlotsConfig plotsConfig = new PlotsConfig(parent.getConfigPath(), logger, fileReader);
 
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
@@ -54,18 +59,23 @@ public class PlotsConfigReader extends AbstractConfigReader<PlotsConfig> {
 
             if(key.equals(Keywords.FILES)) {
                 seenKeywords.add(Keywords.FILES);
-                FileConfigReader fileConfigReader = new FileConfigReader(startDir);
+                FileConfigReader fileConfigReader = new FileConfigReader(startDirectoryAbsolutePath, logger, fileReader);
                 plotsConfig.setFileConfig(fileConfigReader.handle(value, plotsConfig));
-            } else if (key.equals(Keywords.PLOT)) {
+            } else if(key.equals(Keywords.PLOT)) {
                 seenKeywords.add(Keywords.PLOT);
-                PlotConfigReader plotsConfigReader = new PlotConfigReader(plotsConfig.getFileConfig());
+                PlotConfigReader plotsConfigReader = new PlotConfigReader(plotsConfig.getFileConfig(), logger);
                 List<PlotConfig> plotConfigList = plotsConfigReader.handle(value, plotsConfig);
                 plotsConfig.getPlotConfigs().addAll(plotConfigList);
-            } else if (key.equals(Keywords.CATEGORIES)) {
+            } else if(key.equals(Keywords.CATEGORIES)) {
                 seenKeywords.add(Keywords.CATEGORIES);
-                CategoryConfigReader categoryReader = new CategoryConfigReader();
+                CategoryConfigReader categoryReader = new CategoryConfigReader(logger);
                 CategoryConfiguration categoryConfig = categoryReader.handle(value, plotsConfig);
                 plotsConfig.setCategoryConfig(categoryConfig);
+            } else if(key.equals(Keywords.FILTER)) {
+                seenKeywords.add(Keywords.FILTER);
+                FilterConfigReader filterReader = new FilterConfigReader(logger);
+                FilterConfig filterConfig = filterReader.handle(value, plotsConfig);
+                plotsConfig.setPointFilterConfig(filterConfig);
             }
         }
 

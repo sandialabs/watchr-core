@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class GraphOperationResult {
     
+    private String graphRenderingLog;
+
     private String html;
     private Map<String, String> metadata = new HashMap<>();
 
@@ -18,5 +20,13 @@ public class GraphOperationResult {
 
     public void setHtml(String html) {
         this.html = html;
+    }
+
+    public String getLog() {
+        return graphRenderingLog;
+    }
+
+    public void setLog(String log) {
+        this.graphRenderingLog = log;
     }
 }

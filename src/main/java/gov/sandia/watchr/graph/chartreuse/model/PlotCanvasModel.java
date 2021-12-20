@@ -9,6 +9,7 @@ package gov.sandia.watchr.graph.chartreuse.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,11 +17,12 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.config.DerivativeLine.DerivativeLineType;
+import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.util.ArrayUtil;
 import gov.sandia.watchr.util.RGB;
+import gov.sandia.watchr.util.RgbUtil;
 
 /**
  * A plot canvas model can be thought of a single set of axes.  A plot canvas can show one or more
@@ -62,7 +64,12 @@ public class PlotCanvasModel {
 	private boolean yLogScale;
 	private boolean zLogScale;
 	private boolean drawGridLines;
-	private boolean drawAxisLines;
+	private boolean drawXAxisLines;
+	private boolean drawYAxisLines;
+	private boolean drawZAxisLines;
+	private boolean drawXAxisLabels;
+	private boolean drawYAxisLabels;
+	private boolean drawZAxisLabels;
 		
 	////////////////////
 	// PARENT ELEMENT //
@@ -80,6 +87,19 @@ public class PlotCanvasModel {
 	/////////////////
 	// CONSTRUCTOR //
 	/////////////////
+
+	public PlotCanvasModel(UUID uuid, UUID parentWindowModelUUID, boolean updateParent) {
+		this.uuid = uuid;
+		this.parentWindowModelUUID = parentWindowModelUUID;
+		if(parentWindowModelUUID != null && updateParent) {
+			PlotWindowModel parent = getParent();
+			if(parent != null) {
+				parent.addCanvasModel(this);
+			}
+		}
+		overlaidCanvasModels = new ArrayList<>();
+		traceModels = new ArrayList<>();
+	}
 	
 	public PlotCanvasModel(UUID parentWindowModelUUID) {
 		this.parentWindowModelUUID = parentWindowModelUUID;
@@ -89,7 +109,9 @@ public class PlotCanvasModel {
 
 		if(parentWindowModelUUID != null) {
 			PlotWindowModel parent = getParent();
-			parent.addCanvasModel(this);
+			if(parent != null) {
+				parent.addCanvasModel(this);
+			}
 		}
 		
 		autoscale = true;
@@ -102,8 +124,27 @@ public class PlotCanvasModel {
 		xAxisRangeEnd = null;
 		yAxisRangeEnd = null;
 		zAxisRangeEnd = null;
+		
+		drawGridLines = false;
+		drawXAxisLines = false;
+		drawYAxisLines = false;
+		drawZAxisLines = false;
+		drawXAxisLabels = true;
+		drawYAxisLabels = true;
+		drawZAxisLabels = true;
+
+		drawXAxisLines = true;
+		drawYAxisLines = true;
+		drawZAxisLines = true;
+		drawGridLines = true;
 
 		axisPrecision = DEFAULT_CANVAS_DECIMAL_PRECISION;
+
+		rowPosition = 0;
+        colPosition = 0;
+        xAxisRGB = RgbUtil.blackRGB();
+		yAxisRGB = RgbUtil.blackRGB();
+		zAxisRGB = RgbUtil.blackRGB();
 	}
 	
 	public PlotCanvasModel(UUID parentWindowModelUUID, PlotCanvasModel copy) {
@@ -123,7 +164,12 @@ public class PlotCanvasModel {
             .setXLogScale(copy.getXLogScale())
             .setYLogScale(copy.getYLogScale())
             .setZLogScale(copy.getZLogScale())
-            .setDrawAxisLines(copy.getDrawAxisLines())
+            .setDrawXAxisLines(copy.getDrawXAxisLines())
+			.setDrawYAxisLines(copy.getDrawYAxisLines())
+			.setDrawZAxisLines(copy.getDrawZAxisLines())
+			.setDrawXAxisLabels(copy.getDrawXAxisLabels())
+			.setDrawYAxisLabels(copy.getDrawYAxisLabels())
+			.setDrawZAxisLabels(copy.getDrawZAxisLabels())
             .setDrawGridLines(copy.getDrawGridLines());
 
 		if(copy.getXAxisRangeStart() != Double.NEGATIVE_INFINITY) {
@@ -259,8 +305,28 @@ public class PlotCanvasModel {
 		return drawGridLines;
 	}
 	
-	public boolean getDrawAxisLines() {
-		return drawAxisLines;
+	public boolean getDrawXAxisLines() {
+		return drawXAxisLines;
+	}
+
+	public boolean getDrawYAxisLines() {
+		return drawYAxisLines;
+	}
+
+	public boolean getDrawZAxisLines() {
+		return drawZAxisLines;
+	}
+
+	public boolean getDrawXAxisLabels() {
+		return drawXAxisLabels;
+	}
+
+	public boolean getDrawYAxisLabels() {
+		return drawYAxisLabels;
+	}
+
+	public boolean getDrawZAxisLabels() {
+		return drawZAxisLabels;
 	}
 	
 	public List<PlotCanvasModel> getOverlaidCanvasModels() {
@@ -523,8 +589,33 @@ public class PlotCanvasModel {
 		return this;
 	}
 	
-	public PlotCanvasModel setDrawAxisLines(boolean showAxisLines) {
-		this.drawAxisLines = showAxisLines;
+	public PlotCanvasModel setDrawXAxisLines(boolean showXAxisLines) {
+		this.drawXAxisLines = showXAxisLines;
+		return this;
+	}
+
+	public PlotCanvasModel setDrawYAxisLines(boolean showYAxisLines) {
+		this.drawYAxisLines = showYAxisLines;
+		return this;
+	}
+
+	public PlotCanvasModel setDrawZAxisLines(boolean showZAxisLines) {
+		this.drawZAxisLines = showZAxisLines;
+		return this;
+	}
+
+	public PlotCanvasModel setDrawXAxisLabels(boolean showXAxisLabels) {
+		this.drawXAxisLabels = showXAxisLabels;
+		return this;
+	}
+
+	public PlotCanvasModel setDrawYAxisLabels(boolean showYAxisLabels) {
+		this.drawYAxisLabels = showYAxisLabels;
+		return this;
+	}
+
+	public PlotCanvasModel setDrawZAxisLabels(boolean showZAxisLabels) {
+		this.drawZAxisLabels = showZAxisLabels;
 		return this;
 	}
 	
@@ -641,7 +732,34 @@ public class PlotCanvasModel {
 			}
 		}
 		return null;
-	}	
+	}
+
+    public String getSmallestValueAcrossTraces(Dimension dim) {
+        List<String> allPoints = getAllValuesAcrossTracesOnDimension(dim);
+        return allPoints.get(0);
+    }
+
+    public String getLargestValueAcrossTraces(Dimension dim) {
+        List<String> allPoints = getAllValuesAcrossTracesOnDimension(dim);
+        return allPoints.get(allPoints.size()-1);
+    }
+
+    public List<String> getAllValuesAcrossTracesOnDimension(Dimension dim) {
+        Set<String> allPointsSet = new HashSet<>();
+        for(PlotTraceModel traceModel : getNonDerivativeTraceModels()) {
+            List<PlotTracePoint> points = traceModel.getPoints();
+            for(PlotTracePoint point : points) {
+                if(dim == Dimension.X) {
+                    allPointsSet.add(point.x);
+                } else if(dim == Dimension.Y) {
+                    allPointsSet.add(point.y);
+                }
+            }
+        }
+        List<String> allPoints = new ArrayList<>(allPointsSet);
+        Collections.sort(allPoints);
+        return allPoints;
+    }	
 	
 	//////////////
 	// OVERRIDE //
@@ -690,7 +808,12 @@ public class PlotCanvasModel {
 			equals = equals && otherModel.getZLogScale() == getZLogScale();
 			
 			equals = equals && otherModel.getAxisPrecision() == getAxisPrecision();
-			equals = equals && otherModel.getDrawAxisLines() == getDrawAxisLines();
+			equals = equals && otherModel.getDrawXAxisLines() == getDrawXAxisLines();
+			equals = equals && otherModel.getDrawYAxisLines() == getDrawYAxisLines();
+			equals = equals && otherModel.getDrawZAxisLines() == getDrawZAxisLines();
+			equals = equals && otherModel.getDrawXAxisLabels() == getDrawXAxisLabels();
+			equals = equals && otherModel.getDrawYAxisLabels() == getDrawYAxisLabels();
+			equals = equals && otherModel.getDrawZAxisLabels() == getDrawZAxisLabels();
 			equals = equals && otherModel.getDrawGridLines() == getDrawGridLines();
 
 			equals = equals && otherModel.getTraceModels().equals(getTraceModels());
@@ -735,7 +858,12 @@ public class PlotCanvasModel {
 		hashCode = hashCode + Boolean.valueOf(zLogScale).hashCode();
 		hashCode = hashCode + Integer.valueOf(axisPrecision).hashCode();
 		hashCode = hashCode + Boolean.valueOf(drawGridLines).hashCode();
-		hashCode = hashCode + Boolean.valueOf(drawAxisLines).hashCode();
+		hashCode = hashCode + Boolean.valueOf(drawXAxisLines).hashCode();
+		hashCode = hashCode + Boolean.valueOf(drawYAxisLines).hashCode();
+		hashCode = hashCode + Boolean.valueOf(drawZAxisLines).hashCode();
+		hashCode = hashCode + Boolean.valueOf(drawXAxisLabels).hashCode();
+		hashCode = hashCode + Boolean.valueOf(drawYAxisLabels).hashCode();
+		hashCode = hashCode + Boolean.valueOf(drawZAxisLabels).hashCode();
 		
 		for(PlotTraceModel traceModel : traceModels) {
 			int index = traceModels.indexOf(traceModel);

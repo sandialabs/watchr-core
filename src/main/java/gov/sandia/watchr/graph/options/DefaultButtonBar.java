@@ -7,12 +7,13 @@
 ******************************************************************************/
 package gov.sandia.watchr.graph.options;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import gov.sandia.watchr.db.IDatabase;
 import gov.sandia.watchr.graph.HtmlUtil;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
-import gov.sandia.watchr.graph.library.IHtmlGraphRenderer;
+import gov.sandia.watchr.graph.library.IHtmlButtonRenderer;
 
 public class DefaultButtonBar extends AbstractButtonBar {
 
@@ -20,8 +21,8 @@ public class DefaultButtonBar extends AbstractButtonBar {
     // CONSTRUCTOR //
     /////////////////
 
-    public DefaultButtonBar(IHtmlGraphRenderer parentGraphLibrary) {
-        super(parentGraphLibrary);
+    public DefaultButtonBar(IHtmlButtonRenderer parentRenderer) {
+        super(parentRenderer);
     }
 
     //////////////
@@ -29,7 +30,7 @@ public class DefaultButtonBar extends AbstractButtonBar {
     //////////////
 
     @Override
-    public String getHtmlForButton(PlotWindowModel plot, ButtonType type) {
+    public String getHtmlForButton(PlotWindowModel plot, ButtonType type) throws UnsupportedEncodingException {
         if(type == ButtonType.GO_TO_CHILD_GRAPH) {
             return getChildGraphButton(plot);
         }
@@ -40,8 +41,8 @@ public class DefaultButtonBar extends AbstractButtonBar {
     // PRIVATE //
     /////////////
 
-    private String getChildGraphButton(PlotWindowModel plot) {
-        IDatabase db = parentGraphRenderer.getDatabase();
+    private String getChildGraphButton(PlotWindowModel plot) throws UnsupportedEncodingException {
+        IDatabase db = parentRenderer.getDatabase();
         Map<String, String> paramsMap = getParameterMapForChildButton(db, plot);
 
         String params = HtmlUtil.createParameterList(paramsMap);

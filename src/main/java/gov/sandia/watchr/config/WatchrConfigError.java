@@ -16,6 +16,7 @@ public class WatchrConfigError {
     ////////////
 
     public enum ErrorLevel {
+        DEBUG,
         INFO,
         WARNING,
         ERROR;

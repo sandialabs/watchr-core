@@ -7,7 +7,6 @@
 ******************************************************************************/
 package gov.sandia.watchr.config.reader;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -15,11 +14,11 @@ import java.util.Map.Entry;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import gov.sandia.watchr.WatchrCoreApp;
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -29,14 +28,17 @@ public class FileConfigReader extends AbstractConfigReader<FileConfig> {
     // FIELDS //
     ////////////
 
-    private final File startDir;
+    private final String startDirectoryAbsolutePath;
+    private final IFileReader fileReader;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public FileConfigReader(File startDir) {
-        this.startDir = startDir;
+    public FileConfigReader(String startDirectoryAbsolutePath, ILogger logger, IFileReader fileReader) {
+        super(logger);
+        this.fileReader = fileReader;
+        this.startDirectoryAbsolutePath = startDirectoryAbsolutePath;
     }
 
     //////////////
@@ -45,7 +47,7 @@ public class FileConfigReader extends AbstractConfigReader<FileConfig> {
     
     @Override
     public FileConfig handle(JsonElement jsonElement, IConfig parent) {
-        FileConfig fileConfig = new FileConfig(startDir, parent.getConfigPath());
+        FileConfig fileConfig = new FileConfig(startDirectoryAbsolutePath, parent.getConfigPath(), logger, fileReader);
 
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
@@ -66,7 +68,6 @@ public class FileConfigReader extends AbstractConfigReader<FileConfig> {
                 seenKeywords.add(Keywords.RECURSE_DIRECTORIES);
                 fileConfig.setRecurseDirectories(value.getAsBoolean());
             } else {
-                ILogger logger = WatchrCoreApp.getInstance().getLogger();
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsFileConfig: Unrecognized element `" + key + "`."));
             }
         }
