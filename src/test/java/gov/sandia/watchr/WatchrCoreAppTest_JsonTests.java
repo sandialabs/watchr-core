@@ -277,63 +277,6 @@ public class WatchrCoreAppTest_JsonTests {
     }
 
     @Test
-    public void testUnitExample_Json_NumberFormatTest() {
-        try {            
-            File config    = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/config.json");
-            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
-            File dbDir     = Files.createTempDirectory("testUnitExample_NumberFormatTest").toFile();
-            File exportDir = Files.createTempDirectory("testUnitExample_NumberFormatTest").toFile();
-
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
-
-            assertEquals(1, exportDir.listFiles().length);
-            String fileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
-            assertTrue(fileContents.contains("'2021-05-13T16:39:13'"));
-        } catch (WatchrParseException e) {
-            e.getOriginalException().printStackTrace();;
-            fail(e.getOriginalException().getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testUnitExample_Json_NumberFormatMillisecondsTest() {
-        try {            
-            File config    = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/config_ms.json");
-            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
-            File dbDir     = Files.createTempDirectory("testUnitExample_NumberFormatMillisecondsTest").toFile();
-            File exportDir = Files.createTempDirectory("testUnitExample_NumberFormatMillisecondsTest").toFile();
-
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
-
-            assertEquals(1, exportDir.listFiles().length);
-            String fileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
-            
-            // We now have a completely different date interpretation because we are parsing
-            // the number string as milliseconds instead of seconds.
-            assertTrue(fileContents.contains("'1970-01-19T11:15:45'"));
-        } catch (WatchrParseException e) {
-            e.getOriginalException().printStackTrace();;
-            fail(e.getOriginalException().getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
-
-    @Test
     public void testUnitExample_Json_GlobalPointFilter() {
         try {            
             File config    = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample/config_twoFilters.json");
