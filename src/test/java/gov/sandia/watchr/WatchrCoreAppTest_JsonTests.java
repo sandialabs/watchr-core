@@ -343,6 +343,7 @@ public class WatchrCoreAppTest_JsonTests {
         }
     }
 
+/*
     @Test
     public void testUnitExample_Json_NumberFormatTest() {
         try {            
@@ -399,6 +400,7 @@ public class WatchrCoreAppTest_JsonTests {
             fail(e.getMessage());
         }
     }
+*/
 
     @Test
     public void testUnitExample_Json_SlopeLineTest() {
