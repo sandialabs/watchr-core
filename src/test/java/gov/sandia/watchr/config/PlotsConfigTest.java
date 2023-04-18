@@ -42,7 +42,7 @@ public class PlotsConfigTest {
         List<String> errors = testLogger.getLog();
         assertEquals(3, errors.size());
 
-        assertTrue(errors.get(0).contains("A directory for parseable reports was not provided."));
+        assertTrue(errors.get(0).contains("A starting path for parseable reports was not provided."));
         assertTrue(errors.get(1).contains("Pattern for finding report files cannot be blank!"));
         assertTrue(errors.get(2).contains("No file type extension was provided.  It is strongly recommend that at least one " +
                      "file extension is specified so Watchr knows how to parse your report files."));

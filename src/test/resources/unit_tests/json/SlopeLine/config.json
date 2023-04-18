@@ -1,0 +1,42 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "Slope Lines",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "time",
+                            "unit" : "date",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false"
+                            }
+                        },
+                        "y" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "measurement",
+                            "unit" : "seconds",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "iterateWith" : "x"
+                            }
+                        },
+                        "derivativeLines" : [
+                            {
+                                "type" : "slope",
+                                "name" : "Slope Line",
+                                "y" : "( 2.0 * x ) + 5.0"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

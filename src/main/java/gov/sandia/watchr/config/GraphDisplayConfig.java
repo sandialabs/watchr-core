@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -47,6 +47,7 @@ public class GraphDisplayConfig implements IConfig {
 
     // Configurable properties
     private String displayCategory = "";
+    private String searchQuery = "";
     private int displayRange = -1;
     private int graphWidth = -1;
     private int graphHeight = -1;
@@ -71,6 +72,7 @@ public class GraphDisplayConfig implements IConfig {
         this.nextPlotDbLocation = CommonConstants.ROOT_PATH_ALIAS;
         this.page = 1;
 
+        this.searchQuery = "/";
         this.displayRange = 30;
         this.graphWidth = 500;
         this.graphHeight = 500;
@@ -87,6 +89,7 @@ public class GraphDisplayConfig implements IConfig {
         this.lastPlotDbLocation = copy.getLastPlotDbLocation();
         this.page = copy.getPage();
         this.displayCategory = copy.getDisplayCategory();
+        this.searchQuery = copy.getSearchQuery();
         this.displayRange = copy.getDisplayRange();
         this.graphWidth = copy.getGraphWidth();
         this.graphHeight = copy.getGraphHeight();
@@ -145,6 +148,10 @@ public class GraphDisplayConfig implements IConfig {
         return displayedDecimalPlaces;
     }
 
+    public String getSearchQuery(){
+        return searchQuery;
+    }
+
     public LeafNodeStrategy getLeafNodeStrategy() {
         return leafStrategy;
     }
@@ -195,6 +202,10 @@ public class GraphDisplayConfig implements IConfig {
 
     public void setDisplayCategory(String displayCategory) {
         this.displayCategory = displayCategory;
+    }
+
+    public void setSearchQuery(String searchQuery){
+        this.searchQuery = searchQuery;
     }
 
     public void setDisplayRange(int displayRange) {
@@ -274,6 +285,7 @@ public class GraphDisplayConfig implements IConfig {
         sb.append("nextPlotDbLocation: " + nextPlotDbLocation + OsUtil.getOSLineBreak());
         sb.append("lastPlotDbLocation: " + lastPlotDbLocation + OsUtil.getOSLineBreak());
         sb.append("page: " + page + OsUtil.getOSLineBreak());
+        sb.append("searchQuery: " + searchQuery + OsUtil.getOSLineBreak());
         sb.append("displayCategory: " + displayCategory + OsUtil.getOSLineBreak());
         sb.append("displayRange: " + displayRange + OsUtil.getOSLineBreak());
         sb.append("graphWidth: " + graphWidth + OsUtil.getOSLineBreak());
@@ -316,6 +328,12 @@ public class GraphDisplayConfig implements IConfig {
         GraphDisplayConfig otherGraphConfig = (GraphDisplayConfig) other;
         List<WatchrDiff<?>> diffList = new ArrayList<>();
 
+        if(!(searchQuery.equals(otherGraphConfig.searchQuery))) {
+            WatchrDiff<String> diff = new WatchrDiff<>(configPath, DiffCategory.SEARCH_QUERY);
+            diff.setBeforeValue(searchQuery);
+            diff.setNowValue(otherGraphConfig.searchQuery);
+            diffList.add(diff);
+        }
         if(!(displayCategory.equals(otherGraphConfig.displayCategory))) {
             WatchrDiff<String> diff = new WatchrDiff<>(configPath, DiffCategory.DISPLAY_CATEGORY);
             diff.setBeforeValue(displayCategory);

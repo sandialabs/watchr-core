@@ -13,9 +13,9 @@ import gov.sandia.watchr.config.DataLine;
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.HierarchicalExtractor;
 import gov.sandia.watchr.config.PlotConfig;
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.file.DefaultFileReader;
 import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.config.rule.RuleConfig;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.log.StringOutputLogger;
 
@@ -210,5 +210,44 @@ public class TemplatePlotConfigGeneratorTest {
         assertEquals(2, resultPlotConfig.getDataLines().size());
         assertEquals("ParentDataLine", resultPlotConfig.getDataLines().get(0).getName());
         assertEquals("ParentDataLine", resultPlotConfig.getDataLines().get(1).getName());        
+    }
+
+    @Test
+    public void testCascadingTemplateAndInheritPlots() {
+        testLogger = new StringOutputLogger();
+        fileReader = new DefaultFileReader(testLogger);
+        fileConfig = new FileConfig("", testLogger, fileReader);
+
+        this.allPlotConfigs = new ArrayList<>();
+
+        PlotConfig plotConfig1 = new PlotConfig("", testLogger);
+        plotConfig1.setTemplateName("topTemplate");
+        plotConfig1.setName("Level1");
+        plotConfig1.setCategory("myCategory");
+
+        PlotConfig plotConfig2 = new PlotConfig("", testLogger);
+        plotConfig2.setInheritTemplate("topTemplate");
+        plotConfig2.setTemplateName("middleTemplate");
+        plotConfig2.setName("Level2");
+        plotConfig2.setType(PlotType.SCATTER_PLOT);
+
+        PlotConfig plotConfig3 = new PlotConfig("", testLogger);
+        plotConfig3.setInheritTemplate("middleTemplate");
+        plotConfig3.setName("Level3");
+        plotConfig3.setCategory("yetAnotherCategory");
+
+        allPlotConfigs.add(plotConfig3);
+        allPlotConfigs.add(plotConfig2);
+        allPlotConfigs.add(plotConfig1);
+
+        templateGenerator = new TemplatePlotConfigGenerator(allPlotConfigs, testLogger);
+        PlotConfig appliedPlotConfig3 = templateGenerator.handlePlotGenerationForTemplate(plotConfig3);
+        PlotConfig appliedPlotConfig2 = templateGenerator.handlePlotGenerationForTemplate(plotConfig2);
+
+        assertEquals(PlotType.SCATTER_PLOT, appliedPlotConfig2.getType());
+        assertEquals(PlotType.SCATTER_PLOT, appliedPlotConfig3.getType());
+
+        assertEquals("myCategory", appliedPlotConfig2.getCategory());
+        assertEquals("yetAnotherCategory", appliedPlotConfig3.getCategory());
     }
 }

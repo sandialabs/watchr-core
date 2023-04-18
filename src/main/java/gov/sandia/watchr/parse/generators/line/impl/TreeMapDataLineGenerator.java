@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -20,6 +20,7 @@ import gov.sandia.watchr.config.PlotConfig.CanvasLayout;
 import gov.sandia.watchr.config.derivative.DerivativeLine;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.db.IDatabase;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
@@ -27,9 +28,9 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.parse.extractors.ExtractionResult;
-import gov.sandia.watchr.parse.extractors.ExtractionResultNameResolver;
 import gov.sandia.watchr.parse.generators.line.DataLineGenerator;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResultNameResolver;
 
 /**
  * A tree map generator for Watchr.  We make some implicit assumptions about our
@@ -59,8 +60,10 @@ public class TreeMapDataLineGenerator extends DataLineGenerator {
     //////////////
 
     @Override
-    protected List<PlotWindowModel> applyExtractionResultsToRootPlots(List<ExtractionResult> xResults,
-            List<ExtractionResult> yResults, Map<String, ExtractionResult> metadataResults)
+    protected List<PlotWindowModel> applyExtractionResults(
+            List<ExtractionResult> xResults,
+            List<ExtractionResult> yResults,
+            Map<String, ExtractionResult> metadataResults)
             throws WatchrParseException {
         
         List<PlotWindowModel> windowModels = new ArrayList<>();
@@ -68,15 +71,19 @@ public class TreeMapDataLineGenerator extends DataLineGenerator {
             for(int i = 0; i < xResults.size(); i++) {
                 ExtractionResult xResult = xResults.get(i);
                 if(xResult != null) {
-                    PlotWindowModel windowModel = newPlotWindowModel(line, xResult, yResults, metadataResults, i);
-                    windowModels.add(windowModel);
-                    db.addPlot(windowModel);
-                    
-                    boolean isXRecursive =
-                        line.getXExtractor().getAmbiguityStrategy().shouldRecurseToChildGraphs();
+                    try {
+                        PlotWindowModel windowModel = newPlotWindowModel(line, xResult, yResults, metadataResults, i);
+                        windowModels.add(windowModel);
+                        db.addPlot(windowModel);
+                        
+                        boolean isXRecursive =
+                            line.getXExtractor().getAmbiguityStrategy().shouldRecurseToChildGraphs();
 
-                    if(isXRecursive) {
-                        logger.logWarning("It appears your treemap plot's X extractor is configured to be recursive.  This is a no-op for treemaps.");
+                        if(isXRecursive) {
+                            logger.logWarning("It appears your treemap plot's X extractor is configured to be recursive.  This is a no-op for treemaps.");
+                        }
+                    } catch(ChartreuseException e) {
+                        throw new WatchrParseException(e);
                     }
                 }
             }
@@ -96,7 +103,7 @@ public class TreeMapDataLineGenerator extends DataLineGenerator {
 
     private PlotWindowModel newPlotWindowModel(
             DataLine line, ExtractionResult xResult, List<ExtractionResult> yResults,
-            Map<String, ExtractionResult> metadataResults, int resultIndex) {
+            Map<String, ExtractionResult> metadataResults, int resultIndex) throws ChartreuseException {
     
         String plotName = plotConfig.getName();
         if(StringUtils.isBlank(plotName) && xResult != null) {
@@ -122,7 +129,8 @@ public class TreeMapDataLineGenerator extends DataLineGenerator {
     }
 
     private void newPlotTraceModel(
-            PlotCanvasModel parentCanvas, List<ExtractionResult> yResults, Map<String, ExtractionResult> metadataResults) {        
+            PlotCanvasModel parentCanvas, List<ExtractionResult> yResults,
+            Map<String, ExtractionResult> metadataResults) throws ChartreuseException { 
         List<PlotTracePoint> treemapEntries = new ArrayList<>();
         getTreeMapEntries(yResults, "", treemapEntries, metadataResults);
         createTreeMapTraceModel(parentCanvas, treemapEntries);
@@ -150,7 +158,7 @@ public class TreeMapDataLineGenerator extends DataLineGenerator {
                 }
 
                 PlotTracePoint point = new PlotTracePoint(label, currentParent, finalValue);
-                applyMetadataToDatabasePlot(point, metadataResults);
+                applyMetadataToPlot(point, metadataResults);
                 treemapEntries.add(point);
 
                 // We use the X dimension to store labels, the Y dimension to store parents of those labels,
@@ -198,7 +206,7 @@ public class TreeMapDataLineGenerator extends DataLineGenerator {
         return replacementTerm;
     }
 
-    private void createTreeMapTraceModel(PlotCanvasModel parentCanvas, List<PlotTracePoint> treemapEntries) {
+    private void createTreeMapTraceModel(PlotCanvasModel parentCanvas, List<PlotTracePoint> treemapEntries) throws ChartreuseException {
         PlotTraceModel traceModel = new PlotTraceModel(parentCanvas.getUUID());
         traceModel.setName(line.getName());
         traceModel.set(PlotToken.TRACE_POINT_TYPE, PlotType.TREE_MAP);

@@ -325,7 +325,7 @@ img {
                                 &quot;name&quot;: &quot;branch&quot;,
                                 &quot;extractor&quot; : {
                                     &quot;getElement&quot; : &quot;performance-report|metadata&quot;,
-                                    &quot;getPath&quot; : &quot;nightly_run_2021-04-05/branch,
+                                    &quot;getPath&quot; : &quot;nightly_run_2021-04-05/branch&quot;,
                                     &quot;getPathAttribute&quot; : &quot;name|key&quot;,
                                     &quot;getKey&quot; : &quot;value&quot;
                                 }
@@ -359,7 +359,10 @@ img {
 </ul>
 <p><em>Note:</em> On a given data file, if multiple x/y pairings are extracted, but only one piece of metadata information is extracted, that metadata will be applied uniformly across all x/y pairings.  Conversely, if multiple pieces of metadata are extracted for a single x/y pairing, and those pieces of metadata are duplicates (i.e. using the same &quot;name&quot; value), the point will only contain the most recently extracted metadata information, and earlier extractions will be overwritten.</p>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance.xml
+<pre><code>watchr start
+watchr config config.json
+watchr add performance.xml
+watchr run
 </code></pre>
 
 

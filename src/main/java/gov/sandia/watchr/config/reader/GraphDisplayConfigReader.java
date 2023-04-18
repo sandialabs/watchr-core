@@ -1,23 +1,23 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
 package gov.sandia.watchr.config.reader;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import gov.sandia.watchr.config.GraphDisplayConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.element.ConfigConverter;
+import gov.sandia.watchr.config.element.ConfigElement;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -32,35 +32,37 @@ public class GraphDisplayConfigReader extends AbstractConfigReader<GraphDisplayC
     //////////////
 
     @Override
-    public GraphDisplayConfig handle(JsonElement element, IConfig parent) {
+    public GraphDisplayConfig handle(ConfigElement element, IConfig parent) {
         GraphDisplayConfig graphDisplayConfig = new GraphDisplayConfig(parent.getConfigPath(), logger);
+        ConfigConverter converter = element.getConverter();
 
-        JsonObject jsonObject = element.getAsJsonObject();
-        Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-        for(Entry<String, JsonElement> entry : entrySet) {
+        Map<String, Object> map = element.getValueAsMap();
+        for(Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
-            JsonElement value = entry.getValue();
+            Object value = entry.getValue();
 
             if(key.equals(Keywords.DB_LOCATION)) {
-                graphDisplayConfig.setNextPlotDbLocation(value.getAsString());
+                graphDisplayConfig.setNextPlotDbLocation(converter.asString(value));
             } else if(key.equals(Keywords.DISPLAY_CATEGORY)) {
-                graphDisplayConfig.setDisplayCategory(value.getAsString());
+                graphDisplayConfig.setDisplayCategory(converter.asString(value));
             } else if(key.equals(Keywords.DISPLAY_RANGE)) {
-                graphDisplayConfig.setDisplayRange(value.getAsInt());
+                graphDisplayConfig.setDisplayRange(converter.asInt(value));
             } else if(key.equals(Keywords.GRAPH_WIDTH)) {
-                graphDisplayConfig.setGraphWidth(value.getAsInt());
+                graphDisplayConfig.setGraphWidth(converter.asInt(value));
             } else if(key.equals(Keywords.GRAPH_HEIGHT)) {
-                graphDisplayConfig.setGraphHeight(value.getAsInt());
+                graphDisplayConfig.setGraphHeight(converter.asInt(value));
             } else if(key.equals(Keywords.GRAPHS_PER_ROW)) {
-                graphDisplayConfig.setGraphsPerRow(value.getAsInt());
+                graphDisplayConfig.setGraphsPerRow(converter.asInt(value));
             } else if(key.equals(Keywords.GRAPHS_PER_PAGE)) {
-                graphDisplayConfig.setGraphsPerPage(value.getAsInt());
+                graphDisplayConfig.setGraphsPerPage(converter.asInt(value));
             } else if(key.equals(Keywords.DISPLAYED_DECIMAL_PLACES)) {
-                graphDisplayConfig.setDisplayedDecimalPlaces(value.getAsInt());
+                graphDisplayConfig.setDisplayedDecimalPlaces(converter.asInt(value));
             } else if(key.equals(Keywords.SORT)) {
-                graphDisplayConfig.setSort(value.getAsString());
+                graphDisplayConfig.setSort(converter.asString(value));
             } else if(key.equals(Keywords.EXPORT_MODE)) {
-                graphDisplayConfig.setExportMode(value.getAsString());
+                graphDisplayConfig.setExportMode(converter.asString(value));
+            } else if(key.equals(Keywords.SEARCH_QUERY)) {
+                graphDisplayConfig.setSearchQuery(converter.asString(value));
             } else {
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsGraphDisplayConfig: Unrecognized element `" + key + "`."));
             }

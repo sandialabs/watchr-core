@@ -291,24 +291,56 @@ img {
 </style>
 </head>
 <body>
-<h1>Configuration Documentation: filter</h1>
-<p>The &quot;filter&quot; section of a Watchr config file provides a convenient way to selectively filter &quot;bad&quot; points that have already entered the database of previously-parsed data files.</p>
-<p>A &quot;filter&quot; section may be associated with a single plot (i.e. it is nested under a specific <a href="plot.html"><strong>plot</strong></a>), or it may be associated with all plots specified by a given configuration file (i.e. it is nested under the <a href="plots.html"><strong>&quot;plots&quot;</strong></a> section).</p>
+<h1>Configuration Documentation: filters</h1>
+<p>The &quot;filters&quot; section of a Watchr config file provides a convenient, generic way to selectively filter points.</p>
+<p>The &quot;filters&quot; section must be an array of elements, which means that multiple individual filters can appear next to each other in the same &quot;filters&quot; block.</p>
 <h2>Properties</h2>
-<p>A filter section contains two JSON arrays - &quot;x&quot; and &quot;y&quot;, for filtering x and y data points respectively.  For example:</p>
-<pre><code>&quot;filter&quot;: {
-    &quot;x&quot;: [ &quot;2.0&quot; ],
-    &quot;y&quot;: [ &quot;-1.0&quot; ]
-}
+<ul>
+<li><strong>expression</strong> : <em>string</em> : The most important field of a filter, this field specifies the expression by which points are filtered. These expressions are styled after the logical expressions seen in most programming languages. Some examples are shown below under &quot;Filter Expression Examples.&quot;</li>
+<li><strong>type</strong> : <em>enumerated string</em> : This field can either be &quot;point&quot; or &quot;metadata&quot;. If &quot;point&quot;, the filter expression specified will filter data points based on their x, y, or z values. If &quot;metadata&quot;, the filter expression specified will filter data points based on associated metadata values.</li>
+<li><strong>policy</strong> : <em>enumerated string</em> : This field can either be &quot;whitelist&quot; or &quot;blacklist&quot;. If &quot;blacklist&quot;, then data points will be removed if they match the filter expression. If &quot;whitelist&quot;, then data points will be removed if they <em>don't</em> match the filter expression.</li>
+</ul>
+<h3>Filter Expression Examples</h3>
+<pre><code>expression: &quot;y == 4.0&quot;
 </code></pre>
 
-<p>The previous example would filter all x data points that matched the string &quot;2.0&quot;.  Likewise, the previous example would filter all y data points that matched the string &quot;-1.0.&quot;</p>
-<p><a href="regex.html">Regular expressions</a> may be used to indicate partial matches for filtered values.</p>
+<p>The previous filter expression will match on any point whose y-value is precisely equal to 4.0.</p>
+<pre><code>expression: &quot;x &gt;= 1.0&quot;
+</code></pre>
+
+<p>The previous filter expression will match on any point whose x-value is greater than or equal to 1.0.</p>
+<pre><code>expression: &quot;x == 1.0 &amp;&amp; y &lt; 4.0&quot;
+</code></pre>
+
+<p>The expression &quot;&amp;&amp;&quot; shown above is an example of a boolean &quot;and&quot; operation. The previous filter expression will match on any point whose x-value is equal to 1.0 AND whose y-value is less than 4.0.</p>
+<pre><code>expression: &quot;z &lt; 1.0 || x &gt; 1.0&quot;
+</code></pre>
+
+<p>The expression &quot;||&quot; shown above is an example of a boolean &quot;or&quot; operation. The previous filter expression will match on any point whose z-value is less than 1.0 OR whose x-value is greater than 1.0.</p>
+<pre><code>type: &quot;metadata&quot;    
+expression: &quot;branch == master&quot;
+</code></pre>
+
+<p>The previous expression will only work for metadata filtering, as evidenced by <code>type: &quot;metadata&quot;</code>. For the previous expression, any point containing metadata with a key of &quot;branch&quot; and a value of &quot;master&quot; will be matched by the filter expression.</p>
+<h3>Scope Options</h3>
+<p>A &quot;filters&quot; section may be associated with:</p>
+<ul>
+<li>A single data line (i.e. it is nested under a specific <a href="dataLines.html"><strong>data line</strong></a>)</li>
+<li>A single plot (i.e. it is nested under a specific <a href="plot.html"><strong>plot</strong></a>)</li>
+<li>The entire configuration, also known as a &quot;global filter&quot; (i.e. it is nested under the <a href="plots.html"><strong>&quot;plots&quot;</strong></a> section).</li>
+</ul>
+<h3>Special Notes About Combining Filters</h3>
+<ul>
+<li>If multiple filters appear together in the same &quot;filters&quot; block in a configuration file, they are combined using OR logic.</li>
+<li>Multiple filters appearing at different levels of the configuration file are also combined using OR logic. That is, any filters applied to a data line will be OR'd with any filters that are applied to the entire plot, which will be OR'd with any filters that are applied at the global level. </li>
+<li>If a child data line that inherits from a parent template has no filters of its own, it will inherit all of its parent's filters.</li>
+<li>If a child data line that inherits from a parent template has filters of its own, it will override all of its parent's filters.</li>
+</ul>
 <h2>Child Elements</h2>
 <p>None.</p>
 <h2>Parent Element</h2>
 <ul>
-<li><a href="plot.html"><strong>plot</strong></a> or <a href="plots.html"><strong>plots</strong></a> </li>
+<li><a href="dataLines.html"><strong>data line</strong></a>, <a href="plot.html"><strong>plot</strong></a>, or <a href="plots.html"><strong>plots</strong></a> </li>
 </ul>
 
 </body>

@@ -2,6 +2,7 @@ package gov.sandia.watchr.config.derivative;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
@@ -76,5 +77,24 @@ public class ChildPreviewDerivativeLineTest {
         ChildPreviewDerivativeLine derivativeLine2 = new ChildPreviewDerivativeLine(derivativeLine);
         derivativeLine2.setColor(0, 0, 0);
         assertNotEquals(derivativeLine, derivativeLine2);           
+    }
+
+    @Test
+    public void testApplyOverTemplate() {
+        ChildPreviewDerivativeLine baseLine = new ChildPreviewDerivativeLine("", testLogger);
+        baseLine.setName("A");
+        ChildPreviewDerivativeLine overwriteLine = new ChildPreviewDerivativeLine("", testLogger);
+        overwriteLine.setName("B");
+
+        ChildPreviewDerivativeLine resultLine = (ChildPreviewDerivativeLine) overwriteLine.applyOverTemplate(baseLine);
+
+        assertEquals("B", resultLine.getName());
+    }
+
+    @Test
+    public void testApplyOverTemplate_TypeMismatch() {
+        SlopeDerivativeLine baseLine = new SlopeDerivativeLine("", testLogger);
+        ChildPreviewDerivativeLine overwriteLine = new ChildPreviewDerivativeLine("", testLogger);
+        assertNull(overwriteLine.applyOverTemplate(baseLine));
     }
 }

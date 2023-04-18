@@ -84,4 +84,7 @@ Given a [**data line**](dataLines.html) on a Watchr graph, additional "derivativ
 
 ## Command Line:
 
-	watchr config.json performance_data.json
+	watchr start 
+    watchr config config.json
+    watchr add performance_data.json
+    watchr run

@@ -81,4 +81,7 @@ For a more detailed listing of all possible conditions and actions that Watchr r
 
 ## Command Line:
 
-	watchr config.json performance_data.json
+	watchr start 
+    watchr config config.json
+    watchr add performance_data.json
+    watchr run

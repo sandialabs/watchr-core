@@ -3,6 +3,7 @@ package gov.sandia.watchr.config.derivative;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,17 @@ public class SlopeDerivativeLineTest {
         assertEquals(25.0, yValue, 1.0e-4);
         yValue = slopeDerivativeLine.getYForX(10.0);
         assertEquals(525.0, yValue, 1.0e-4);
+    }
+
+    @Test
+    public void testCalculateYForX_Another() {
+        slopeDerivativeLine.setYExpression("( 2.0 * x ) + 5.0");
+        double yValue = slopeDerivativeLine.getYForX(0.0);
+        assertEquals(5.0, yValue, 1.0e-4);
+        yValue = slopeDerivativeLine.getYForX(1.0);
+        assertEquals(7.0, yValue, 1.0e-4);
+        yValue = slopeDerivativeLine.getYForX(2.0);
+        assertEquals(9.0, yValue, 1.0e-4);
     }
 
     @Test
@@ -200,5 +212,27 @@ public class SlopeDerivativeLineTest {
 
         assertEquals("1.5", slopeLine.get(3).x);
         assertEquals("3.0", slopeLine.get(3).y);
-    }    
+    }
+
+    @Test
+    public void testApplyOverTemplate() {
+        SlopeDerivativeLine baseLine = new SlopeDerivativeLine("", testLogger);
+        baseLine.setXExpression("x1");
+        baseLine.setYExpression("y1");
+        SlopeDerivativeLine overwriteLine = new SlopeDerivativeLine("", testLogger);
+        overwriteLine.setXExpression("x2");
+        overwriteLine.setYExpression("y2");
+
+        SlopeDerivativeLine resultLine = (SlopeDerivativeLine) overwriteLine.applyOverTemplate(baseLine);
+
+        assertEquals("x2", resultLine.getXExpression());
+        assertEquals("y2", resultLine.getYExpression());
+    }
+
+    @Test
+    public void testApplyOverTemplate_TypeMismatch() {
+        AverageDerivativeLine baseLine = new AverageDerivativeLine("", testLogger);
+        SlopeDerivativeLine overwriteLine = new SlopeDerivativeLine("", testLogger);
+        assertNull(overwriteLine.applyOverTemplate(baseLine));
+    }
 }

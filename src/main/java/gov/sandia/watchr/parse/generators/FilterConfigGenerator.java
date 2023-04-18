@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -9,33 +9,33 @@ package gov.sandia.watchr.parse.generators;
 
 import java.util.List;
 
-import gov.sandia.watchr.config.FilterConfig;
+import gov.sandia.watchr.config.DataFilterConfig;
 import gov.sandia.watchr.config.diff.WatchrDiff;
-import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
+import gov.sandia.watchr.config.filter.IFilterable;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 
-public class FilterConfigGenerator extends AbstractGenerator<FilterConfig> {
+public class FilterConfigGenerator extends AbstractGenerator<DataFilterConfig> {
 
-    private final PlotTraceModel traceModel;
+    private final IFilterable filterableObject;
     private final boolean clearFilterValuesBeforeApplying;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public FilterConfigGenerator(PlotTraceModel traceModel, boolean clearFilterValuesBeforeApplying, ILogger logger) {
+    public FilterConfigGenerator(IFilterable filterableObject, boolean clearFilterValuesBeforeApplying, ILogger logger) {
         super(logger);
-        this.traceModel = traceModel;
+        this.filterableObject = filterableObject;
         this.clearFilterValuesBeforeApplying = clearFilterValuesBeforeApplying;
     }
 
     @Override
-    public void generate(FilterConfig config, List<WatchrDiff<?>> diffs) throws WatchrParseException {
+    public void generate(DataFilterConfig config, List<WatchrDiff<?>> diffs) throws WatchrParseException {
         if(clearFilterValuesBeforeApplying) {
-            traceModel.setFilterValues(config.getFilterPoints());
+            filterableObject.setFilterValues(config.getFilters());
         } else {
-            traceModel.applyFilterValues(config.getFilterPoints());
+            filterableObject.addFilterValues(config.getFilters());
         }
     }    
 }

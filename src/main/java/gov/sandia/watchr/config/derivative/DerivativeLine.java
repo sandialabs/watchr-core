@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -16,6 +16,7 @@ import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.util.RGB;
 import gov.sandia.watchr.util.RGBA;
+import gov.sandia.watchr.util.RgbUtil;
 
 public abstract class DerivativeLine implements IConfig {
 
@@ -42,7 +43,7 @@ public abstract class DerivativeLine implements IConfig {
     protected DerivativeLine(DerivativeLine copy) {
         this.name = copy.getName();
         this.configPath = copy.getConfigPath();
-        this.color = new RGB(copy.getColor());
+        this.color = RgbUtil.copyColor(copy.getColor());
         this.logger = copy.logger;
     }
 

@@ -1,31 +1,32 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
 package gov.sandia.watchr.config.reader;
 
-import java.util.Set;
+import java.util.Map;
 import java.util.Map.Entry;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import gov.sandia.watchr.config.HierarchicalExtractor;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.element.ConfigConverter;
+import gov.sandia.watchr.config.element.ConfigElement;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
-import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.AmbiguityStrategy;
 
 public abstract class AbstractExtractorConfigReader<E> extends AbstractConfigReader<E> {
     
     ////////////
     // FIELDS //
     ////////////
+
+    private static final String CLASSNAME = AbstractExtractorConfigReader.class.getSimpleName();
 
     protected AbstractExtractorConfigReader(ILogger logger) {
         super(logger);
@@ -35,36 +36,35 @@ public abstract class AbstractExtractorConfigReader<E> extends AbstractConfigRea
     // UTILITY //
     /////////////
 
-    protected void handleDataForExtractor(JsonElement jsonElement, HierarchicalExtractor extractor, IConfig parent) {
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-        for(Entry<String, JsonElement> entry : entrySet) {
+    protected void handleDataForExtractor(ConfigElement element, HierarchicalExtractor extractor, IConfig parent) {
+        ConfigConverter converter = element.getConverter();
+        Map<String, Object> map = element.getValueAsMap();
+        for(Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
-            JsonElement value = entry.getValue();
+            Object value = entry.getValue();
             if(key.equals(Keywords.STRATEGY)) {
-                extractor.setAmbiguityStrategy(handleAsStrategy(value, parent));
+                extractor.setAmbiguityStrategy(handleAsStrategy(converter.asChild(value), parent));
             } else {
-                extractor.setProperty(key, value.getAsString());
+                extractor.setProperty(key, converter.asString(value));
                 String message = "handleDataForExtractor: Handling generic element `" + key + "`...";
-                logger.log(new WatchrConfigError(ErrorLevel.INFO, message));
+                logger.logDebug(message, CLASSNAME);
             }
         }
     }
 
-    protected AmbiguityStrategy handleAsStrategy(JsonElement jsonElement, IConfig parent) {
+    protected AmbiguityStrategy handleAsStrategy(ConfigElement element, IConfig parent) {
         AmbiguityStrategy strategy = new AmbiguityStrategy(parent.getConfigPath());
-
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-        for(Entry<String, JsonElement> entry : entrySet) {
+        ConfigConverter converter = element.getConverter();
+        Map<String, Object> map = element.getValueAsMap();
+        for(Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
-            JsonElement value = entry.getValue();
+            Object value = entry.getValue();
             if(key.equals(Keywords.RECURSE_CHILD_GRAPHS)) {
-                strategy.setShouldRecurseToChildGraphs(value.getAsBoolean());
+                strategy.setShouldRecurseToChildGraphs(converter.asBoolean(value));
             } else if(key.equals(Keywords.GET_FIRST_MATCH_ONLY)) {
-                strategy.setShouldGetFirstMatchOnly(value.getAsBoolean());
+                strategy.setShouldGetFirstMatchOnly(converter.asBoolean(value));
             } else if(key.equals(Keywords.ITERATE_WITH)) {
-                strategy.setIterateWithOtherExtractor(value.getAsString());
+                strategy.setIterateWithOtherExtractor(converter.asString(value));
             } else {
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsStrategy: Unrecognized element `" + key + "`."));
             }

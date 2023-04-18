@@ -73,4 +73,7 @@ Thanks to Plotly, the plot generated from this example will be interactive.  Sim
 
 ## Command Line:
 
-	watchr config.json performance.xml
+	watchr start
+    watchr config config.json
+    watchr add performance.xml
+    watchr run

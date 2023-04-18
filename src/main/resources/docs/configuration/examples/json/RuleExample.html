@@ -370,7 +370,10 @@ img {
 <li><strong>The &quot;derivativeLines&quot; section</strong> - The derivative lines section contains one derivative line specification, which is a rolling average line.  A rolling average line contains no data of its own, but rather reflects a rolling average relative to another line containing real data.  For rolling averages, you must also specify the range window for the rolling average to be calculated, which in this example is 3.</li>
 </ul>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance_data.json
+<pre><code>watchr start 
+watchr config config.json
+watchr add performance_data.json
+watchr run
 </code></pre>
 
 

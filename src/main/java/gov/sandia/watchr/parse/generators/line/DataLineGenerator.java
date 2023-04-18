@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -17,15 +17,16 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import gov.sandia.watchr.config.DataFilterConfig;
 import gov.sandia.watchr.config.DataLine;
 import gov.sandia.watchr.config.MetadataConfig;
 import gov.sandia.watchr.config.NameConfig;
 import gov.sandia.watchr.config.PlotConfig;
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.PlotConfig.CanvasLayout;
 import gov.sandia.watchr.config.derivative.DerivativeLine;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.rule.RuleConfig;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.db.IDatabase;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
@@ -33,9 +34,10 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.parse.extractors.ExtractionResult;
-import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
 import gov.sandia.watchr.parse.generators.AbstractGenerator;
+import gov.sandia.watchr.parse.generators.FilterConfigGenerator;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.AmbiguityStrategy;
 import gov.sandia.watchr.util.DateUtil;
 import gov.sandia.watchr.util.RGB;
 
@@ -45,10 +47,12 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
     // FIELDS //
     ////////////
 
+    private static final String CLASSNAME = DataLineGenerator.class.getSimpleName();
+
     protected final PlotConfig plotConfig;
     protected final String reportAbsPath;
     protected final IDatabase db;
-    protected final List<PlotWindowModel> rootPlots;
+    protected final List<PlotWindowModel> updatedPlots;
 
     protected DataLine line;
     protected final List<WatchrDiff<?>> diffs;
@@ -71,7 +75,7 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
         this.reportAbsPath = reportAbsPath;
         this.db = db;
 
-        this.rootPlots = new ArrayList<>();
+        this.updatedPlots = new ArrayList<>();
         this.diffs = new ArrayList<>();
 
         this.name = plotConfig.getName();
@@ -87,8 +91,8 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
     // GETTERS //
     /////////////
 
-    public List<PlotWindowModel> getRootPlots() {
-        return rootPlots;
+    public List<PlotWindowModel> getUpdatedPlots() {
+        return updatedPlots;
     }
 
     //////////////
@@ -97,7 +101,7 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
 
     @Override
     public void generate(DataLine line, List<WatchrDiff<?>> diffs) throws WatchrParseException {
-        logger.logDebug("DataLineGenerator.generate()");
+        logger.logDebug("DataLineGenerator.generate()", CLASSNAME);
         this.line = line;
         this.diffs.clear();
         this.diffs.addAll(diffs);
@@ -111,24 +115,14 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
 
         List<ExtractionResult> xResults = this.line.getXExtractor().extract(reportAbsPath);
         List<ExtractionResult> yResults = this.line.getYExtractor().extract(reportAbsPath);
+        Map<String, ExtractionResult> metadataResults = getMetadataResults();
 
-        Map<String, ExtractionResult> metadataResults = new HashMap<>();
-        for(MetadataConfig metadata : this.line.getMetadata()) {
-            List<ExtractionResult> results = metadata.getMetadataExtractor().extract(reportAbsPath);
-            if(results != null && !results.isEmpty()) {
-                // Note: There can be only one valid value for a piece of metadata, so
-                // we only keep the first entry in the list.
-                ExtractionResult metadataResult = results.get(0);
-                metadataResults.put(metadata.getName(), metadataResult);
-            }
-        }
+        updatedPlots.clear();
+        updatedPlots.addAll(applyExtractionResults(xResults, yResults, metadataResults));
 
-        rootPlots.clear();
-        rootPlots.addAll(applyExtractionResultsToRootPlots(xResults, yResults, metadataResults));
-
-        logger.logDebug("Update diffable properties for " + rootPlots.size() + " plots that were updated...");
+        logger.logDebug("Update diffable properties for " + updatedPlots.size() + " plots that were updated...", CLASSNAME);
         updateDiffableProperties();
-        logger.logDebug("DONE: DataLineGenerator.generate()");
+        logger.logDebug("DONE: DataLineGenerator.generate()", CLASSNAME);
     }
 
     /////////////
@@ -172,19 +166,32 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
         return comboStrategy;
     }
 
-    protected void applyMetadataToDatabasePlot(PlotTracePoint targetPoint, Map<String, ExtractionResult> metadataResults) {
+    protected void applyMetadataToPlot(PlotTracePoint targetPoint, Map<String, ExtractionResult> metadataResults) {
         for(Entry<String, ExtractionResult> metadataResult : metadataResults.entrySet()) {
             String key = metadataResult.getKey();
-            String value = metadataResult.getValue().getValue();
+            ExtractionResult valueResult = metadataResult.getValue();
+            if(valueResult != null) {
+                String value = valueResult.getValue();
+                targetPoint.metadata.put(key, value);
+            }
+        }
+    }
 
-            targetPoint.metadata.put(key, value);
+    protected void applyFiltersToDataLine(
+        PlotTraceModel traceModel, DataFilterConfig config, 
+        boolean clearFilterValuesBeforeApplying) throws WatchrParseException {
+
+        if(config != null) {
+            FilterConfigGenerator filterGenerator =
+                new FilterConfigGenerator(traceModel, clearFilterValuesBeforeApplying, logger);
+            filterGenerator.generate(config, diffs);
         }
     }
 
     protected void updatePlotTraceModel(
             PlotTraceModel traceModel,
             ExtractionResult xResult, ExtractionResult yResult,
-            Map<String, ExtractionResult> metadataResults) {
+            Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
 
         if(xResult != null && yResult != null) {
             String xValue = formatValue(xResult.getValue(), line.getXExtractor().getProperty(Keywords.FORMAT_AS));
@@ -192,7 +199,8 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
             if(!traceModel.containsPoint(xValue, yValue)) {
                 PlotTracePoint newPoint = new PlotTracePoint(xValue, yValue);
                 traceModel.add(newPoint);
-                applyMetadataToDatabasePlot(newPoint, metadataResults);
+                applyMetadataToPlot(newPoint, metadataResults);
+                applyFiltersToDataLine(traceModel, line.getPointFilterConfig(), false);
             }
         }
     }
@@ -293,6 +301,20 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
     /////////////
     // PRIVATE //
     /////////////
+
+    private Map<String, ExtractionResult> getMetadataResults() throws WatchrParseException {
+        Map<String, ExtractionResult> metadataResults = new HashMap<>();
+        for(MetadataConfig metadata : this.line.getMetadata()) {
+            List<ExtractionResult> results = metadata.getMetadataExtractor().extract(reportAbsPath);
+            if(results != null && !results.isEmpty()) {
+                // Note: There can be only one valid value for a piece of metadata, so
+                // we only keep the first entry in the list.
+                ExtractionResult metadataResult = results.get(0);
+                metadataResults.put(metadata.getName(), metadataResult);
+            }
+        }
+        return metadataResults;
+    }
     
     private void updateDiffableProperties() throws WatchrParseException {
         boolean anythingDiffed =
@@ -317,7 +339,7 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
                         }
                     }
                 }
-                db.updatePlot(windowModel);
+                db.updatePlot(windowModel, false);
             }
         }
     }    
@@ -338,7 +360,7 @@ public abstract class DataLineGenerator extends AbstractGenerator<DataLine>{
     // ABSTRACT //
     //////////////
 
-    protected abstract List<PlotWindowModel> applyExtractionResultsToRootPlots(
+    protected abstract List<PlotWindowModel> applyExtractionResults(
         List<ExtractionResult> xResults, List<ExtractionResult> yResults,
         Map<String, ExtractionResult> metadataResults) throws WatchrParseException;
 

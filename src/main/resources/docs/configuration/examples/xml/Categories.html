@@ -407,7 +407,10 @@ Locate the y data point
 <li>Finally, Watchr will plot a single 2D scatter plot graph, with the X axis &quot;date&quot; and the Y axis &quot;seconds&quot; (as dictated by the <code>unit</code> fields).  The single point <code>x=&quot;2021-04-05T22:21:21&quot;, y=&quot;1.0&quot;</code> will be plotted.</li>
 </ol>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance_day_1.xml
+<pre><code>watchr start 
+watchr config config.json
+watchr add performance_day_1.xml
+watchr run
 </code></pre>
 
 

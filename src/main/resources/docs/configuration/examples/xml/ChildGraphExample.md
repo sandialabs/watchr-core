@@ -52,7 +52,7 @@ With a few extra settings, it is possible to configure Watchr to gather addition
 				<timing name="measurement_A1A" value="15.0"/>
 				<timing name="measurement_A1B" value="10.0"/>
 			</timing>
-			<timing name="measurement_A2" value="75.0">
+			<timing name="measurement_A2" value="75.0"/>
 		</timing>
     </performance-report>
 
@@ -73,4 +73,7 @@ It is not possible to set "recurseChildGraphs" to true for more than one extract
 
 ## Command Line:
 
-	watchr config.json performance.xml
+	watchr start 
+    watchr config config.json
+    watchr add performance.xml
+    watchr run

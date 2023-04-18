@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.rule.RuleConfig;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.log.ILogger;
 
@@ -45,12 +46,13 @@ public class PlotConfig implements IConfig {
 
     private String templateName = "";
     private String inheritTemplate = "";
+    private boolean templateApplied = true;
 
     private List<DataLine> dataLines;
     private List<RuleConfig> plotRules;
 
     private FileFilterConfig fileFilterConfig;
-    private FilterConfig pointFilterConfig;
+    private DataFilterConfig pointFilterConfig;
 
     private final String configPath;
     private final ILogger logger;
@@ -64,6 +66,7 @@ public class PlotConfig implements IConfig {
 
         this.dataLines = new ArrayList<>();
         this.plotRules = new ArrayList<>();
+        this.pointFilterConfig = new DataFilterConfig(configPath, logger);
         this.logger = logger;
     }
 
@@ -79,6 +82,7 @@ public class PlotConfig implements IConfig {
 
         this.templateName = copy.getTemplateName();
         this.inheritTemplate = copy.getInheritTemplate();
+        this.templateApplied = StringUtils.isBlank(inheritTemplate);
 
         this.canvasLayout = copy.getCanvasLayout();
         this.canvasPerRow = copy.getCanvasPerRow();
@@ -94,7 +98,7 @@ public class PlotConfig implements IConfig {
         }
 
         if(copy.getPointFilterConfig() != null) {
-            pointFilterConfig = new FilterConfig(copy.getPointFilterConfig());
+            pointFilterConfig = new DataFilterConfig(copy.getPointFilterConfig());
         }
         if(copy.getFileFilterConfig() != null) {
             fileFilterConfig = new FileFilterConfig(copy.getFileFilterConfig());
@@ -136,7 +140,7 @@ public class PlotConfig implements IConfig {
         return fileFilterConfig;
     }
 
-    public FilterConfig getPointFilterConfig() {
+    public DataFilterConfig getPointFilterConfig() {
         return pointFilterConfig;
     }
 
@@ -150,6 +154,10 @@ public class PlotConfig implements IConfig {
 
     public String getInheritTemplate() {
         return inheritTemplate;
+    }
+
+    public boolean isTemplateApplied() {
+        return templateApplied;
     }
 
     @Override
@@ -214,7 +222,7 @@ public class PlotConfig implements IConfig {
         this.fileFilterConfig = fileFilterConfig;
     }
 
-    public void setPointFilterConfig(FilterConfig filterConfig) {
+    public void setPointFilterConfig(DataFilterConfig filterConfig) {
         this.pointFilterConfig = filterConfig;
     }
 
@@ -224,10 +232,15 @@ public class PlotConfig implements IConfig {
 
     public void setInheritTemplate(String inheritTemplate) {
         this.inheritTemplate = inheritTemplate;
+        this.templateApplied = StringUtils.isBlank(inheritTemplate);
     }
 
     public void setTemplateName(String templateName) {
         this.templateName = templateName;
+    }
+
+    public void setTemplateApplied(boolean templateApplied) {
+        this.templateApplied = templateApplied;
     }
 
     public void setCanvasLayout(CanvasLayout canvasLayout) {
@@ -336,7 +349,7 @@ public class PlotConfig implements IConfig {
         }
         
         if(pointFilterConfig == null ^ otherPlotConfig.pointFilterConfig == null) {
-            WatchrDiff<FilterConfig> diff = new WatchrDiff<>(configPath, DiffCategory.POINT_FILTER_CONFIG);
+            WatchrDiff<DataFilterConfig> diff = new WatchrDiff<>(configPath, DiffCategory.POINT_FILTER_CONFIG);
             diff.setBeforeValue(pointFilterConfig);
             diff.setNowValue(otherPlotConfig.pointFilterConfig);
             diffList.add(diff);

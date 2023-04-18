@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -23,7 +23,8 @@ public class PlotsConfig implements IConfig {
     private FileConfig fileConfig;
     private List<PlotConfig> plotConfigs;
     private CategoryConfiguration categoryConfig;
-    private FilterConfig pointFilterConfig;
+    private DataFilterConfig pointFilterConfig;
+    private PlotypusConfig plotypusConfig;
 
     private final String configPath;
     private final ILogger logger;
@@ -38,7 +39,8 @@ public class PlotsConfig implements IConfig {
         this.fileConfig = new FileConfig(configPath, logger, fileReader);
         this.plotConfigs = new ArrayList<>();
         this.categoryConfig = new CategoryConfiguration(configPath, logger);
-        this.pointFilterConfig = new FilterConfig(configPath, logger);
+        this.pointFilterConfig = new DataFilterConfig(configPath, logger);
+        this.plotypusConfig = new PlotypusConfig(configPath, logger);
         this.logger = logger;
     }
 
@@ -49,7 +51,8 @@ public class PlotsConfig implements IConfig {
         }
         this.fileConfig = new FileConfig(copy.getFileConfig());
         this.categoryConfig = new CategoryConfiguration(copy.getCategoryConfig());
-        this.pointFilterConfig = new FilterConfig(copy.getPointFilterConfig());
+        this.pointFilterConfig = new DataFilterConfig(copy.getPointFilterConfig());
+        this.plotypusConfig = new PlotypusConfig(copy.getPlotypusConfig());
         this.configPath = copy.getConfigPath();
         this.logger = copy.getLogger();
     }
@@ -70,8 +73,12 @@ public class PlotsConfig implements IConfig {
         return categoryConfig;
     }
 
-    public FilterConfig getPointFilterConfig() {
+    public DataFilterConfig getPointFilterConfig() {
         return pointFilterConfig;
+    }
+
+    public PlotypusConfig getPlotypusConfig() {
+        return plotypusConfig;
     }
 
     @Override
@@ -96,8 +103,16 @@ public class PlotsConfig implements IConfig {
         this.categoryConfig = categoryConfig;
     }
 
-    public void setPointFilterConfig(FilterConfig pointFilterConfig) {
+    public void setPointFilterConfig(DataFilterConfig pointFilterConfig) {
         this.pointFilterConfig = pointFilterConfig;
+    }
+
+    public void setPlotypusConfig(PlotypusConfig plotypusConfig) {
+        this.plotypusConfig = plotypusConfig;
+    }
+
+    public void setStartFileAbsPath(String startFileAbsPath) {
+        this.fileConfig.setStartFileAbsPath(startFileAbsPath);
     }
 
     //////////////

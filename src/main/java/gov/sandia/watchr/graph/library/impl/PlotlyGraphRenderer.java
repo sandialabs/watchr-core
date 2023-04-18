@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -19,11 +19,12 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import gov.sandia.watchr.WatchrCoreAppGraphSubsystem;
 import gov.sandia.watchr.config.GraphDisplayConfig;
 import gov.sandia.watchr.config.GraphDisplayConfig.ExportMode;
 import gov.sandia.watchr.config.GraphDisplayConfig.LeafNodeStrategy;
 import gov.sandia.watchr.config.file.IFileReader;
-import gov.sandia.watchr.db.IDatabase;
+import gov.sandia.watchr.db.PlotDatabaseSearchCriteria;
 import gov.sandia.watchr.graph.HtmlUtil;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.graph.chartreuse.generator.plotly.PlotlyCanvasGenerator;
@@ -49,11 +50,15 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
     // FIELDS //
     ////////////
 
+    private static final String CLASSNAME = PlotlyGraphRenderer.class.getSimpleName();
+
+    private String dbName;
+
     private PlotlyWindowGenerator windowGenerator;
     private PlotlyCanvasGenerator canvasGenerator;
     private PlotlyTraceGenerator traceGenerator;
     
-    private final IDatabase db;
+    private final WatchrCoreAppGraphSubsystem parentSubsystem;
     private final PlotlyButtonRenderer buttonRenderer;
 
     private final ILogger mainLogger;
@@ -65,7 +70,8 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
     // CONSTRUCTOR //
     /////////////////
 
-    public PlotlyGraphRenderer(IDatabase db, ILogger mainLogger, IFileReader fileReader) {
+    public PlotlyGraphRenderer(
+            WatchrCoreAppGraphSubsystem parentSubsystem, ILogger mainLogger, IFileReader fileReader, String dbName) {
         traceGenerator  = new PlotlyTraceGenerator();
         canvasGenerator = new PlotlyCanvasGenerator(traceGenerator);
         windowGenerator = new PlotlyWindowGenerator(canvasGenerator, true);
@@ -73,8 +79,9 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
         canvasGenerator.setParent(windowGenerator);
         traceGenerator.setParent(canvasGenerator);
 
-        this.db = db;
-        this.buttonRenderer = new PlotlyButtonRenderer(db);
+        this.parentSubsystem = parentSubsystem;
+        this.dbName = dbName;
+        this.buttonRenderer = new PlotlyButtonRenderer(this);
         this.mainLogger = mainLogger;
         this.fileReader = fileReader;
     }
@@ -84,13 +91,21 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
     //////////////
 
     @Override
+    public String getDatabaseName() {
+        return dbName;
+    }
+
+    @Override
     public GraphOperationResult getGraphHtml(GraphDisplayConfig plotConfiguration, boolean standalone) {
 
         GraphDisplayConfig copyConfiguration = new GraphDisplayConfig(plotConfiguration);
         String parentPlotLocation = copyConfiguration.getNextPlotDbLocation();
         String category = copyConfiguration.getDisplayCategory();
+        String searchQuery = copyConfiguration.getSearchQuery();
 
-        List<PlotWindowModel> plots = new ArrayList<>(db.getChildren(parentPlotLocation, category));
+        PlotDatabaseSearchCriteria search = new PlotDatabaseSearchCriteria(parentPlotLocation, category);
+        List<PlotWindowModel> plots = new ArrayList<>();
+        plots.addAll(parentSubsystem.getChildPlots(dbName, search));
         if(plots.isEmpty()) {
             // If we didn't find any plots, it means we are either at a leaf node with no children, or
             // the tree is empty.  We need to check the graph configuration to see what to do next.
@@ -100,13 +115,19 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
                 if(leafStrategy == LeafNodeStrategy.TRAVEL_UP_TO_PARENT) {
                     plots.addAll(getParentPlotsIfNoChildren(copyConfiguration));
                 } else if(leafStrategy == LeafNodeStrategy.SHOW_CHILD_ONLY) {
-                    PlotWindowModel thisPlot = db.searchPlot(parentPlotLocation, category);
+                    PlotWindowModel thisPlot = parentSubsystem.getPlot(
+                        dbName,
+                        new PlotDatabaseSearchCriteria(parentPlotLocation, category)
+                    );
                     if(thisPlot != null) {
                         plots.add(thisPlot);
                     }
                 }
             }
         }
+
+        plots = filterPlotsWithSearchCriteria(plots, searchQuery);
+
         try {
             return renderPlots(plots, standalone, copyConfiguration);
         } catch(UnsupportedEncodingException e) {
@@ -122,13 +143,15 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
 
         try {
             List<String> categoriesWithBlank = new ArrayList<>(categories);
-            if(categories.isEmpty()) {
+            if(categoriesWithBlank.size() == 1) { //only all-categories option
+                categoriesWithBlank.clear();
                 categoriesWithBlank.add("");
             }
 
             if(plotConfiguration.getExportMode() == ExportMode.PER_PLOT) {
+                mainLogger.logDebug("Exporting graphs per plot...", CLASSNAME);
                 exportGraphHtmlByPlot(plotConfiguration, categoriesWithBlank, destDirAbsPath);
-            } else { // plotConfiguration.getExportMode() == ExportMode.PER_CATEGORY
+            } else{ // plotConfiguration.getExportMode() == ExportMode.PER_CATEGORY
                 for(String category : categoriesWithBlank) {
                     exportGraphHtmlByCategory(plotConfiguration, category, destDirAbsPath);
                 }
@@ -148,20 +171,28 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
     /////////////
 
     private void exportGraphHtmlByPlot(
-        GraphDisplayConfig configuration, List<String> categories, String destDirAbsPath) throws UnsupportedEncodingException {
+        GraphDisplayConfig configuration, List<String> categories,
+        String destDirAbsPath) throws UnsupportedEncodingException {
 
+        mainLogger.logDebug("exportGraphHtmlByPlot()", CLASSNAME);
         for(String category : categories) {
             GraphDisplayConfig plotConfigurationForCategory = new GraphDisplayConfig(configuration);
             plotConfigurationForCategory.setDisplayCategory(category);
             String parentPlotLocation = plotConfigurationForCategory.getNextPlotDbLocation();
 
-            List<PlotWindowModel> plots = new ArrayList<>(db.getChildren(parentPlotLocation, category));
+            mainLogger.logDebug("Location:" + parentPlotLocation + ", category:" + category, CLASSNAME);
+            List<PlotWindowModel> plots = new ArrayList<>(
+                parentSubsystem.getChildPlots(dbName, new PlotDatabaseSearchCriteria(parentPlotLocation, category))
+            );
             int pageCount = getPageCount(plotConfigurationForCategory, parentPlotLocation, category);
+            mainLogger.logDebug("Page count:" + pageCount, CLASSNAME);
 
             for(int i = 1; i <= pageCount; i++) {
                 GraphDisplayConfig plotConfigurationForPage = new GraphDisplayConfig(plotConfigurationForCategory);
                 plotConfigurationForPage.setPage(i);
-                for(PlotWindowModel plot : plots) {
+                mainLogger.logDebug("Rendering " + plots.size() + " plots...", CLASSNAME);
+                for(int j = 0; j < plots.size(); j++) {
+                    PlotWindowModel plot = plots.get(j);
                     List<PlotWindowModel> singlePlotList = new ArrayList<>();
                     singlePlotList.add(plot);
                     GraphOperationResult result = renderPlots(singlePlotList, true, plotConfigurationForPage);
@@ -209,13 +240,19 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
     }
 
     private int getPageCount(GraphDisplayConfig graphConfig, String parentPlotLocation, String category) {
-        List<PlotWindowModel> plots = new ArrayList<>(db.getChildren(parentPlotLocation, category));
+        mainLogger.logDebug("getPageCount()", CLASSNAME);
+        PlotDatabaseSearchCriteria search = new PlotDatabaseSearchCriteria(parentPlotLocation, category);
+        List<PlotWindowModel> plots = new ArrayList<>(parentSubsystem.getChildPlots(dbName, search));
         double plotCount = plots.size();
+        mainLogger.logDebug("plotCount = " + plotCount, CLASSNAME);
         double graphsPerPage = graphConfig.getGraphsPerPage();
+        mainLogger.logDebug("graphsPerPage = " + graphsPerPage, CLASSNAME);
         if(graphsPerPage <= 0) {
             return 1;
         } else {
-            return (int) Math.ceil(plotCount / graphsPerPage);
+            int result = (int) Math.ceil(plotCount / graphsPerPage);
+            mainLogger.logDebug("result = " + result, CLASSNAME);
+            return result;
         }
     }
 
@@ -266,7 +303,7 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
         GraphOperationResult result = new GraphOperationResult();
 
         graphRenderingLog = new StringOutputLogger();
-        graphRenderingLog.logDebug("Number of plots is " + plots.size());
+        graphRenderingLog.logDebug("Number of plots is " + plots.size(), CLASSNAME);
 
         PlotlyGraphDivBuilder divBuilder = new PlotlyGraphDivBuilder(plotConfiguration, true, buttonRenderer);        
         String templateHtml = getTemplateHtml();
@@ -373,13 +410,17 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
     /////////////
 
     private Set<PlotWindowModel> getParentPlotsIfNoChildren(GraphDisplayConfig graphConfig) {
-        PlotWindowModel parentPlot = db.getParent(graphConfig.getLastPlotDbLocation(), graphConfig.getDisplayCategory());
+        PlotWindowModel parentPlot = parentSubsystem.getParentPlot(
+            dbName,
+            new PlotDatabaseSearchCriteria(graphConfig.getLastPlotDbLocation(), graphConfig.getDisplayCategory()));
         if(parentPlot != null) {
             graphConfig.setNextPlotDbLocation(parentPlot.getName());
         } else {
             graphConfig.setNextPlotDbLocation(CommonConstants.ROOT_PATH_ALIAS);
         }
-        return db.getChildren(graphConfig.getNextPlotDbLocation(), graphConfig.getDisplayCategory());
+        return parentSubsystem.getChildPlots(
+            dbName,
+            new PlotDatabaseSearchCriteria(graphConfig.getNextPlotDbLocation(), graphConfig.getDisplayCategory()));
     }
 
     private List<String> getPlotNameManifestFromResult(GraphOperationResult result) {
@@ -388,13 +429,15 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
         return Arrays.asList(plotNamesArr);
     }
 
-    private void writeHtmlToFile(String html, String plotName, int pageSuffix, String categorySuffix, String destDirAbsPath) {
+    private void writeHtmlToFile(
+            String html, String plotName, int pageSuffix, String categorySuffix, String destDirAbsPath) {
         String destFileName = buildExportFilename(plotName, pageSuffix, categorySuffix);
         String destFileAbsPath = destDirAbsPath + "/" + destFileName;
         fileReader.writeToFile(destFileAbsPath, html);
     }    
 
-    private void writeHtmlToFile(String html, String plotName, String categorySuffix, String destDirAbsPath) {
+    private void writeHtmlToFile(
+            String html, String plotName, String categorySuffix, String destDirAbsPath) {
         String destFileName = buildExportFilename(plotName, categorySuffix);
         String destFileAbsPath = destDirAbsPath + "/" + destFileName;
         fileReader.writeToFile(destFileAbsPath, html);
@@ -430,5 +473,35 @@ public class PlotlyGraphRenderer implements IHtmlGraphRenderer {
         }
         sb.append(".html");
         return sb.toString();
-    }    
+    }
+
+    @Override
+    public int getNumberOfPlotChildren(PlotWindowModel plot) {
+        PlotDatabaseSearchCriteria search = new PlotDatabaseSearchCriteria(plot.getName(), plot.getCategory());
+        return parentSubsystem.getChildPlots(dbName, search).size();
+    }  
+
+    private List<PlotWindowModel> filterPlotsWithSearchCriteria(List<PlotWindowModel> plots, String searchQuery){
+        if(searchQuery.equals("/")){
+            return plots;
+        }
+
+        List<PlotWindowModel> filteredPlots = new ArrayList<>();
+
+        for (PlotWindowModel plot: plots){
+            if (doesPlotNamecontainSearchQuery(plot, searchQuery) || doesPlotNicknamecontainSearchQuery(plot, searchQuery)) {
+                filteredPlots.add(plot);
+            }
+        }
+
+        return filteredPlots;
+    }
+
+    private boolean doesPlotNamecontainSearchQuery(PlotWindowModel plot, String searchQuery){
+        return plot.getName().toLowerCase().contains(searchQuery.toLowerCase());
+    }
+
+    private boolean doesPlotNicknamecontainSearchQuery(PlotWindowModel plot, String searchQuery){
+        return (plot.hasNickname() && plot.getNickname().toLowerCase().contains(searchQuery.toLowerCase()));
+    }
 }

@@ -71,4 +71,7 @@ In the example above, the configuration file will read data from the "ReadThisFi
 
 ## Command Line:
 
-	watchr config.json <folder containing data JSON files>
+	watchr start
+    watchr config config.json
+    watchr add <folder containing data JSON files>
+    watchr run

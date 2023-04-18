@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -88,7 +88,7 @@ public abstract class PlotWindowGenerator {
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_CANVASES, level,           () -> { return processCanvases(canvasModels); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_CANVAS_LAYOUTS, level,     () -> { return processCanvasLayouts(canvasModels); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_TRACE_NAME_LIST, level,    () -> { return processTraceNamesList(canvasModels); });
-		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_LABEL, level,              () -> { return processWindowLabel(windowModel.getName(), windowModel.getViewWidth()); });
+		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_LABEL, level,              () -> { return processWindowLabel(windowModel.getNameOrNickname(), windowModel.getViewWidth()); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_FONT, level,               () -> { return processFont(windowModel.getFont()); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_SHOW_LEGEND, level,        () -> { return processShowLegend(windowModel.getLegendVisible()); });
 		replacedTokensFileString = TokenStringUtil.findAndReplaceToken(replacedTokensFileString, PlotToken.WINDOW_VIEW_WIDTH, level,         () -> { return processViewWidth(windowModel.getViewWidth()); });

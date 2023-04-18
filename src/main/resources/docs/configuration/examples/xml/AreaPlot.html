@@ -389,7 +389,10 @@ img {
 <p><img src="img/AreaPlotExample.png" alt="Area plot example" title="Area plot example" /></p>
 <p>&quot;A&quot; has two children, &quot;B&quot; and &quot;C&quot;.  The plot shown above displays &quot;B&quot;'s percentage of &quot;A&quot; over time in the blue area, while &quot;C&quot;'s percentage of &quot;A&quot; is shown in the pink area.  &quot;A&quot; is drawn as a green line behind &quot;B&quot; and &quot;C&quot; - in practice, &quot;A&quot; can be shown by toggling the visibility of &quot;B&quot; and &quot;C.&quot;  </p>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json &lt;directory containing performance xml files&gt;
+<pre><code>watchr start
+watchr config config.json
+watchr add &lt;directory containing performance xml files&gt;
+watchr run
 </code></pre>
 
 

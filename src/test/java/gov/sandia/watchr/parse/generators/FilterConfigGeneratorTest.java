@@ -9,7 +9,12 @@ import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.config.FilterConfig;
+import gov.sandia.watchr.config.DataFilterConfig;
+import gov.sandia.watchr.config.filter.DataFilter;
+import gov.sandia.watchr.config.filter.FilterExpression;
+import gov.sandia.watchr.config.filter.DataFilter.DataFilterPolicy;
+import gov.sandia.watchr.config.filter.DataFilter.DataFilterType;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
@@ -31,8 +36,14 @@ public class FilterConfigGeneratorTest {
         try {
             PlotTraceModel traceModel = createBasicPlotWindowModel();
 
-            FilterConfig filterConfig = new FilterConfig("/my/test/path", testLogger);
-            filterConfig.getFilterPoints().add(new PlotTracePoint(2.0, 20.0));
+            DataFilterConfig filterConfig = new DataFilterConfig("/my/test/path", testLogger);
+
+			DataFilter filter =
+            new DataFilter(
+                DataFilterType.POINT,
+                new FilterExpression("x == 2.0 && y == 20.0"),
+                DataFilterPolicy.BLACKLIST);
+            filterConfig.getFilters().add(filter);
 
             FilterConfigGenerator generator = new FilterConfigGenerator(traceModel, true, testLogger);
             generator.generate(filterConfig, new ArrayList<>());
@@ -50,10 +61,20 @@ public class FilterConfigGeneratorTest {
         try {
             PlotTraceModel traceModel = createBasicPlotWindowModel();
 
-            FilterConfig filterConfig1 = new FilterConfig("/my/test/path", testLogger);
-            filterConfig1.getFilterPoints().add(new PlotTracePoint(2.0, 20.0));
-            FilterConfig filterConfig2 = new FilterConfig("/my/test/path", testLogger);
-            filterConfig2.getFilterPoints().add(new PlotTracePoint(3.0, 30.0));
+            DataFilterConfig filterConfig1 = new DataFilterConfig("/my/test/path", testLogger);
+            DataFilter filter1 =
+                new DataFilter(
+                    DataFilterType.POINT,
+                    new FilterExpression("x == 2.0 && y == 20.0"),
+                    DataFilterPolicy.BLACKLIST);
+            filterConfig1.getFilters().add(filter1);
+            DataFilterConfig filterConfig2 = new DataFilterConfig("/my/test/path", testLogger);
+            DataFilter filter2 =
+                new DataFilter(
+                    DataFilterType.POINT,
+                    new FilterExpression("x == 3.0 && y == 30.0"),
+                    DataFilterPolicy.BLACKLIST);
+            filterConfig2.getFilters().add(filter2);
 
             FilterConfigGenerator filterGenerator1 = new FilterConfigGenerator(traceModel, true, testLogger);
             filterGenerator1.generate(filterConfig1, new ArrayList<>());
@@ -72,18 +93,23 @@ public class FilterConfigGeneratorTest {
     }
 
     private PlotTraceModel createBasicPlotWindowModel() {
-        PlotWindowModel windowModel = new PlotWindowModel("Test");
-        PlotCanvasModel canvasModel = new PlotCanvasModel(windowModel.getUUID());
-        PlotTraceModel traceModel = new PlotTraceModel(canvasModel.getUUID());
+        try {
+            PlotWindowModel windowModel = new PlotWindowModel("Test");
+            PlotCanvasModel canvasModel = new PlotCanvasModel(windowModel.getUUID());
+            PlotTraceModel traceModel = new PlotTraceModel(canvasModel.getUUID());
 
-        PlotTracePoint point1 = new PlotTracePoint(1.0, 10.0);
-        PlotTracePoint point2 = new PlotTracePoint(2.0, 20.0);
-        PlotTracePoint point3 = new PlotTracePoint(3.0, 30.0);
+            PlotTracePoint point1 = new PlotTracePoint(1.0, 10.0);
+            PlotTracePoint point2 = new PlotTracePoint(2.0, 20.0);
+            PlotTracePoint point3 = new PlotTracePoint(3.0, 30.0);
 
-        traceModel.add(point1);
-        traceModel.add(point2);
-        traceModel.add(point3);
+            traceModel.add(point1);
+            traceModel.add(point2);
+            traceModel.add(point3);
 
-        return traceModel;
+            return traceModel;
+        } catch(ChartreuseException e) {
+            fail(e.getMessage());
+        }
+        return null;
     }
 }

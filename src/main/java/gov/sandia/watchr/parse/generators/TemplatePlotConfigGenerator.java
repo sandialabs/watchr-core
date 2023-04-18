@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import gov.sandia.watchr.config.DataLine;
 import gov.sandia.watchr.config.FileFilterConfig;
-import gov.sandia.watchr.config.FilterConfig;
 import gov.sandia.watchr.config.NameConfig;
 import gov.sandia.watchr.config.PlotConfig;
 import gov.sandia.watchr.log.ILogger;
@@ -45,6 +44,9 @@ public class TemplatePlotConfigGenerator extends AbstractTemplateGenerator {
     public PlotConfig handlePlotGenerationForTemplate(PlotConfig childConfig) {
         PlotConfig templateConfig = getTemplatePlotConfig(childConfig.getInheritTemplate());
         if(templateConfig != null) {
+            if(!templateConfig.isTemplateApplied()) {
+                templateConfig = handlePlotGenerationForTemplate(templateConfig);
+            }
             return applyChildOverTemplate(templateConfig, childConfig);
         } else {
             logger.logError("Plot depends on template " + childConfig.getInheritTemplate() + ", but this template does not exist in the configuration.");
@@ -85,9 +87,6 @@ public class TemplatePlotConfigGenerator extends AbstractTemplateGenerator {
         if(childConfig.getFileFilterConfig() != null) {
             newConfig.setFileFilterConfig(new FileFilterConfig(childConfig.getFileFilterConfig()));
         }
-        if(childConfig.getPointFilterConfig() != null) {
-            newConfig.setPointFilterConfig(new FilterConfig(childConfig.getPointFilterConfig()));
-        }
 
         newConfig.setTemplateName(childConfig.getTemplateName());
         newConfig.setInheritTemplate("");
@@ -95,9 +94,13 @@ public class TemplatePlotConfigGenerator extends AbstractTemplateGenerator {
         applyTemplateDataLinesInTemplatePlot(newConfig);
         applyTemplateDataLinesInInheritPlot(newConfig, childConfig);
 
+        applyFiltersOverTemplate(newConfig.getPointFilterConfig(), childConfig.getPointFilterConfig());
+
         if(!childConfig.getPlotRules().isEmpty()) {
             applyRulesOverTemplate(newConfig.getPlotRules(), childConfig.getPlotRules());
         }
+        
+        newConfig.setTemplateApplied(true);
         return newConfig;
     }
 

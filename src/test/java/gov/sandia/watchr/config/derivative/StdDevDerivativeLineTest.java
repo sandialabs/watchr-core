@@ -3,6 +3,7 @@ package gov.sandia.watchr.config.derivative;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -114,5 +115,27 @@ public class StdDevDerivativeLineTest {
         StdDevDerivativeLine derivativeLine2 = new StdDevDerivativeLine(derivativeLine);
         derivativeLine2.setColor(0, 0, 0);
         assertNotEquals(derivativeLine, derivativeLine2);           
+    }
+
+    @Test
+    public void testApplyOverTemplate() {
+        StdDevDerivativeLine baseLine = new StdDevDerivativeLine("", testLogger);
+        baseLine.setRollingRange(20);
+        baseLine.setNumberFormat("#.#");
+        StdDevDerivativeLine overwriteLine = new StdDevDerivativeLine("", testLogger);
+        overwriteLine.setRollingRange(10);
+        overwriteLine.setNumberFormat("#.####");
+
+        StdDevDerivativeLine resultLine = (StdDevDerivativeLine) overwriteLine.applyOverTemplate(baseLine);
+
+        assertEquals(10, resultLine.getRollingRange());
+        assertEquals("#.####", resultLine.getNumberFormat());
+    }
+
+    @Test
+    public void testApplyOverTemplate_TypeMismatch() {
+        SlopeDerivativeLine baseLine = new SlopeDerivativeLine("", testLogger);
+        StdDevDerivativeLine overwriteLine = new StdDevDerivativeLine("", testLogger);
+        assertNull(overwriteLine.applyOverTemplate(baseLine));
     }
 }

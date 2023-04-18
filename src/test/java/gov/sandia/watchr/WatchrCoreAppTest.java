@@ -8,6 +8,7 @@ import org.junit.runners.Suite;
     WatchrCoreAppTest_BasicTests.class,
 	WatchrCoreAppTest_JsonTests.class,
 	WatchrCoreAppTest_XmlTests.class,
+	WatchrCoreAppTest_YamlConfigTests.class,
 	WatchrCoreAppTest_MultistageTests.class,
 })
 

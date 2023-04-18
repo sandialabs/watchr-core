@@ -1,16 +1,16 @@
 package gov.sandia.watchr.config.reader;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import gov.sandia.watchr.config.FileFilterConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.element.ConfigConverter;
+import gov.sandia.watchr.config.element.ConfigElement;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -28,18 +28,18 @@ public class FileFilterConfigReader extends AbstractExtractorConfigReader<FileFi
     }
 
     @Override
-    public FileFilterConfig handle(JsonElement element, IConfig parent) {
+    public FileFilterConfig handle(ConfigElement element, IConfig parent) {
         FileFilterConfig fileFilterConfig = new FileFilterConfig(parent.getConfigPath(), logger);
 
-        JsonObject jsonObject = element.getAsJsonObject();
-        Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-        for(Entry<String, JsonElement> entry : entrySet) {
+        ConfigConverter converter = element.getConverter();
+        Map<String, Object> map = element.getValueAsMap();
+        for(Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
-            JsonElement value = entry.getValue();
+            Object value = entry.getValue();
 
             if(key.equals(Keywords.NAME_PATTERN)) {
                 seenKeywords.add(Keywords.NAME_PATTERN);
-                fileFilterConfig.setNamePattern(value.getAsString());
+                fileFilterConfig.setNamePattern(converter.asString(value));
             } else {
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsFileFilterConfig: Unrecognized element `" + key + "`."));
             }

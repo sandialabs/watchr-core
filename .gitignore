@@ -1,5 +1,8 @@
-target/
+/target/
+/watchrRun/
+/graph/
 .classpath
+.factorypath
 .project
 .settings/
 *.out

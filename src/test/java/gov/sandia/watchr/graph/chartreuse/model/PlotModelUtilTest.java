@@ -3,6 +3,7 @@ package gov.sandia.watchr.graph.chartreuse.model;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.Random;
@@ -11,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.TestFileUtils;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.ChartreuseTestsUtil;
 import gov.sandia.watchr.graph.chartreuse.type.NodeType;
 import gov.sandia.watchr.util.ArrayUtil;
@@ -58,27 +60,31 @@ public class PlotModelUtilTest {
 	
 	@Test
 	public void testNewPlotCanvasModelFromTrace() {
-		PlotTraceModel traceModel = new PlotTraceModel(null);
-		traceModel.setPoints(
-			TestFileUtils.formatAsPoints(
-				ChartreuseTestsUtil.doubleObjArrayOfSize(3, randomSeed1),
-				ChartreuseTestsUtil.doubleObjArrayOfSize(3, randomSeed1),
-				ChartreuseTestsUtil.doubleObjArrayOfSize(3, randomSeed1)
-			)
-		);
-		
-		PlotCanvasModel canvasModel = PlotModelUtil.newPlotCanvas(traceModel, "X", "Y", "Z");
-		
-		assertEquals(canvasModel, traceModel.getParent());
-		assertEquals("X", canvasModel.getXAxisLabel());
-		assertEquals("Y", canvasModel.getYAxisLabel());
-		assertEquals("Z", canvasModel.getZAxisLabel());
-		assertTrue(canvasModel.getDrawXAxisLines());
-		assertTrue(canvasModel.getDrawYAxisLines());
-		assertTrue(canvasModel.getDrawGridLines());
-		assertEquals(RgbUtil.blackRGB(), canvasModel.getXAxisRGB());
-		assertEquals(RgbUtil.blackRGB(), canvasModel.getYAxisRGB());
-		assertEquals(RgbUtil.blackRGB(), canvasModel.getZAxisRGB());
+		try {
+			PlotTraceModel traceModel = new PlotTraceModel(null);
+			traceModel.setPoints(
+				TestFileUtils.formatAsPoints(
+					ChartreuseTestsUtil.doubleObjArrayOfSize(3, randomSeed1),
+					ChartreuseTestsUtil.doubleObjArrayOfSize(3, randomSeed1),
+					ChartreuseTestsUtil.doubleObjArrayOfSize(3, randomSeed1)
+				)
+			);
+			
+			PlotCanvasModel canvasModel = PlotModelUtil.newPlotCanvas(traceModel, "X", "Y", "Z");
+			
+			assertEquals(canvasModel, traceModel.getParent());
+			assertEquals("X", canvasModel.getXAxisLabel());
+			assertEquals("Y", canvasModel.getYAxisLabel());
+			assertEquals("Z", canvasModel.getZAxisLabel());
+			assertTrue(canvasModel.getDrawXAxisLines());
+			assertTrue(canvasModel.getDrawYAxisLines());
+			assertTrue(canvasModel.getDrawGridLines());
+			assertEquals(RgbUtil.blackRGB(), canvasModel.getXAxisRGB());
+			assertEquals(RgbUtil.blackRGB(), canvasModel.getYAxisRGB());
+			assertEquals(RgbUtil.blackRGB(), canvasModel.getZAxisRGB());
+		} catch(ChartreuseException e) {
+            fail(e.getMessage());
+        }
 	}
 	
 	@Test

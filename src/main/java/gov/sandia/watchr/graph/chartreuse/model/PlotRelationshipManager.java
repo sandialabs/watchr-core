@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -24,10 +24,12 @@ public class PlotRelationshipManager {
     private PlotRelationshipManager() {}
 
     public static PlotWindowModel getWindowModel(UUID windowModelUUID) {
-        for(int i = 0; i < windowModels.size(); i++) {
-            PlotWindowModel windowModel = windowModels.get(i);
-            if(windowModel.getUUID().equals(windowModelUUID)) {
-                return windowModel;
+        synchronized(windowModels) {
+            for(int i = 0; i < windowModels.size(); i++) {
+                PlotWindowModel windowModel = windowModels.get(i);
+                if(windowModel != null && windowModel.getUUID().equals(windowModelUUID)) {
+                    return windowModel;
+                }
             }
         }
         return null;
@@ -38,15 +40,30 @@ public class PlotRelationshipManager {
     }     
 
     public static PlotCanvasModel getCanvasModel(UUID canvasModelUUID) {
-        for(PlotCanvasModel canvasModel : canvasModels) {
-            if(canvasModel.getUUID().equals(canvasModelUUID)) {
-                return canvasModel;
+        synchronized(canvasModels) {
+            for(int i = 0; i < canvasModels.size(); i++) {
+                PlotCanvasModel canvasModel = canvasModels.get(i);
+                if(canvasModel != null && canvasModel.getUUID().equals(canvasModelUUID)) {
+                    return canvasModel;
+                }
             }
         }
         return null;
     }
 
     public static void addCanvasModel(PlotCanvasModel canvasModel) {
-        canvasModels.add(canvasModel);
+        synchronized(canvasModels) {
+            boolean foundExistingCanvas = false;
+            for(int i = 0; i < canvasModels.size(); i++) {
+                PlotCanvasModel foundCanvasModel = canvasModels.get(i);
+                if(foundCanvasModel != null && foundCanvasModel.getUUID().equals(canvasModel.getUUID())) {
+                    foundExistingCanvas = true;
+                }
+            }
+
+            if(!foundExistingCanvas) {
+                canvasModels.add(canvasModel);
+            }
+        }
     }
 }

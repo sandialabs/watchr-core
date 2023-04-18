@@ -35,6 +35,7 @@ public class StdDevDerivativeLine extends RollingDerivativeLine {
             newDerivativeLine.setRollingRange(getRollingRange());
             newDerivativeLine.setNumberFormat(getNumberFormat());
             newDerivativeLine.setIgnoreFilteredData(shouldIgnoreFilteredData());
+            return newDerivativeLine;
         }
         return null;
     }

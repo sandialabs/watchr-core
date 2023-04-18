@@ -1,6 +1,7 @@
 package gov.sandia.watchr.log;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
@@ -22,15 +23,22 @@ public class StringOutputLoggerTest {
     @Test
     public void testLogDebug() {
         logger.setLoggingLevel(ErrorLevel.DEBUG);
-        logger.logDebug("TEST");
+        logger.logDebug("TEST", StringOutputLogger.class.getSimpleName());
         assertEquals("TEST" + OsUtil.getOSLineBreak(), logger.getLogAsString());
     }
 
     @Test
     public void testLog() {
         logger.setLoggingLevel(ErrorLevel.DEBUG);
-        logger.log(new WatchrConfigError(ErrorLevel.DEBUG, "TEST"));
+        logger.log(new WatchrConfigError(ErrorLevel.DEBUG, "TEST", StringOutputLogger.class.getSimpleName()));
         assertTrue(logger.getLogAsString().contains("[DEBUG] : TEST"));
+    }
+
+    @Test
+    public void testLog_FailWithoutClassName() {
+        logger.setLoggingLevel(ErrorLevel.DEBUG);
+        logger.log(new WatchrConfigError(ErrorLevel.DEBUG, "TEST"));
+        assertFalse(logger.getLogAsString().contains("[DEBUG] : TEST"));
     }
 
     @Test

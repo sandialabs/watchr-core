@@ -43,5 +43,6 @@ public class StringUtilTest {
         assertEquals("HelloWorld", StringUtil.escapeRegexCharacters("HelloWorld"));
         assertEquals("\\(HelloWorld\\)", StringUtil.escapeRegexCharacters("(HelloWorld)"));
         assertEquals("\\s\\(HelloWorld\\)\\s", StringUtil.escapeRegexCharacters(" (HelloWorld) "));
+        assertEquals("\\^\\{HelloWorld\\}\\^", StringUtil.escapeRegexCharacters("^{HelloWorld}^"));
     }
 }

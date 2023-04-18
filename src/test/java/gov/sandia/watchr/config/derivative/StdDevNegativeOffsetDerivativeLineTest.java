@@ -3,6 +3,7 @@ package gov.sandia.watchr.config.derivative;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -114,5 +115,27 @@ public class StdDevNegativeOffsetDerivativeLineTest {
         StdDevNegativeOffsetDerivativeLine derivativeLine2 = new StdDevNegativeOffsetDerivativeLine(derivativeLine);
         derivativeLine2.setColor(0, 0, 0);
         assertNotEquals(derivativeLine, derivativeLine2);           
+    }
+
+    @Test
+    public void testApplyOverTemplate() {
+        StdDevNegativeOffsetDerivativeLine baseLine = new StdDevNegativeOffsetDerivativeLine("", testLogger);
+        baseLine.setRollingRange(20);
+        baseLine.setNumberFormat("#.#");
+        StdDevNegativeOffsetDerivativeLine overwriteLine = new StdDevNegativeOffsetDerivativeLine("", testLogger);
+        overwriteLine.setRollingRange(10);
+        overwriteLine.setNumberFormat("#.####");
+
+        StdDevNegativeOffsetDerivativeLine resultLine = (StdDevNegativeOffsetDerivativeLine) overwriteLine.applyOverTemplate(baseLine);
+
+        assertEquals(10, resultLine.getRollingRange());
+        assertEquals("#.####", resultLine.getNumberFormat());
+    }
+
+    @Test
+    public void testApplyOverTemplate_TypeMismatch() {
+        SlopeDerivativeLine baseLine = new SlopeDerivativeLine("", testLogger);
+        StdDevNegativeOffsetDerivativeLine overwriteLine = new StdDevNegativeOffsetDerivativeLine("", testLogger);
+        assertNull(overwriteLine.applyOverTemplate(baseLine));
     }
 }

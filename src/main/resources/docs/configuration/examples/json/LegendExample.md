@@ -50,4 +50,7 @@ Adding a legend to Watchr graphs is easy.  All you need to do is add `"legend": 
 
 ## Command Line:
 
-	watchr config.json performance_data.json
+	watchr start
+    watchr config config.json
+    watchr add performance_data.json
+    watchr run

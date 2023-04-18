@@ -2,6 +2,8 @@ package gov.sandia.watchr.config.file;
 
 import java.util.List;
 
+import gov.sandia.watchr.log.ILogger;
+
 /**
  * Watchr is required to be flexible enough to retrieve files and folders
  * through interfaces apart from the standard Java File class. This interface
@@ -66,4 +68,10 @@ public interface IFileReader {
      * @return The name of the file or folder, independent of its path.
      */
     public String getName(String path);
+
+    /**
+     * 
+     * @param logger The logger to use.
+     */
+    public void setLogger(ILogger logger);
 }

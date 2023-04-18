@@ -360,7 +360,10 @@ img {
 <p>Note the outermost timing element named &quot;A&quot; has a value of &quot;100.0&quot;.  Using the child elements in the XML hierarchy, we can understand how A is subdivided into component parts.  A's immediate children are &quot;B&quot; and &quot;C&quot;, with values of 75.0 and 25.0 respectively.  B and C can be subdivided as well.  B has two children - &quot;D&quot; and &quot;E&quot; - which sum to B's value.  Likewise, C has two children - &quot;F&quot; and &quot;G&quot; - which sum to C's value.</p>
 <p>Thanks to Plotly, the plot generated from this example will be interactive.  Simply click on any of the inner boxes to zoom into that box and get a better view of its child boxes.</p>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance.xml
+<pre><code>watchr start
+watchr config config.json
+watchr add performance.xml
+watchr run
 </code></pre>
 
 

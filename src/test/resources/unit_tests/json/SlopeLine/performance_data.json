@@ -1,0 +1,16 @@
+{
+    "performance-reports" : [
+        {
+            "time" : "0.0",
+            "measurement" : "1.0"
+        },
+        {
+            "time" : "1.0",
+            "measurement" : "2.0"
+        },
+        {
+            "time" : "2.0",
+            "measurement" : "3.0"
+        }
+    ]
+}

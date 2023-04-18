@@ -57,4 +57,7 @@
 
 ## Command Line:
 
-	watchr config.json performance_day_1.xml
+	watchr start 
+    watchr config config.json
+    watchr add performance_day_1.xml
+    watchr run

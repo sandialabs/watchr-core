@@ -1,16 +1,18 @@
 package gov.sandia.watchr.config.reader;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.LogConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.element.ConfigConverter;
+import gov.sandia.watchr.config.element.ConfigElement;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -30,17 +32,24 @@ public class LogConfigReader extends AbstractConfigReader<LogConfig> {
     }
 
     @Override
-    public LogConfig handle(JsonElement element, IConfig parent) {
+    public LogConfig handle(ConfigElement element, IConfig parent) {
         LogConfig logConfig = new LogConfig(parent.getConfigPath(), logger);
 
-        JsonObject jsonObject = element.getAsJsonObject();
-        Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-        for(Entry<String, JsonElement> entry : entrySet) {
+        ConfigConverter converter = element.getConverter();
+        Map<String, Object> map = element.getValueAsMap();
+        for(Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
-            JsonElement value = entry.getValue();
+            Object value = entry.getValue();
 
             if(key.equals(Keywords.LEVEL)) {
-                logConfig.setLoggingLevel(value.getAsString());
+                logConfig.setLoggingLevel(converter.asString(value));
+            } else if(key.equals(Keywords.LOGGABLE_CLASSES)) {
+                ConfigElement childConfigElement = converter.asChild(value);
+                List<String> loggableDebugClasses = new ArrayList<>();
+                for(Object childValue : childConfigElement.getValueAsList()) {
+                    loggableDebugClasses.add(converter.asString(childValue));
+                }
+                logConfig.setLoggableDebugClasses(loggableDebugClasses);
             } else {
                 logger.log(new WatchrConfigError(ErrorLevel.WARNING, "LogConfigReader.handle: Unrecognized element `" + key + "`."));
             }

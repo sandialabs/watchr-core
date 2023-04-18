@@ -102,4 +102,7 @@ For area plots, we need to make some implicit assumptions about our configuratio
 
 ## Command Line:
 
-	watchr config.json <directory containing performance xml files>
+	watchr start
+    watchr config config.json
+    watchr add <directory containing performance xml files>
+    watchr run

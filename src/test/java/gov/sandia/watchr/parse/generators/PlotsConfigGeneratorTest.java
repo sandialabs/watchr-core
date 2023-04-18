@@ -14,21 +14,20 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.FileFilterConfig;
 import gov.sandia.watchr.config.PlotConfig;
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.config.file.DefaultFileReader;
 import gov.sandia.watchr.config.file.IFileReader;
-import gov.sandia.watchr.db.IDatabase;
+import gov.sandia.watchr.config.rule.RuleConfig;
+import gov.sandia.watchr.db.impl.AbstractDatabase;
 import gov.sandia.watchr.db.impl.FileBasedDatabase;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotModelUtil;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
-import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.WatchrParseException;
 import gov.sandia.watchr.util.RGB;
@@ -36,16 +35,24 @@ import gov.sandia.watchr.util.RGB;
 public class PlotsConfigGeneratorTest {
 
     private StringOutputLogger testLogger;
+    private PlotsConfigGenerator generator;
+    private AbstractDatabase db;
 
     @Before
     public void setup() {
-        testLogger = new StringOutputLogger();
+        try {
+            testLogger = new StringOutputLogger();
+            File rootDir = Files.createTempDirectory(null).toFile();
+            IFileReader reader = new DefaultFileReader(testLogger);
+            db = new FileBasedDatabase(rootDir, testLogger, reader);
+            generator = new PlotsConfigGenerator(db, testLogger, null, null, new ArrayList<>());
+        } catch(IOException e) {
+            fail(e.getMessage());
+        }
     }
 
     @Test
     public void testDoesFilePassNameFilter() {
-        FileConfig fileConfig = new FileConfig("", testLogger, new DefaultFileReader(testLogger));
-        PlotsConfigGenerator generator = new PlotsConfigGenerator(null, fileConfig);
         FileFilterConfig fileFilterConfig = new FileFilterConfig("", testLogger);
 
         fileFilterConfig.setNamePattern("*");
@@ -60,9 +67,7 @@ public class PlotsConfigGeneratorTest {
         assertTrue(generator.doesFilePassNameFilter("blah", fileFilterConfig));
     }
 
-    /**
-     * This plot seeks to test whether plot rules can be recursively applied to child plots.
-     */
+    // This plot seeks to test whether plot rules can be recursively applied to child plots.
     @Test
     public void testApplySettingsToNewPlots_ChildPlotRulesWithFailure() {
         try {
@@ -108,24 +113,21 @@ public class PlotsConfigGeneratorTest {
             List<PlotWindowModel> plots = new ArrayList<>();
             plots.add(windowModel);
 
-            File rootDir = Files.createTempDirectory(null).toFile();
-            ILogger logger = new StringOutputLogger();
-            IFileReader reader = new DefaultFileReader(logger);
-            IDatabase db = new FileBasedDatabase(rootDir, logger, reader);
             db.addPlot(childWindowModel);
             db.addPlot(windowModel);
             db.setPlotsAsChildren(windowModel, children);
 
-            PlotConfig plotConfig = new PlotConfig("", logger);
+            PlotConfig plotConfig = new PlotConfig("", testLogger);
             plotConfig.getPlotRules().addAll(rules);
 
-            PlotsConfigGenerator plotsConfigGenerator = new PlotsConfigGenerator(db, new FileConfig("", logger, reader));
-            plotsConfigGenerator.applySettingsToNewPlots(plots, plotConfig);
+            generator.applySettingsToNewPlots(plots, plotConfig);
 
             assertEquals(new RGB(235, 156, 156), windowModel.getBackgroundColor());
             assertEquals(new RGB(235, 156, 156), childWindowModel.getBackgroundColor());
-        } catch(IOException | WatchrParseException e) {
+        } catch(WatchrParseException e) {
+            fail(e.getMessage());
+        } catch(ChartreuseException e) {
             fail(e.getMessage());
         }
-    }       
+    }
 }

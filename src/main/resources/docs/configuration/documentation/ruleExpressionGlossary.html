@@ -295,19 +295,34 @@ img {
 <h2>Recognized Boolean Operators</h2>
 <p>Currently, Watchr rule expressions recognize &lt;, =, and &gt;.</p>
 <ul>
-<li><em>Note</em>: Double-equals (==) is also available if you wish, and it means the same thing as a single equals.</li>
+<li><em>Note</em>: Double-equals (==) is also available if you wish to use more programmer-like syntax. It means the same thing as a single equals.</li>
 </ul>
-<h2>Condition Elements</h2>
+<h2>Condition Elements (aka &quot;Rule Targets&quot;)</h2>
 <ul>
 <li><strong>average</strong> - Refers to the last point on a &quot;rolling average&quot; derivative line on any graph.  See the <a href="configuration/documentation/derivativeLines.html"><strong>derivativeLines</strong></a> section for more information. </li>
 <li><strong>dataLine</strong> - Refers to the last point on the main data line of any graph.</li>
+<li><strong>newDatasets</strong> - Refers to the number of new plottable datasets discovered since the last run of Watchr.</li>
 <li><strong>standardDeviation</strong> - Refers to the last point on a &quot;rolling standard deviation&quot; derivative line on any graph.  See the <a href="configuration/documentation/derivativeLines.html"><strong>derivativeLines</strong></a> section for more information.</li>
 <li><strong>standardDeviationOffset</strong>  - Refers to the last point on a &quot;standard deviation offsete&quot; derivative line on any graph.  A &quot;standard deviation offset&quot; line is the average line + 1 standard deviation.  See the <a href="configuration/documentation/derivativeLines.html"><strong>derivativeLines</strong></a> section for more information.</li>
 </ul>
+<h2>Special Conditions</h2>
+<ul>
+<li><strong>always</strong> - As the name implies, this condition can be used for a rule that should always be acted upon.</li>
+</ul>
 <h2>Actions</h2>
 <ul>
-<li><strong>fail</strong> - The &quot;fail&quot; action will color the background of the graph red, and also indicate that the graph is in a fail state.  This information can be acquired by any external processes that are able to query Watchr's database.</li>
-<li><strong>warn</strong> - The &quot;warn&quot; action will color the background of the graph yellow, and also indicate that the graph is in a warning state.  This information can be acquired by any external processes that are able to query Watchr's database.</li>
+<li><strong>deleteAllData</strong> - Delete all data from the database.</li>
+<li><strong>deleteConditionalData</strong> - Delete certain data from the database. The conditions for deleting data are determined by setting configuration in the &quot;actionProperties&quot; block for this rule.</li>
+<li><strong>failDatabase</strong> - The entire database can be put into a failure state. The severity/meaning of &quot;failing&quot; the database is determined by the one who implemented this rule.</li>
+</ul>
+<h2>Actions: Plot-Specific</h2>
+<ul>
+<li><strong>fail</strong> - The &quot;fail&quot; action will color the background of a particular graph red, and also indicate that the graph is in a fail state.  This information can be acquired by any external processes that are able to query Watchr's database.</li>
+<li><strong>warn</strong> - The &quot;warn&quot; action will color the background of a particular graph yellow, and also indicate that the graph is in a warning state.  This information can be acquired by any external processes that are able to query Watchr's database.</li>
+</ul>
+<h2>Action Properties</h2>
+<ul>
+<li><strong>ageToDelete</strong> - This property is used in conjunction with the action &quot;deleteConditionalData.&quot; Use this property for deleting data that is older than a certain age. Age is counted by the number of points on a line. For example, &quot;ageToDelete : 10&quot; would indicate that only the most recent 10 points on a line should be preserved.</li>
 </ul>
 
 </body>

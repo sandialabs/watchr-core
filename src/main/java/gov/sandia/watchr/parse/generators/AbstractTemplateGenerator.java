@@ -6,12 +6,13 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
+import gov.sandia.watchr.config.DataFilterConfig;
 import gov.sandia.watchr.config.HierarchicalExtractor;
 import gov.sandia.watchr.config.MetadataConfig;
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.derivative.DerivativeLine;
+import gov.sandia.watchr.config.rule.RuleConfig;
 import gov.sandia.watchr.log.ILogger;
-import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.AmbiguityStrategy;
 
 public abstract class AbstractTemplateGenerator {
 
@@ -97,6 +98,13 @@ public abstract class AbstractTemplateGenerator {
                 newMetadataConfig.setName(childMetadataConfig.getName());
             }
             applyChildExtractorOverTemplate(newMetadataConfig.getMetadataExtractor(), childMetadataConfig.getMetadataExtractor());
+        }
+    }
+
+    protected void applyFiltersOverTemplate(DataFilterConfig templateFilterConfig, DataFilterConfig childFilterConfig) {
+        if(templateFilterConfig != null && childFilterConfig != null && !childFilterConfig.getFilters().isEmpty()) {
+            templateFilterConfig.getFilters().clear();
+            templateFilterConfig.getFilters().addAll(childFilterConfig.getFilters());
         }
     }
 }

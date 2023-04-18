@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
 import gov.sandia.watchr.config.derivative.DerivativeLineType;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.util.ArrayUtil;
@@ -97,6 +98,7 @@ public class PlotCanvasModel {
 				parent.addCanvasModel(this);
 			}
 		}
+		PlotRelationshipManager.addCanvasModel(this);
 		overlaidCanvasModels = new ArrayList<>();
 		traceModels = new ArrayList<>();
 	}
@@ -147,7 +149,7 @@ public class PlotCanvasModel {
 		zAxisRGB = RgbUtil.blackRGB();
 	}
 	
-	public PlotCanvasModel(UUID parentWindowModelUUID, PlotCanvasModel copy) {
+	public PlotCanvasModel(UUID parentWindowModelUUID, PlotCanvasModel copy) throws ChartreuseException {
 	    this(parentWindowModelUUID);
 
         this.setName(copy.getName())
@@ -716,7 +718,8 @@ public class PlotCanvasModel {
 	}
 
 	public PlotTraceModel findDerivativeLine(DerivativeLineType type) {
-		for(PlotTraceModel traceModel : getTraceModels()) {
+		for(int i = 0; i < traceModels.size(); i++) {
+			PlotTraceModel traceModel = traceModels.get(i);
 			if(traceModel.getDerivativeLineType() == type) {
 				return traceModel;
 			}
@@ -725,7 +728,8 @@ public class PlotCanvasModel {
 	}
 
 	public PlotTraceModel findDerivativeLine(String mainReferenceTraceName, DerivativeLineType type) {
-		for(PlotTraceModel traceModel : getTraceModels()) {
+		for(int i = 0; i < traceModels.size(); i++) {
+			PlotTraceModel traceModel = traceModels.get(i);
 			if(traceModel.getName().equals(mainReferenceTraceName) &&
 			   traceModel.getDerivativeLineType() == type) {
 				return traceModel;

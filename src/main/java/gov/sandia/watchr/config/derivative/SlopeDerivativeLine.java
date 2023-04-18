@@ -207,12 +207,13 @@ public class SlopeDerivativeLine extends DerivativeLine {
 
     @Override
     public DerivativeLine applyOverTemplate(DerivativeLine template) {
-        if(template instanceof AverageDerivativeLine) {
+        if(template instanceof SlopeDerivativeLine) {
             SlopeDerivativeLine newDerivativeLine = new SlopeDerivativeLine((SlopeDerivativeLine)template);
             newDerivativeLine.setColor(getColor());
             newDerivativeLine.setName(getName());
             newDerivativeLine.setXExpression(getXExpression());
             newDerivativeLine.setYExpression(getYExpression());
+            return newDerivativeLine;
         }
         return null;
     }

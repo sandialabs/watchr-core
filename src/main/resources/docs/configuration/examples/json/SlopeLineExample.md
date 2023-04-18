@@ -13,7 +13,7 @@ A slope derivative line is not "derivative" in the mathematical sense, but rathe
 	    "plots" : {
 	        "files" : {
 	            "fileName": "performance_*",
-	            "type" : "xml"
+	            "type" : "json"
 	        },
 	        "plot" : [
 	            {
@@ -22,20 +22,27 @@ A slope derivative line is not "derivative" in the mathematical sense, but rathe
 	                    {
 	                        "name" : "Data Line",
 	                        "x" : {
-	                            "getPath": "performance-reports/{0-N}",
+	                            "getPath": "performance-reports/*",
 	                            "getKey" : "time",
-	                            "unit" : "date"
+	                            "unit" : "date",
+	                            "strategy" : {
+	                                "getFirstMatchOnly" : "false"
+	                            }
 	                        },
 	                        "y" : {
-	                            "getPath": "performance-reports/{0-N}",
+	                            "getPath": "performance-reports/*",
 	                            "getKey" : "measurement",
-	                            "unit" : "seconds"
+	                            "unit" : "seconds",
+	                            "strategy" : {
+	                                "getFirstMatchOnly" : "false",
+	                                "iterateWith" : "x"
+	                            }
 	                        },
 	                        "derivativeLines" : [
 	                            {
 	                                "type" : "slope",
 	                                "name" : "Slope Line",
-	                                "y" : "2.0 * x + 5.0"
+	                                "y" : "( 2.0 * x ) + 5.0"
 	                            }
 	                        ]
 	                    }
@@ -73,4 +80,7 @@ A slope derivative line is not "derivative" in the mathematical sense, but rathe
 
 ## Command Line:
 
-	watchr config.json performance_data.json
+	watchr start 
+    watchr config config.json
+    watchr add performance_data.json
+    watchr run

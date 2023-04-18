@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<performance-report date="2018-01-15T00:52:52" name="nightly_run_2018_01_15" time-units="seconds">
+    <timing end-time="2018-01-15 00:38:52" name="many_enclosures_BK">
+        <metadata key="codeBase" value="Maria" />
+        <metadata key="branch" value="devel" />
+        <timing count="128" cpu-time-max="380.191" cpu-time-min="379.093" cpu-time-sum="48594.28" name="Test" parallel="true" wall-time-max="381.193" wall-time-min="380.659" wall-time-sum="48747.474">
+            <metric name="RAM" units="MB" value="1559.4" />            
+        </timing>
+    </timing>
+</performance-report>

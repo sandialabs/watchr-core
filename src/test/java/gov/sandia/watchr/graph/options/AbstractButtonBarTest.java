@@ -8,9 +8,9 @@ import java.io.UnsupportedEncodingException;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.db.IDatabase;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.graph.library.IHtmlButtonRenderer;
+import gov.sandia.watchr.graph.library.IHtmlGraphRenderer;
 import gov.sandia.watchr.graph.library.impl.PlotlyButtonRenderer;
 
 public class AbstractButtonBarTest {
@@ -19,8 +19,8 @@ public class AbstractButtonBarTest {
 
     @Before
     public void setup() {
-        IDatabase db = null;
-        IHtmlButtonRenderer buttonRenderer = new PlotlyButtonRenderer(db);
+        IHtmlGraphRenderer gr = null;
+        IHtmlButtonRenderer buttonRenderer = new PlotlyButtonRenderer(gr);
         buttonBar = new AbstractButtonBar(buttonRenderer) {
             @Override
             public String getHtmlForButton(PlotWindowModel currentPlot, ButtonType type) {

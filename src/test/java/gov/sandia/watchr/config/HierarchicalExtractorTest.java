@@ -17,8 +17,8 @@ import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.parse.extractors.ExtractionResult;
-import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.AmbiguityStrategy;
 
 public class HierarchicalExtractorTest {
     

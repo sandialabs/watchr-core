@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -17,6 +17,8 @@ import gov.sandia.watchr.config.PlotConfig;
 import gov.sandia.watchr.config.derivative.DerivativeLine;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.db.IDatabase;
+import gov.sandia.watchr.db.NewPlotDatabaseSearchCriteria;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
@@ -25,14 +27,32 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.parse.extractors.ExtractionResult;
-import gov.sandia.watchr.parse.extractors.ExtractionResultNameResolver;
 import gov.sandia.watchr.parse.generators.DerivativeLineGenerator;
 import gov.sandia.watchr.parse.generators.line.CombinationStrategy;
 import gov.sandia.watchr.parse.generators.line.DataLineGenerator;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResultNameResolver;
+import gov.sandia.watchr.util.OsUtil;
 import gov.sandia.watchr.util.RGB;
 
 public class ScatterPlotDataLineGenerator extends DataLineGenerator {
+
+    private static final String CLASSNAME = ScatterPlotDataLineGenerator.class.getSimpleName();
+
+    enum ScatterPlotDataLineGeneratorState {
+        IDLE,
+        APPLY_EXTRACTION_RESULTS,
+        APPLY_DERIVATIVE_LINES_TO_PLOT,
+        APPLY_EXTRACTION_RESULTS_TO_CHILD_PLOTS,
+        APPLY_EXTRACTION_RESULTS_VIA_FULL_COMBINATORIAL,
+        APPLY_EXTRACTION_RESULTS_VIA_ITERATION,
+        GET_TARGET_PLOT_NAME,
+        SEARCH_AND_MAKE_NEW_IF_MISSING,
+        UPDATING
+    }
+    private ScatterPlotDataLineGeneratorState state = ScatterPlotDataLineGeneratorState.IDLE;
+    private String currentPlotName;
+    private String currentPlotCategory;
 
     /////////////////
     // CONSTRUCTOR //
@@ -47,112 +67,132 @@ public class ScatterPlotDataLineGenerator extends DataLineGenerator {
     //////////////
 
     @Override
-    protected List<PlotWindowModel> applyExtractionResultsToRootPlots(
-            List<ExtractionResult> xResults, List<ExtractionResult> yResults,
-            Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
-        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlots()");
+    protected List<PlotWindowModel> applyExtractionResults(
+            List<ExtractionResult> xResults,
+            List<ExtractionResult> yResults,
+            Map<String, ExtractionResult> metadataResults)
+            throws WatchrParseException {
+        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlots()", CLASSNAME);
+        state = ScatterPlotDataLineGeneratorState.APPLY_EXTRACTION_RESULTS;
 
         List<PlotWindowModel> windowModels = new ArrayList<>();
         if(xResults != null && yResults != null) {
             CombinationStrategy comboStrategy = getCombinationStrategy(xResults, yResults);
 
             if(comboStrategy == CombinationStrategy.MULTIPLE_ITERATE) {
-                windowModels.addAll(
-                    applyExtractionResultsToRootPlotsViaIteration(xResults, yResults, metadataResults)
-                );
+                windowModels.addAll(applyExtractionResultsViaIteration(xResults, yResults, metadataResults));
             } else {
-                windowModels.addAll(
-                    applyExtractionResultsToRootPlotsViaFullCombinatorial(xResults, yResults, metadataResults)
-                );
+                windowModels.addAll(applyExtractionResultsViaFullCombinatorial(xResults, yResults, metadataResults));
             }
         }
 
-        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlots()");
+        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlots()", CLASSNAME);
         return windowModels;
     }
 
     @Override
     protected void applyDerivativeLinesToPlot(
             PlotWindowModel windowModel, List<DerivativeLine> derivativeLines) throws WatchrParseException {
-        logger.logDebug("ScatterPlotDataLineGenerator.applyDerivativeLinesToPlot()");
-        logger.logDebug("Generate derivative lines for plot " + windowModel.getName() + "...");
+        logger.logDebug("ScatterPlotDataLineGenerator.applyDerivativeLinesToPlot()", CLASSNAME);
+        logger.logDebug("Generate derivative lines for plot " + windowModel.getName() + "...", CLASSNAME);
+        state = ScatterPlotDataLineGeneratorState.APPLY_DERIVATIVE_LINES_TO_PLOT;
+
         for(PlotCanvasModel canvasModel : windowModel.getCanvasModels()) {
             for(PlotTraceModel traceModel : canvasModel.getNonDerivativeTraceModels()) {
-                logger.logDebug("Generate derivative lines for trace " + traceModel.getName() + "...");
+                logger.logDebug("Generate derivative lines for trace " + traceModel.getName() + "...", CLASSNAME);
                 DerivativeLineGenerator derivativeLineGenerator = new DerivativeLineGenerator(traceModel, logger);
                 derivativeLineGenerator.generate(derivativeLines, diffs);
-                logger.logDebug("Done generating derivative line.");
+                logger.logDebug("Done generating derivative line.", CLASSNAME);
             }
         }
-        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyDerivativeLinesToPlot()");
+        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyDerivativeLinesToPlot()", CLASSNAME);
     }  
+    
+    @Override
+    public String getProblemStatus() {
+        if(state == ScatterPlotDataLineGeneratorState.SEARCH_AND_MAKE_NEW_IF_MISSING) {
+            return "ScatterPlotDataLineGenerator: Searching for plot: " + currentPlotName +
+                   " in category " + currentPlotCategory + OsUtil.getOSLineBreak();
+        } else if(state == ScatterPlotDataLineGeneratorState.UPDATING) {
+            return "ScatterPlotDataLineGenerator: Plot locked for editing: " + currentPlotName +
+                   " in category " + currentPlotCategory + OsUtil.getOSLineBreak();
+        } else {
+            return "ScatterPlotDataLineGenerator: State is " + state.toString() + OsUtil.getOSLineBreak();
+        }
+    }
 
     /////////////
     // PRIVATE //
     /////////////
 
-    private List<PlotWindowModel> applyExtractionResultsToRootPlotsViaFullCombinatorial(
-        List<ExtractionResult> xResults, List<ExtractionResult> yResults, Map<String, ExtractionResult> metadataResults)
-        throws WatchrParseException {
+    private List<PlotWindowModel> applyExtractionResultsViaFullCombinatorial(
+            List<ExtractionResult> xResults,
+            List<ExtractionResult> yResults,
+            Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
+        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaFullCombinatorial()", CLASSNAME);
+        logger.logDebug("Number of X results: " + xResults.size(), CLASSNAME);
+        logger.logDebug("Number of Y results: " + yResults.size(), CLASSNAME);
+        state = ScatterPlotDataLineGeneratorState.APPLY_EXTRACTION_RESULTS_VIA_FULL_COMBINATORIAL;
 
-        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaFullCombinatorial()");
-        logger.logDebug("Number of X results: " + xResults.size());
-        logger.logDebug("Number of Y results: " + yResults.size());
         List<PlotWindowModel> windowModels = new ArrayList<>();
         for(ExtractionResult xResult : xResults) {
             if(xResult != null) {
                 for(ExtractionResult yResult : yResults) {
                     if(yResult != null) {
-
-                        String plotName = name;
-                        logger.logDebug("Name: " + plotName);
-                        if(StringUtils.isBlank(plotName)) {
-                            ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
-                            plotName = nameResolver.getName(xResult, yResult, "plot_");
-                            logger.logDebug("Name after name resolver: " + plotName);
+                        String plotName = getTargetPlotName(xResult, yResult, -1);
+                        if(plotName != null) {
+                            PlotWindowModel windowModel =
+                                applyExtractionResultsToChildPlots(plotName, xResult, yResult, metadataResults);
+                            if(windowModel != null) {
+                                windowModels.add(windowModel);
+                            }
                         }
-
-                        PlotWindowModel windowModel =
-                            applyExtractionResultsToChildPlots(plotName, xResult, yResult, metadataResults);
-                        windowModels.add(windowModel);
                     }
                 }
             }
         }
 
-        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaFullCombinatorial()");
+        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaFullCombinatorial()", CLASSNAME);
         return windowModels;
     }
 
-    private List<PlotWindowModel> applyExtractionResultsToRootPlotsViaIteration(
-        List<ExtractionResult> xResults, List<ExtractionResult> yResults,
-        Map<String, ExtractionResult> metadataResults)
-        throws WatchrParseException {
-        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaIteration()");
+    private List<PlotWindowModel> applyExtractionResultsViaIteration(
+            List<ExtractionResult> xResults,
+            List<ExtractionResult> yResults,
+            Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
+        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaIteration()", CLASSNAME);
+        state = ScatterPlotDataLineGeneratorState.APPLY_EXTRACTION_RESULTS_VIA_ITERATION;
         List<PlotWindowModel> windowModels = new ArrayList<>();
 
-        logger.logDebug("Number of X results: " + xResults.size());
-        logger.logDebug("Number of Y results: " + yResults.size());
+        logger.logDebug("Number of X results: " + xResults.size(), CLASSNAME);
+        logger.logDebug("Number of Y results: " + yResults.size(), CLASSNAME);
         for(int i = 0; i < xResults.size() && i < yResults.size(); i++) {
             ExtractionResult xResult = xResults.get(i);
             ExtractionResult yResult = yResults.get(i);
             if(xResult != null && yResult != null) {
-
-                String plotName = name;
-                logger.logDebug("Name: " + plotName);
-                if(StringUtils.isBlank(plotName)) {
-                    ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
-                    plotName = nameResolver.getName(xResult, yResult, "plot_", i);
-                    logger.logDebug("Name after name resolver: " + plotName);
+                String plotName = getTargetPlotName(xResult, yResult, i);
+                if(plotName != null) {
+                    PlotWindowModel windowModel = applyExtractionResultsToChildPlots(plotName, xResult, yResult, metadataResults, i);
+                    windowModels.add(windowModel);
                 }
-
-                PlotWindowModel windowModel =
-                    applyExtractionResultsToChildPlots(plotName, xResult, yResult, metadataResults, i);
-                windowModels.add(windowModel);
             }
         }
-        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaIteration()");
+        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToRootPlotsViaIteration()", CLASSNAME);
         return windowModels;
+    }
+
+    private String getTargetPlotName(ExtractionResult xResult, ExtractionResult yResult, int iterator) {
+        state = ScatterPlotDataLineGeneratorState.GET_TARGET_PLOT_NAME;
+        String plotName = name;
+        logger.logDebug("Name: " + plotName, CLASSNAME);
+        if(StringUtils.isBlank(plotName)) {
+            ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
+            plotName = nameResolver.getName(xResult, yResult, iterator);
+            if(plotName != null) {
+                logger.logDebug("Name after name resolver: " + plotName, CLASSNAME);
+            }
+        }
+        return plotName;
     }
 
     private PlotWindowModel applyExtractionResultsToChildPlots(
@@ -167,104 +207,104 @@ public class ScatterPlotDataLineGenerator extends DataLineGenerator {
             Map<String, ExtractionResult> metadataResults, int resultIndex)
             throws WatchrParseException {
 
-        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToChildPlots()");
+        logger.logDebug("ScatterPlotDataLineGenerator.applyExtractionResultsToChildPlots()", CLASSNAME);
+        logger.logDebug("Looking for plot " + plotName + " in category " + category + "...", CLASSNAME);
+        state = ScatterPlotDataLineGeneratorState.APPLY_EXTRACTION_RESULTS_TO_CHILD_PLOTS;
 
-        logger.logDebug("Looking for plot " + plotName + " in category " + category + "...");
-        PlotWindowModel windowModel = db.searchPlot(plotName, category);
-        if(windowModel == null) {
-            logger.logInfo("Could not find plot with name \"" + plotName + "\" in category \"" + category + "\".  Creating a new one...");
-            windowModel = newPlotWindowModel(xResult, yResult, metadataResults, resultIndex);
-            if(windowModel != null) {
-                db.addPlot(windowModel);
-            }
-        } else {
-            logger.logDebug("Updating existing plot. First, resolve data line name...");
-            String dataLineName = resolveDataLineName(xResult, yResult);
-            logger.logDebug("Data line name is " + dataLineName);
-            PlotTraceModel traceModel = findPlotTraceModel(windowModel, dataLineName);
-            if(traceModel != null) {
-                logger.logDebug("Update the existing data line trace model...");
-                updatePlotTraceModel(traceModel, xResult, yResult, metadataResults);
-            } else {
-                logger.logDebug("Create a new data line trace model...");
-                PlotCanvasModel canvasModel = newCanvasModel(windowModel);
-                String xValue = formatValue(xResult.getValue(), line.getXExtractor().getProperty(Keywords.FORMAT_AS));
-                String yValue = formatValue(yResult.getValue(), line.getYExtractor().getProperty(Keywords.FORMAT_AS));
-                newPlotTraceModel(canvasModel, dataLineName, xValue, yValue, metadataResults);
-            }
-        }
+        NewPlotDatabaseSearchCriteria searchCriteria = new NewPlotDatabaseSearchCriteria(plotName, category);
+        searchCriteria.setNameConfig(nameConfig);
+        searchCriteria.setXResult(xResult);
+        searchCriteria.setYResult(yResult);
+        searchCriteria.setResultIndex(resultIndex);
 
-        boolean isXRecursive = line.getXExtractor().getAmbiguityStrategy().shouldRecurseToChildGraphs();
-        boolean isYRecursive = line.getYExtractor().getAmbiguityStrategy().shouldRecurseToChildGraphs();
+        currentPlotName = searchCriteria.getName();
+        currentPlotCategory = searchCriteria.getCategory();
 
-        if(isXRecursive && isYRecursive) {
-            throw new UnsupportedOperationException("Cannot simultaneously recurse to child graphs in both X and Y directions!");
-        }
+        state = ScatterPlotDataLineGeneratorState.SEARCH_AND_MAKE_NEW_IF_MISSING;
+        PlotWindowModel windowModel = db.searchAndMakeNewIfMissing(searchCriteria);
 
-        List<PlotWindowModel> childPlots = new ArrayList<>();
-        if(isYRecursive && yResult != null && !yResult.getChildren().isEmpty()) {
-            for(int i = 0; i < yResult.getChildren().size(); i++) {
-                ExtractionResult childResult = yResult.getChildren().get(i);
-                ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
-                String childPlotName = nameResolver.getChildName(name, childResult, i);
-                logger.logDebug("name: " + name);
-                logger.logDebug("childPlotName: " + childPlotName);
-                PlotWindowModel updatedChildPlot =
-                    applyExtractionResultsToChildPlots(childPlotName, xResult, childResult, metadataResults);
-                childPlots.add(updatedChildPlot);
+        try {
+            while(windowModel == null) {
+                Thread.sleep(10);
+                windowModel = db.searchAndMakeNewIfMissing(searchCriteria);
             }
-        } else if(isXRecursive && xResult != null && !xResult.getChildren().isEmpty()) {
-            for(int i = 0; i < xResult.getChildren().size(); i++) {
-                ExtractionResult childResult = xResult.getChildren().get(i);
-                ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
-                String childPlotName = nameResolver.getChildName(name, childResult, i);
-                logger.logDebug("name: " + name);
-                logger.logDebug("childPlotName: " + childPlotName);
-                PlotWindowModel updatedChildPlot =
-                    applyExtractionResultsToChildPlots(childPlotName, childResult, yResult, metadataResults);
-                childPlots.add(updatedChildPlot);
-            }
+        } catch(InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.logDebug(
+                "Threading interruption occurred - could not get access to plot with name " + searchCriteria.getName() +
+                " and category " + searchCriteria.getCategory(), CLASSNAME);
         }
 
         if(windowModel != null) {
-            applyCanvasLayoutDisplaySettingsToPlot(windowModel);
+            state = ScatterPlotDataLineGeneratorState.UPDATING;
+            synchronized(windowModel) {
+                currentPlotName = windowModel.getName();
+                currentPlotCategory = windowModel.getCategory();
+
+                if(windowModel.isEmpty2D()) {
+                    initPlotWindowModel(windowModel, xResult, yResult, metadataResults);
+                }
+
+                logger.logDebug("Updating existing plot. First, resolve data line name...", CLASSNAME);
+                String dataLineName = resolveDataLineName(xResult, yResult);
+                if(dataLineName != null) {
+                    logger.logDebug("Data line name is " + dataLineName, CLASSNAME);
+                    PlotTraceModel traceModel = findPlotTraceModel(windowModel, dataLineName);
+                    if(traceModel != null) {
+                        logger.logDebug("Update the existing data line trace model...", CLASSNAME);
+                        updatePlotTraceModel(traceModel, xResult, yResult, metadataResults);
+                    } else if(xResult != null && yResult != null) {
+                        logger.logDebug("Create a new data line trace model...", CLASSNAME);
+                        PlotCanvasModel canvasModel = newCanvasModel(windowModel);
+                        String xValue = formatValue(xResult.getValue(), line.getXExtractor().getProperty(Keywords.FORMAT_AS));
+                        String yValue = formatValue(yResult.getValue(), line.getYExtractor().getProperty(Keywords.FORMAT_AS));
+                        newPlotTraceModel(canvasModel, dataLineName, xValue, yValue, metadataResults);
+                    }
+
+                    boolean isXRecursive = line.getXExtractor().getAmbiguityStrategy().shouldRecurseToChildGraphs();
+                    boolean isYRecursive = line.getYExtractor().getAmbiguityStrategy().shouldRecurseToChildGraphs();
+
+                    if(isXRecursive && isYRecursive) {
+                        throw new UnsupportedOperationException("Cannot simultaneously recurse to child graphs in both X and Y directions!");
+                    }
+
+                    List<PlotWindowModel> childPlots =
+                        updateChildPlots(xResult, yResult, metadataResults, isXRecursive, isYRecursive);
+
+                    logger.logDebug("Update canvas layout.", CLASSNAME);
+                    applyCanvasLayoutDisplaySettingsToPlot(windowModel);
+
+                    if(!childPlots.isEmpty()) {
+                        logger.logDebug("Update database's parent-child linkage between plot models.", CLASSNAME);
+                        db.setPlotsAsChildren(windowModel, childPlots);
+                    }
+
+                    logger.logDebug("Apply derivative lines to plot.", CLASSNAME);
+                    applyDerivativeLinesToPlot(windowModel, line.getDerivativeLines());
+                }
+                db.updatePlot(windowModel, false);
+            }
+
+            logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToChildPlots()", CLASSNAME);
+            return windowModel;
         }
-
-        // Update database's parent-child linkage between plot models.
-        if(!childPlots.isEmpty() && windowModel != null) {
-            logger.logDebug("Update database's parent-child linkage between plot models.");
-            db.setPlotsAsChildren(windowModel, childPlots);
-        }
-
-        // Update derivative lines on this plot.
-        logger.logDebug("Apply derivative lines to plot.");
-        applyDerivativeLinesToPlot(windowModel, line.getDerivativeLines());
-
-        logger.logDebug("DONE: ScatterPlotDataLineGenerator.applyExtractionResultsToChildPlots()");
-        return windowModel;
+        return null;
     }
 
     private String resolveDataLineName(ExtractionResult xResult, ExtractionResult yResult) {
         String dataLineName = line.getName();
         if(StringUtils.isBlank(dataLineName) && line.getNameConfig() != null) {
             ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(line.getNameConfig(), logger);
-            dataLineName = nameResolver.getName(xResult, yResult, "line_");
+            dataLineName = nameResolver.getName(xResult, yResult, -1);
         }
         return dataLineName;
     }
 
-    private PlotWindowModel newPlotWindowModel(
-        ExtractionResult xResult, ExtractionResult yResult,
-        Map<String, ExtractionResult> metadataResults, int resultIndex) {
+    private PlotWindowModel initPlotWindowModel(
+        PlotWindowModel newWindow, ExtractionResult xResult, ExtractionResult yResult,
+        Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
 
         if(xResult != null && yResult != null) {
-
-            String plotName = name;
-            if(StringUtils.isBlank(plotName)) {
-                ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
-                plotName = nameResolver.getName(xResult, yResult, "plot_", resultIndex);
-            }
-            PlotWindowModel newWindow = new PlotWindowModel(plotName);
             newWindow.setCategory(category);
             if(useLegend != null) {
                 newWindow.setLegendVisible(useLegend);
@@ -280,8 +320,9 @@ public class ScatterPlotDataLineGenerator extends DataLineGenerator {
             String yValue = StringUtils.isBlank(formatYPoints) ? yResult.getValue() : format(yResult.getValue(), formatYPoints);
             
             String dataLineName = resolveDataLineName(xResult, yResult);
-            newPlotTraceModel(newCanvas, dataLineName, xValue, yValue, metadataResults);
-            
+            if(dataLineName != null) {
+                newPlotTraceModel(newCanvas, dataLineName, xValue, yValue, metadataResults);
+            }
             return newWindow;
         }
         return null;
@@ -289,20 +330,63 @@ public class ScatterPlotDataLineGenerator extends DataLineGenerator {
 
     protected void newPlotTraceModel(
             PlotCanvasModel parentCanvas, String traceName,
-            String xValue, String yValue, Map<String, ExtractionResult> metadataResults) {
+            String xValue, String yValue,
+            Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
 
-        PlotTraceModel newTrace = new PlotTraceModel(parentCanvas.getUUID());
-        newTrace.setName(traceName);
-        RGB color = line.getColor();
-        newTrace.setPrimaryRGB(color == null ? new RGB(0,0,0) : color);
-        newTrace.set(PlotToken.TRACE_POINT_TYPE, PlotType.SCATTER_PLOT);
-        newTrace.set(PlotToken.TRACE_POINT_MODE, "Circle");
-        newTrace.set(PlotToken.TRACE_DRAW_LINES, true);
+        try {
+            PlotTraceModel newTrace = new PlotTraceModel(parentCanvas.getUUID());
+            newTrace.setName(traceName);
+            RGB color = line.getColor();
+            newTrace.setPrimaryRGB(color == null ? new RGB(0,0,0) : color);
+            newTrace.set(PlotToken.TRACE_POINT_TYPE, PlotType.SCATTER_PLOT);
+            newTrace.set(PlotToken.TRACE_POINT_MODE, "Circle");
+            newTrace.set(PlotToken.TRACE_DRAW_LINES, true);
 
-        PlotTracePoint newPoint = new PlotTracePoint(xValue, yValue);
-        newTrace.add(newPoint);
+            PlotTracePoint newPoint = new PlotTracePoint(xValue, yValue);
+            newTrace.add(newPoint);
 
-        applyMetadataToDatabasePlot(newPoint, metadataResults);
+            applyMetadataToPlot(newPoint, metadataResults);
+            applyFiltersToDataLine(newTrace, line.getPointFilterConfig(), false);
+        } catch(ChartreuseException e) {
+            throw new WatchrParseException(e);
+        }
+    }
+
+    private List<PlotWindowModel> updateChildPlots(
+            ExtractionResult xResult, ExtractionResult yResult,
+            Map<String, ExtractionResult> metadataResults,
+            boolean isXRecursive, boolean isYRecursive)
+            throws WatchrParseException {
+
+        List<PlotWindowModel> childPlots = new ArrayList<>();
+        if(isYRecursive && yResult != null && !yResult.getChildren().isEmpty()) {
+            for(int i = 0; i < yResult.getChildren().size(); i++) {
+                ExtractionResult childResult = yResult.getChildren().get(i);
+                ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
+                String childPlotName = nameResolver.getChildName(name, childResult, i);
+                logger.logDebug("name: " + name, CLASSNAME);
+                logger.logDebug("childPlotName: " + childPlotName, CLASSNAME);
+                PlotWindowModel updatedChildPlot =
+                    applyExtractionResultsToChildPlots(childPlotName, xResult, childResult, metadataResults);
+                if(updatedChildPlot != null) {
+                    childPlots.add(updatedChildPlot);
+                }
+            }
+        } else if(isXRecursive && xResult != null && !xResult.getChildren().isEmpty()) {
+            for(int i = 0; i < xResult.getChildren().size(); i++) {
+                ExtractionResult childResult = xResult.getChildren().get(i);
+                ExtractionResultNameResolver nameResolver = new ExtractionResultNameResolver(nameConfig, logger);
+                String childPlotName = nameResolver.getChildName(name, childResult, i);
+                logger.logDebug("name: " + name, CLASSNAME);
+                logger.logDebug("childPlotName: " + childPlotName, CLASSNAME);
+                PlotWindowModel updatedChildPlot =
+                    applyExtractionResultsToChildPlots(childPlotName, childResult, yResult, metadataResults);
+                if(updatedChildPlot != null) {
+                    childPlots.add(updatedChildPlot);
+                }
+            }
+        }
+        return childPlots;
     }
 
     private void applyCanvasLayoutDisplaySettingsToPlot(PlotWindowModel windowModel) {

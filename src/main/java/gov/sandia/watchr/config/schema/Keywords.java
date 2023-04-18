@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -15,6 +15,7 @@ public class Keywords {
 
     public static final String ACTION = "action";
     public static final String ACTION_PROPERTIES = "actionProperties";
+    public static final String ALWAYS = "always";
     public static final String AUTONAME = "autoname";
     public static final String BODY = "body";
     public static final String CANVAS_LAYOUT = "canvasLayout";
@@ -31,11 +32,12 @@ public class Keywords {
     public static final String DISPLAYED_DECIMAL_PLACES = "displayedDecimalPlaces";
     public static final String DERIVATIVE_LINES = "derivativeLines";
     public static final String EXPORT_MODE = "exportMode";
+    public static final String EXPRESSION = "expression";
     public static final String EXTRACTOR = "extractor";
     public static final String FILE_FILTER = "fileFilter";
     public static final String FILES = "files";
     public static final String FILENAME = "fileName";
-    public static final String FILTER = "filter";
+    public static final String FILTERS = "filters";
     public static final String FORMAT_AS = "formatAs";
     public static final String FORMAT_BY_REMOVING_PREFIX = "formatByRemovingPrefix";
     public static final String GET_FIRST_MATCH_ONLY = "getFirstMatchOnly";
@@ -55,6 +57,7 @@ public class Keywords {
     public static final String ITERATE_WITH = "iterateWith";
     public static final String LEGEND = "legend";
     public static final String LEVEL = "level";
+    public static final String LOGGABLE_CLASSES = "loggableClasses";
     public static final String LOGGING = "logging";
     public static final String MAILFROM = "mailfrom";
     public static final String MAILTO = "mailto";
@@ -64,17 +67,25 @@ public class Keywords {
     public static final String NUMBER_FORMAT = "numberFormat";
     public static final String PLOT = "plot";
     public static final String PLOTS = "plots";
+    public static final String PLOTYPUS = "plotypus";
+    public static final String POLICY = "policy";
+    public static final String RANDOMIZE_FILE_ORDER = "randomizeFileOrder";
     public static final String RANGE = "range";
     public static final String RECURSE_CHILD_GRAPHS = "recurseChildGraphs";
     public static final String RECURSE_DIRECTORIES = "recurseDirectories";
     public static final String RULES = "rules";
+    public static final String SEARCH_QUERY = "searchQuery";
     public static final String SORT = "sort";
     public static final String STRATEGY = "strategy";
     public static final String TEMPLATE = "template";
+    public static final String TENTACLES = "tentacles";
+    public static final String TIMEOUT = "timeout";
+    public static final String TIME_WARNING = "timeWarning";
     public static final String TITLE = "title";
     public static final String TYPE = "type";
     public static final String UNIT = "unit";
     public static final String USE_PROPERTY = "useProperty";
+    public static final String WHEN = "when";
     public static final String X = "x";
     public static final String Y = "y";   
     

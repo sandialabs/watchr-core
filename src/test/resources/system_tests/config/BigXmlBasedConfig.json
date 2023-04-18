@@ -1,5 +1,8 @@
 {
 	"plots" : {
+		"plotypus" : {
+            "tentacles" : 10
+		},
 		"files" : {
 			"fileName": "performance_*",
 			"type" : "xml",

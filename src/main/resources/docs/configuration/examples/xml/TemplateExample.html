@@ -299,47 +299,67 @@ img {
 <pre><code>{
     &quot;plots&quot; : {
         &quot;files&quot; : {
-            &quot;fileName&quot;: &quot;performance_*&quot;,
+            &quot;fileName&quot;: &quot;performance&quot;,
             &quot;type&quot; : &quot;xml&quot;
         },
+        &quot;categories&quot; : [
+            &quot;cpu-time-max&quot;,
+            &quot;cpu-time-min&quot;,
+            &quot;cpu-time-sum&quot;
+        ],
         &quot;plot&quot; : [
             {
-                &quot;name&quot; : &quot;Template Plot&quot;,
-                &quot;template&quot; : &quot;plot_template&quot;,
+                &quot;name&quot; : &quot;Plot for cpu-time-max&quot;,
                 &quot;category&quot; : &quot;cpu-time-max&quot;,
+                &quot;template&quot; : &quot;plot_template&quot;,
                 &quot;dataLines&quot; : [
                     {
                         &quot;name&quot; : &quot;Data Line&quot;,
+                        &quot;template&quot; : &quot;line_template&quot;,
                         &quot;x&quot; : {
-                            &quot;getPath&quot;: &quot;*&quot;,
                             &quot;getElement&quot; : &quot;performance-report&quot;,
+                            &quot;getPath&quot;: &quot;*&quot;,
                             &quot;getKey&quot; : &quot;date&quot;,
-                            &quot;unit&quot; : &quot;timestamp&quot;
+                            &quot;unit&quot; : &quot;date&quot;
                         },
                         &quot;y&quot; : {
                             &quot;getElement&quot; : &quot;performance-report|timing&quot;,
-                            &quot;getPath&quot;: &quot;nightly_run_*/*/*&quot;,
+                            &quot;getPath&quot;: &quot;*/measurement&quot;,
                             &quot;getPathAttribute&quot;: &quot;name&quot;,
-                            &quot;getKey&quot; : &quot;cpu-time-max&quot;,                          
+                            &quot;getKey&quot; : &quot;cpu-time-max&quot;,
                             &quot;unit&quot; : &quot;seconds&quot;
                         }
                     }
                 ]
-            },
-
-            {
-                &quot;name&quot; : &quot;Inheriting Plot&quot;,
-                &quot;inherit&quot; : &quot;plot_template&quot;,
+            },{
+                &quot;name&quot; : &quot;Plot for cpu-time-min&quot;,
                 &quot;category&quot; : &quot;cpu-time-min&quot;,
+                &quot;inherit&quot; : &quot;plot_template&quot;,
                 &quot;dataLines&quot; : [
                     {
+                        &quot;inherit&quot; : &quot;line_template&quot;,
                         &quot;y&quot; : {
                             &quot;getKey&quot; : &quot;cpu-time-min&quot;
                         }
                     }
                 ]
+            }, {
+                &quot;inherit&quot; : &quot;plot_template&quot;,
+                &quot;name&quot; : &quot;Plot for cpu-time-sum&quot;,
+                &quot;category&quot; : &quot;cpu-time-sum&quot;,
+                &quot;dataLines&quot; : [
+                    {
+                        &quot;inherit&quot; : &quot;line_template&quot;,
+                        &quot;y&quot; : {
+                            &quot;getKey&quot; : &quot;cpu-time-sum&quot;
+                        }
+                    }
+                ]
             }
         ]
+    },
+    &quot;graphDisplay&quot; : {
+        &quot;exportMode&quot; : &quot;perCategory&quot;
     }
 }
 </code></pre>
@@ -347,18 +367,33 @@ img {
 <h2>Data File:  performance.xml</h2>
 <pre><code>&lt;?xml version=&quot;1.0&quot;?&gt;
 &lt;performance-report date=&quot;2021-04-05T22:21:21&quot; name=&quot;nightly_run_2021-04-05&quot;&gt;
-    &lt;timing name=&quot;measurement&quot; cpu_time_max=&quot;2.0&quot; cpu_time_min=&quot;1.0&quot;/&gt;
+    &lt;timing name=&quot;measurement&quot; cpu-time-max=&quot;2.0&quot; cpu-time-min=&quot;1.0&quot;/&gt;
 &lt;/performance-report&gt;
 </code></pre>
 
 <h2>What this example demonstrates:</h2>
 <ul>
-<li>Note that there are two plot configurations in the &quot;plot&quot; array.</li>
+<li>
+Note that there are two plot configurations in the &quot;plot&quot; array.
+<ul>
 <li><strong>&quot;template&quot; in the first plot configuration</strong> - In the first plot configuration, the &quot;template&quot; property appears to indicate that this configuration can be used a template for other plots. </li>
 <li><strong>&quot;inherit&quot; in the second plot configuration</strong> - In the second configuration, note that the field &quot;inherit&quot; refers to our plot template by name.  Also note that this second configuration is much shorter, only overriding the property that it needs to (the y extractor's &quot;getKey&quot; field).</li>
 </ul>
+</li>
+<li>
+Note also the differences between the two configured data lines. 
+<ul>
+<li><strong>&quot;template&quot; in the first data line</strong> - As with the plot, the data line is labeled as a template, thanks to the appearance of the &quot;template&quot; property. This will allow other data lines to inherit from this data line and build on its properties.</li>
+<li><strong>&quot;inherit&quot; in the second data line</strong> - For the second data line, its configuration is much shorter, because it uses the &quot;inherit&quot; property to get all of the properties from the parent line &quot;line_template.&quot; The only thing that has changed for this second line is the &quot;getKey&quot; property.</li>
+</ul>
+</li>
+<li><strong>&quot;exportMode&quot; in the &quot;graphDisplay&quot; section</strong> - Because we are collecting graphs in two different categories, we set the &quot;graphDisplay&quot; section to export per category.</li>
+</ul>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance.xml
+<pre><code>watchr start
+watchr config config.json
+watchr add performance.xml
+watchr run
 </code></pre>
 
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The "filter" section of a Watchr config file provides a convenient way to selectively filter "bad" points that have already entered the database of previously-parsed data files.
+The "filters" section of a Watchr config file provides a convenient way to selectively filter "bad" points that have already entered the database of previously-parsed data files.
 
 ## Watchr Config:  config.json
 	{
@@ -36,9 +36,10 @@ The "filter" section of a Watchr config file provides a convenient way to select
 	                        }
 	                    }
 	                ],
-					"filter": {
-						"x": [ "2021-04-07T22:21:21" ],
-						"y": [ "-1.0" ]
+					"filters": {
+                        "type" : "point",
+                        "expression" : "x == 2021-04-07T22:21:21 && y == -1.0"
+                        "policy" : "blacklist"
 					}
 	            }
 	        ]
@@ -78,8 +79,11 @@ The "filter" section of a Watchr config file provides a convenient way to select
 
 ## What this example demonstrates:
 
-* **The "filter" section** - A filter section contains two JSON arrays - "x" and "y", for filtering x and y data points respectively.  In this example, all data points where the x value  equals "2021-04-07T22:21:21" will be hidden from view.  Likewise, all data points where the y value  equals "-1.0" will be hidden from view.
+* **The "filters" section** : This filters section contains an expression ```x == 2021-04-07T22:21:21 && y == -1.0```, which will match on all points that have an x-value of "2021-04-07T22:21:21" AND have a y-value of "-1.0." Because the filter policy is set to "blacklist," these points will be removed if they match. Finally, because of this filter block's placement in the configuration file, it will apply to all data lines on the plot. If another "plot" configuration block were to be added, however, the "filter" block would not apply to that newly-added plot. 
 
 ## Command Line:
 
-	watchr config.json performance_data.json
+	watchr start
+    watchr config config.json
+    watchr add performance_data.json
+    watchr run

@@ -43,6 +43,7 @@ public class GraphConfigDisplayTest {
         String expectedStr = "nextPlotDbLocation: nextPlotDbLocation" + OsUtil.getOSLineBreak() +
                              "lastPlotDbLocation: lastPlotDbLocation" + OsUtil.getOSLineBreak() +
                              "page: 10" + OsUtil.getOSLineBreak() +
+                             "searchQuery: /" + OsUtil.getOSLineBreak() +
                              "displayCategory: Category" + OsUtil.getOSLineBreak() +
                              "displayRange: 100" + OsUtil.getOSLineBreak() +
                              "graphWidth: 400" + OsUtil.getOSLineBreak() +

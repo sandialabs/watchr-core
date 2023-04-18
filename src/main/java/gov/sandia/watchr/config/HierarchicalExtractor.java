@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -20,11 +20,11 @@ import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.parse.extractors.ExtractionResult;
-import gov.sandia.watchr.parse.extractors.strategy.AmbiguityStrategy;
-import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategy;
-import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategyFactory;
-import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategyType;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.AmbiguityStrategy;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.ExtractionStrategy;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.ExtractionStrategyFactory;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.ExtractionStrategyType;
 
 public class HierarchicalExtractor implements IConfig {
 

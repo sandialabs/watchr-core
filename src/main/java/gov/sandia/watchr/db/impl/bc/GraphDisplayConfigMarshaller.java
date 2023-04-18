@@ -23,6 +23,7 @@ public class GraphDisplayConfigMarshaller implements JsonSerializer<Object>, Jso
 
     private static final String LEAF_STRATEGY = "leafStrategy";
     private static final String TRAVEL_UP_IF_EMPTY = "travelUpIfEmpty";
+    private static final String DFLT_SEARCH_QUERY = "/";
 
     private final ILogger logger;
 
@@ -83,6 +84,7 @@ public class GraphDisplayConfigMarshaller implements JsonSerializer<Object>, Jso
         String leafStrategyStr = jsonObj.has(LEAF_STRATEGY) ? jsonObj.get(LEAF_STRATEGY).getAsString() : LeafNodeStrategy.TRAVEL_UP_TO_PARENT.toString();
         String sortStr = jsonObj.has("sort") ? jsonObj.get("sort").getAsString() : GraphDisplaySort.ASCENDING.toString();
         String exportModeStr = jsonObj.has("exportMode") ? jsonObj.get("exportMode").getAsString() : ExportMode.PER_CATEGORY.toString();
+        String searchQuery = jsonObj.has("searchQuery") ? jsonObj.get("searchQuery").getAsString() : DFLT_SEARCH_QUERY;
 
         GraphDisplayConfig newGraphDisplayConfig = new GraphDisplayConfig(configPath, logger);
         newGraphDisplayConfig.setLastPlotDbLocation(lastPlotDbLocation);
@@ -95,6 +97,7 @@ public class GraphDisplayConfigMarshaller implements JsonSerializer<Object>, Jso
         newGraphDisplayConfig.setGraphsPerRow(graphsPerRow);
         newGraphDisplayConfig.setGraphsPerPage(graphsPerPage);
         newGraphDisplayConfig.setDisplayedDecimalPlaces(displayedDecimalPlaces);
+        newGraphDisplayConfig.setSearchQuery(searchQuery);
 
         newGraphDisplayConfig.setLeafNodeStrategy(leafStrategyStr);
         newGraphDisplayConfig.setSort(sortStr);

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -12,7 +13,16 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.junit.After;
 import org.junit.Test;
+
+import gov.sandia.watchr.config.WatchrConfig;
+import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.reader.WatchrConfigReader;
+import gov.sandia.watchr.db.impl.AbstractDatabase;
+import gov.sandia.watchr.db.impl.FileBasedDatabase;
+import gov.sandia.watchr.parse.plotypus.Plotypus;
 
 public class WatchrCoreAppTest_MultistageTests {
 
@@ -71,10 +81,20 @@ public class WatchrCoreAppTest_MultistageTests {
         File exportDir = Files.createTempDirectory("testUnitExample_Xml_ThreeDays_UpdateDatabaseCorrectly_Day1").toFile();
         String configFileContents = FileUtils.readFileToString(config, StandardCharsets.UTF_8);
 
-        WatchrCoreApp app = WatchrCoreApp.initWatchrApp(dbName, dbDir);
-        app.addToDatabase(dbName, dataFile.getParentFile().getAbsolutePath(), configFileContents);
-        app.saveDatabase(dbName);
-        app.exportAllGraphHtml(dbName, dataFile, config, exportDir);
+        WatchrCoreApp app = TestableWatchrCoreApp.initWatchrAppForTests();
+        app.connectDatabase(dbName, FileBasedDatabase.class, new Object[] { dbDir });
+        String startFileAbsPath = dataFile.getParentFile().getAbsolutePath();
+        Plotypus<WatchrConfig> plotypus = app.createPlotypus(10);
+        WatchrConfigReader reader = app.createWatchrConfigReader(startFileAbsPath);
+        WatchrConfig watchrConfig = reader.deserialize(configFileContents, FilenameUtils.getExtension(config.getName()));
+        AbstractDatabase db = app.getDatabaseAndAttachLogger(dbName);
+        List<WatchrDiff<?>> diffs = app.loadDiffs(watchrConfig, reader, db);
+        app.addToDatabase(plotypus, watchrConfig, db, diffs, startFileAbsPath);
+        plotypus.begin();
+        plotypus.waitToFinish();
+        app.saveDatabase(plotypus, dbName);
+        app.exportAllGraphHtml(dbName, watchrConfig.getGraphDisplayConfig(), exportDir.getAbsolutePath());
+        plotypus.kill();
 
         assertEquals(1, exportDir.listFiles().length);
         String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -102,9 +122,18 @@ public class WatchrCoreAppTest_MultistageTests {
         File exportDir = Files.createTempDirectory("testUnitExample_Xml_ThreeDays_UpdateDatabaseCorrectly_Day2").toFile();
         String configFileContents = FileUtils.readFileToString(config, StandardCharsets.UTF_8);
 
-        app.addToDatabase(dbName, dataFile.getParentFile().getAbsolutePath(), configFileContents);
-        app.saveDatabase(dbName);
-        app.exportAllGraphHtml(dbName, dataFile, config, exportDir);
+        String startFileAbsPath = dataFile.getParentFile().getAbsolutePath();
+        Plotypus<WatchrConfig> plotypus = app.createPlotypus(10);
+        WatchrConfigReader reader = app.createWatchrConfigReader(startFileAbsPath);
+        WatchrConfig watchrConfig = reader.deserialize(configFileContents, FilenameUtils.getExtension(config.getName()));
+        AbstractDatabase db = app.getDatabaseAndAttachLogger(dbName);
+        List<WatchrDiff<?>> diffs = app.loadDiffs(watchrConfig, reader, db);
+        app.addToDatabase(plotypus, watchrConfig, db, diffs, startFileAbsPath);
+        plotypus.begin();
+        plotypus.waitToFinish();
+        app.saveDatabase(plotypus, dbName);
+        app.exportAllGraphHtml(dbName, watchrConfig.getGraphDisplayConfig(), exportDir.getAbsolutePath());
+        plotypus.kill();
 
         assertEquals(1, exportDir.listFiles().length);
         String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -129,11 +158,20 @@ public class WatchrCoreAppTest_MultistageTests {
         File exportDir = Files.createTempDirectory("testUnitExample_Xml_ThreeDays_UpdateDatabaseCorrectly_Day2").toFile();
         String configFileContents = FileUtils.readFileToString(config, StandardCharsets.UTF_8);
 
-        WatchrCoreApp app = WatchrCoreApp.initWatchrApp(dbName, dbDir);
-        app.addToDatabase(dbName, dataFile.getParentFile().getAbsolutePath(), configFileContents);
-        app.saveDatabase(dbName);
-        app.exportAllGraphHtml(dbName, dataFile, config, exportDir);
-
+        WatchrCoreApp app = TestableWatchrCoreApp.initWatchrAppForTests();
+        app.connectDatabase(dbName, FileBasedDatabase.class, new Object[] { dbDir });
+        String startFileAbsPath = dataFile.getParentFile().getAbsolutePath();
+        Plotypus<WatchrConfig> plotypus = app.createPlotypus(10);
+        WatchrConfigReader reader = app.createWatchrConfigReader(startFileAbsPath);
+        WatchrConfig watchrConfig = reader.deserialize(configFileContents, FilenameUtils.getExtension(config.getName()));
+        AbstractDatabase db = app.getDatabaseAndAttachLogger(dbName);
+        List<WatchrDiff<?>> diffs = app.loadDiffs(watchrConfig, reader, db);
+        app.addToDatabase(plotypus, watchrConfig, db, diffs, startFileAbsPath);
+        plotypus.begin();
+        plotypus.waitToFinish();
+        app.saveDatabase(plotypus, dbName);
+        app.exportAllGraphHtml(dbName, watchrConfig.getGraphDisplayConfig(), exportDir.getAbsolutePath());
+        plotypus.kill();
         assertEquals(1, exportDir.listFiles().length);
         String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
         TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_X, "x: ['2021-04-05T22:21:21', '2021-04-06T12:21:21'],");
@@ -158,9 +196,18 @@ public class WatchrCoreAppTest_MultistageTests {
         File exportDir = Files.createTempDirectory("testUnitExample_Xml_ThreeDays_UpdateDatabaseCorrectly_Day3").toFile();
         String configFileContents = FileUtils.readFileToString(config, StandardCharsets.UTF_8);
 
-        app.addToDatabase(dbName, dataFile.getParentFile().getAbsolutePath(), configFileContents);
-        app.saveDatabase(dbName);
-        app.exportAllGraphHtml(dbName, dataFile, config, exportDir);
+        String startFileAbsPath = dataFile.getParentFile().getAbsolutePath();
+        Plotypus<WatchrConfig> plotypus = app.createPlotypus(10);
+        WatchrConfigReader reader = app.createWatchrConfigReader(startFileAbsPath);
+        WatchrConfig watchrConfig = reader.deserialize(configFileContents, FilenameUtils.getExtension(config.getName()));
+        AbstractDatabase db = app.getDatabaseAndAttachLogger(dbName);
+        List<WatchrDiff<?>> diffs = app.loadDiffs(watchrConfig, reader, db);
+        app.addToDatabase(plotypus, watchrConfig, db, diffs, startFileAbsPath);
+        plotypus.begin();
+        plotypus.waitToFinish();
+        app.saveDatabase(plotypus, dbName);
+        app.exportAllGraphHtml(dbName, watchrConfig.getGraphDisplayConfig(), exportDir.getAbsolutePath());
+        plotypus.kill();
 
         assertEquals(1, exportDir.listFiles().length);
         String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -179,5 +226,19 @@ public class WatchrCoreAppTest_MultistageTests {
         assertEquals("parentChildPlots.json", files.get(3).getName());
         assertTrue(files.get(4).getName().startsWith("plot_"));
         assertTrue(files.get(5).getName().startsWith("plot_"));
+    }
+
+    @After
+    public void teardown() {
+        try {
+            File watchrRunDirectory = new File(System.getProperty("user.dir") + File.separator + "watchrRun");
+            File graphDirectory = new File(System.getProperty("user.dir") + File.separator + "graph");
+
+            FileUtils.deleteDirectory(watchrRunDirectory);
+            FileUtils.deleteDirectory(graphDirectory);
+        } catch(IOException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
     }
 }

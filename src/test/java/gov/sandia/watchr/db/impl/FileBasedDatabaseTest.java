@@ -2,6 +2,8 @@ package gov.sandia.watchr.db.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -83,15 +85,45 @@ public class FileBasedDatabaseTest {
     }
 
     @Test
-    public void testDeletePlot() {
+    public void testDeletePlot_Single() {
         PlotWindowModel plot = new PlotWindowModel(CommonConstants.ROOT_PATH_ALIAS);
         db.addPlot(plot);
         db.saveState();
-        assertEquals(1, db.getAllPlots().size());
+        assertNotNull(db.getRootPlot());
+        assertEquals(0, db.getAllPlots().size());
+        assertEquals(0, db.parentChildPlots.keySet().size());
+        assertNull(db.parentChildPlots.get(plot.getUUID().toString()));
 
-        db.deletePlot(plot);
+        db.deletePlot(plot.getUUID().toString());
         db.saveState();
         assertEquals(0, db.getAllPlots().size());
+        assertEquals(0, db.parentChildPlots.keySet().size());
+        assertNull(db.parentChildPlots.get(plot.getUUID().toString()));
+    }
+
+    @Test
+    public void testDeletePlot_Hierarchy() {
+        PlotWindowModel rootPlot = new PlotWindowModel(CommonConstants.ROOT_PATH_ALIAS);
+        PlotWindowModel childPlot = new PlotWindowModel("Child");
+        List<PlotWindowModel> children = new ArrayList<>();
+        children.add(childPlot);
+
+        db.addPlot(rootPlot);
+        db.addPlot(childPlot);
+        db.setPlotsAsChildren(rootPlot, children);
+        db.saveState();
+        assertEquals(1, db.getAllPlots().size());
+        assertEquals(1, db.parentChildPlots.keySet().size());
+        Set<String> returnedUUIDs = db.parentChildPlots.get(rootPlot.getUUID().toString());
+        assertTrue(returnedUUIDs.contains(childPlot.getUUID().toString()));
+
+        db.deletePlot(childPlot.getUUID().toString());
+        db.saveState();
+        assertNotNull(db.getRootPlot());
+        assertEquals(0, db.getAllPlots().size());
+        assertEquals(1, db.parentChildPlots.keySet().size());
+        returnedUUIDs = db.parentChildPlots.get(rootPlot.getUUID().toString());
+        assertTrue(returnedUUIDs.isEmpty());
     }
 
     @Test
@@ -148,10 +180,7 @@ public class FileBasedDatabaseTest {
         PlotWindowModel readPlot = db.loadPlotUsingUUID(plotWindow1.getUUID().toString());
         assertEquals(plotWindow1, readPlot);
         assertEquals(1, db.plots.size());
-
-        db.getChildren("MyTestPlot1", "");
-        assertEquals(3, db.plots.size());
-    }    
+    }
 
     @Test
     public void testReadParentChildRelationships() {
@@ -228,5 +257,17 @@ public class FileBasedDatabaseTest {
         newDb.readLastConfiguration();
         assertEquals(1920, newDb.getLastConfig().getGraphDisplayConfig().getGraphWidth());
         assertEquals(1080, newDb.getLastConfig().getGraphDisplayConfig().getGraphHeight());
+    }
+
+    @Test
+    public void testReadLastConfiguration_AddEmptyFilterIfDeserializedConfigHasNullFilter() {
+        WatchrConfig config = db.getLastConfig();
+        config.setFilterConfig(null);
+        db.saveState();
+        assertNull(db.getLastConfig().getFilterConfig());
+
+        FileBasedDatabase newDb = new FileBasedDatabase(rootDir, testLogger, fileReader);
+        newDb.readLastConfiguration();
+        assertNotNull(newDb.getLastConfig().getFilterConfig());
     }
 }

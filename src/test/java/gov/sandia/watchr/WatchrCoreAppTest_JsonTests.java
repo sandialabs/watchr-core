@@ -6,10 +6,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Test;
 
 import gov.sandia.watchr.parse.WatchrParseException;
@@ -25,12 +27,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_HelloWorld").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_HelloWorld").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -50,12 +52,13 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_DerivativeLineTest").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_DerivativeLineTest").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
+
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
             TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_X, "x: ['2021-04-05T22:21:21', '2021-04-06T22:21:21', '2021-04-07T22:21:21', '2021-04-08T22:21:21', '2021-04-09T22:21:21', '2021-04-10T22:21:21'],");
@@ -77,7 +80,7 @@ public class WatchrCoreAppTest_JsonTests {
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
-        }         
+        }
     }
     
     @Test
@@ -88,12 +91,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_Rules_Success").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_Rules_Success").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -115,12 +118,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_Rules_Fail").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_Rules_Fail").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -142,12 +145,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_Rules_WarnWithConflictingRules").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_Rules_WarnWithConflictingRules").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -169,12 +172,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_FileFilter").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_FileFilter").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -196,12 +199,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_Json_Legend").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_Json_Legend").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -213,19 +216,51 @@ public class WatchrCoreAppTest_JsonTests {
     }    
 
     @Test
-    public void testUnitExample_Json_PointFilter() {
+    public void testUnitExample_Json_FilterPerDataLine() {
         try {            
-            File config    = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample/config.json");
+            File config    = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample/config_lineFilters.json");
             File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample");
-            File dbDir     = Files.createTempDirectory("testUnitExample_Json_PointFilter").toFile();
-            File exportDir = Files.createTempDirectory("testUnitExample_Json_PointFilter").toFile();
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_FilterPerDataLine").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_FilterPerDataLine").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
+
+            assertEquals(1, exportDir.listFiles().length);
+            String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertFalse(exportFileContents.contains("x: ['2021-04-05T22:21:21', '2021-04-06T22:21:21', '2021-04-07T22:21:21', '2021-04-08T22:21:21', '2021-04-09T22:21:21', '2021-04-10T22:21:21'],"));
+            assertFalse(exportFileContents.contains("y: [1.0, 2.0, 3.0, 4.0, 1.0, -1.0],"));
+            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_X, "x: ['2021-04-05T22:21:21', '2021-04-06T22:21:21', '2021-04-08T22:21:21', '2021-04-09T22:21:21'],");
+            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_Y,  "y: [1.0, 2.0, 4.0, 1.0],");
+            TestFileUtils.assertLineEquals(exportFileContents, 75,  "title: \"Plot With A Different Filter\",");
+
+            TestFileUtils.assertLineEquals(exportFileContents, 122, "x: ['2021-04-07T22:21:21', '2021-04-10T22:21:21'],");
+            TestFileUtils.assertLineEquals(exportFileContents, 123, "y: [3.0, -1.0],");
+            TestFileUtils.assertLineEquals(exportFileContents, 156,  "title: \"Plot with One Filter\",");
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    } 
+
+    @Test
+    public void testUnitExample_Json_FilterPerPlot() {
+        try {            
+            File config    = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample/config_plotFilters.json");
+            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample");
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_FilterPerPlot").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_FilterPerPlot").toFile();
+
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
@@ -240,6 +275,38 @@ public class WatchrCoreAppTest_JsonTests {
     }
 
     @Test
+    public void testUnitExample_Json_GlobalPointFilter() {
+        try {            
+            File config    = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample/config_globalFilters.json");
+            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample");
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_GlobalPointFilter").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_GlobalPointFilter").toFile();
+
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
+
+            assertEquals(1, exportDir.listFiles().length);
+            String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertFalse(exportFileContents.contains("x: ['2021-04-05T22:21:21', '2021-04-06T22:21:21', '2021-04-07T22:21:21', '2021-04-08T22:21:21', '2021-04-09T22:21:21', '2021-04-10T22:21:21'],"));
+            assertFalse(exportFileContents.contains("y: [1.0, 2.0, 3.0, 4.0, 1.0, -1.0],"));
+            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_X, "x: ['2021-04-06T22:21:21', '2021-04-07T22:21:21', '2021-04-08T22:21:21', '2021-04-10T22:21:21'],");
+            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_Y,  "y: [2.0, 3.0, 4.0, -1.0],");
+            TestFileUtils.assertLineEquals(exportFileContents, 75,  "title: \"No Filter Plot\",");
+
+            TestFileUtils.assertLineEquals(exportFileContents, 122, "x: ['2021-04-06T22:21:21', '2021-04-08T22:21:21'],");
+            TestFileUtils.assertLineEquals(exportFileContents, 123, "y: [2.0, 4.0],");
+            TestFileUtils.assertLineEquals(exportFileContents, 156,  "title: \"Plot with Filter\",");
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }    
+
+    @Test
     public void testUnitExample_Json_TestAutonameStrategy() {
         try {            
             File config    = TestFileUtils.loadTestFile("system_tests/config/BigJsonAutonameConfig.json");
@@ -247,12 +314,12 @@ public class WatchrCoreAppTest_JsonTests {
             File dbDir     = Files.createTempDirectory("testUnitExample_TestAutonameStrategy").toFile();
             File exportDir = Files.createTempDirectory("testUnitExample_TestAutonameStrategy").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
 
@@ -277,32 +344,102 @@ public class WatchrCoreAppTest_JsonTests {
     }
 
     @Test
-    public void testUnitExample_Json_GlobalPointFilter() {
+    public void testUnitExample_Json_NumberFormatTest() {
         try {            
-            File config    = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample/config_twoFilters.json");
-            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/PointFilterExample");
-            File dbDir     = Files.createTempDirectory("testUnitExample_Json_GlobalPointFilter").toFile();
-            File exportDir = Files.createTempDirectory("testUnitExample_Json_GlobalPointFilter").toFile();
+            File config    = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/config.json");
+            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
+            File dbDir     = Files.createTempDirectory("testUnitExample_NumberFormatTest").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_NumberFormatTest").toFile();
 
-            WatchrCoreApp.main(new String[]{
-                config.getAbsolutePath(),
-                dataFile.getAbsolutePath(),
-                dbDir.getAbsolutePath(),
-                exportDir.getAbsolutePath()
-            });
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
 
             assertEquals(1, exportDir.listFiles().length);
+            String fileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            assertTrue(fileContents.contains("'2021-05-13T16:39:13'"));
+        } catch (WatchrParseException e) {
+            e.getOriginalException().printStackTrace();;
+            fail(e.getOriginalException().getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testUnitExample_Json_NumberFormatMillisecondsTest() {
+        try {            
+            File config    = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/config_ms.json");
+            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/NumberFormatTest/performance_day_1.json");
+            File dbDir     = Files.createTempDirectory("testUnitExample_NumberFormatMillisecondsTest").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_NumberFormatMillisecondsTest").toFile();
+
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
+
+            assertEquals(1, exportDir.listFiles().length);
+            String fileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+            
+            // We now have a completely different date interpretation because we are parsing
+            // the number string as milliseconds instead of seconds.
+            assertTrue(fileContents.contains("'1970-01-19T11:15:45'"));
+        } catch (WatchrParseException e) {
+            e.getOriginalException().printStackTrace();;
+            fail(e.getOriginalException().getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testUnitExample_Json_SlopeLineTest() {
+        try {            
+            File config    = TestFileUtils.loadTestFile("unit_tests/json/SlopeLine/config.json");
+            File dataFile  = TestFileUtils.loadTestFile("unit_tests/json/SlopeLine/performance_data.json");
+            File dbDir     = Files.createTempDirectory("testUnitExample_Json_SlopeLineTest").toFile();
+            File exportDir = Files.createTempDirectory("testUnitExample_Json_SlopeLineTest").toFile();
+
+            WatchrCoreApp.cmd("start");
+            WatchrCoreApp.cmd("config", config.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "db", dbDir.getAbsolutePath());
+            WatchrCoreApp.cmd("put", "plots", exportDir.getAbsolutePath());
+            WatchrCoreApp.cmd("add", dataFile.getAbsolutePath());
+            WatchrCoreApp.cmd("run");
+            
+            assertEquals(1, exportDir.listFiles().length);
             String exportFileContents = FileUtils.readFileToString(exportDir.listFiles()[0], StandardCharsets.UTF_8);
+
             assertFalse(exportFileContents.contains("x: ['2021-04-05T22:21:21', '2021-04-06T22:21:21', '2021-04-07T22:21:21', '2021-04-08T22:21:21', '2021-04-09T22:21:21', '2021-04-10T22:21:21'],"));
             assertFalse(exportFileContents.contains("y: [1.0, 2.0, 3.0, 4.0, 1.0, -1.0],"));
-            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_X, "x: ['2021-04-06T22:21:21', '2021-04-07T22:21:21', '2021-04-08T22:21:21', '2021-04-10T22:21:21'],");
-            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_Y,  "y: [2.0, 3.0, 4.0, -1.0],");
-            TestFileUtils.assertLineEquals(exportFileContents, 75,  "title: \"No Filter Plot\",");
+            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_X, "x: [0.0, 1.0, 2.0],");
+            TestFileUtils.assertLineEquals(exportFileContents, TestFileUtils.LINE_FIRST_PLOT_Y,  "y: [1.0, 2.0, 3.0],");
 
-            TestFileUtils.assertLineEquals(exportFileContents, 122, "x: ['2021-04-06T22:21:21', '2021-04-08T22:21:21'],");
-            TestFileUtils.assertLineEquals(exportFileContents, 123, "y: [2.0, 4.0],");
-            TestFileUtils.assertLineEquals(exportFileContents, 156,  "title: \"Plot with Filter\",");
+            TestFileUtils.assertLineEquals(exportFileContents, 70, "x: [0.0, 1.0, 2.0],");
+            TestFileUtils.assertLineEquals(exportFileContents, 71, "y: [5.0, 7.0, 9.0],");
         } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }         
+    }    
+
+    @After
+    public void teardown() {
+        try {
+            File watchrRunDirectory = new File(System.getProperty("user.dir") + File.separator + "watchrRun");
+            File graphDirectory = new File(System.getProperty("user.dir") + File.separator + "graph");
+
+            FileUtils.deleteDirectory(watchrRunDirectory);
+            FileUtils.deleteDirectory(graphDirectory);
+        } catch(IOException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

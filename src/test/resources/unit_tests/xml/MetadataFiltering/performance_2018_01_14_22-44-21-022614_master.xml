@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<performance-report date="2018-01-14T22:21:21" name="nightly_run_2018_01_14" time-units="seconds">
+    <timing end-time="2018-01-14 22:44:21" name="mariaOpenJet">
+        <metadata key="codeBase" value="Maria" />
+        <metadata key="branch" value="master" />
+        <timing count="128" cpu-time-max="127.154" cpu-time-min="125.657" cpu-time-sum="16178.251" name="Test" parallel="true" wall-time-max="128.093" wall-time-min="127.564" wall-time-sum="16353.267">
+            <metric name="RAM" units="MB" value="584.6" />
+        </timing>
+    </timing>
+</performance-report>

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -23,17 +23,22 @@ public interface IDatabase {
     /////////////
     
     public List<PlotWindowModel> getAllPlots();
+    public List<String> getAllPlotUUIDs();
     public Set<String> getCategories();
-    public Set<PlotWindowModel> getChildren(String parentPlotName, String parentCategory);
+    public Set<PlotWindowModel> getChildren(PlotDatabaseSearchCriteria searchCriteria);
     public Set<PlotWindowModel> getChildren(PlotWindowModel parentPlot, String category);
+    public int getChildrenCount(PlotDatabaseSearchCriteria searchCriteria);
+
     public DatabaseMetadata getMetadata();
     public Set<String> getFilenameCache();
     public GraphDisplayConfig getGraphDisplayConfig();
     public WatchrConfig getLastConfig();
-    public PlotWindowModel getParent(String plotName, String category);
+    public PlotWindowModel getParent(PlotDatabaseSearchCriteria searchCriteria);
     public PlotWindowModel getRootPlot();
     public boolean hasSeenFile(String fileAbsPath);
-    public PlotWindowModel searchPlot(String plotName, String category);
+
+    public PlotWindowModel searchPlot(PlotDatabaseSearchCriteria searchCriteria);
+    public PlotWindowModel searchAndMakeNewIfMissing(PlotDatabaseSearchCriteria searchCriteria);
 
     public ILogger getLogger();
     public IFileReader getFileReader();
@@ -45,10 +50,15 @@ public interface IDatabase {
     /////////////
     
     public void addFileToCache(String fileAbsPath);
+    public void removeFileFromCache(String fileAbsPath);
+
+    public PlotWindowModel createRootPlotIfMissing();
     public void addPlot(PlotWindowModel newPlot);
-    public void updatePlot(PlotWindowModel changedPlot);
+    public void updatePlot(PlotWindowModel plot, boolean replace);
     public void clearPlotCache();
-    public void deletePlot(PlotWindowModel newPlot);
+    public void deletePlot(String plotUUID);
+    public void setNickname(String plotUUID, String nickname); 
+    public void deleteAll();
     public void setPlotsAsChildren(PlotWindowModel parent, List<PlotWindowModel> childPlots);
     public void setWatchrConfig(WatchrConfig watchrConfig);
     public void updateMetadata();

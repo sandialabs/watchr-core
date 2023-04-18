@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -12,6 +12,8 @@ import java.util.List;
 
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.config.rule.RuleConfig;
+import gov.sandia.watchr.config.rule.RuleConfig.RuleWhen;
 import gov.sandia.watchr.log.ILogger;
 
 public class WatchrConfig implements IConfig {
@@ -20,10 +22,12 @@ public class WatchrConfig implements IConfig {
     // FIELDS //
     ////////////
     
-    private static final String START_PATH = "/";
+    public static final String START_PATH = "/";
 
     private PlotsConfig plotsConfig;
     private GraphDisplayConfig graphConfig;
+    private List<RuleConfig> ruleConfigs;
+    private DataFilterConfig filterConfig;
     private LogConfig logConfig;
     private ILogger logger;
 
@@ -35,6 +39,8 @@ public class WatchrConfig implements IConfig {
         plotsConfig = new PlotsConfig(START_PATH, logger, fileReader);
         graphConfig = new GraphDisplayConfig(START_PATH, logger);
         logConfig   = new LogConfig(START_PATH, logger);
+        ruleConfigs = new ArrayList<>();
+        filterConfig = new DataFilterConfig(START_PATH, logger);
         this.logger = logger;
     }
 
@@ -42,6 +48,8 @@ public class WatchrConfig implements IConfig {
         plotsConfig = new PlotsConfig(copy.getPlotsConfig());
         graphConfig = new GraphDisplayConfig(copy.getGraphDisplayConfig());
         logConfig   = new LogConfig(copy.getLogConfig());
+        ruleConfigs = new ArrayList<>(copy.getRuleConfigs());
+        filterConfig = new DataFilterConfig(copy.getFilterConfig());
         logger = copy.getLogger();
     }
 
@@ -59,6 +67,24 @@ public class WatchrConfig implements IConfig {
 
     public LogConfig getLogConfig() {
         return logConfig;
+    }
+
+    public List<RuleConfig> getRuleConfigs() {
+        return ruleConfigs;
+    }
+
+    public List<RuleConfig> getRuleConfigs(RuleWhen when) {
+        List<RuleConfig> whenRules = new ArrayList<>();
+        for(RuleConfig rule : ruleConfigs) {
+            if(rule.getWhen() == when) {
+                whenRules.add(rule);
+            }
+        }
+        return whenRules;
+    }
+
+    public DataFilterConfig getFilterConfig() {
+        return filterConfig;
     }
 
     @Override
@@ -87,6 +113,19 @@ public class WatchrConfig implements IConfig {
         this.logConfig = logConfig;
     }
 
+    public void setRuleConfigs(List<RuleConfig> ruleConfigs) {
+        this.ruleConfigs = new ArrayList<>();
+        this.ruleConfigs.addAll(ruleConfigs);
+    }
+
+    public void setFilterConfig(DataFilterConfig filterConfig) {
+        this.filterConfig = filterConfig;
+    }
+
+    public void setStartFileAbsPath(String startFileAbsPath) {
+        plotsConfig.setStartFileAbsPath(startFileAbsPath);
+    }
+
     //////////////
     // OVERRIDE //
     //////////////
@@ -104,6 +143,7 @@ public class WatchrConfig implements IConfig {
 
         diffList.addAll(plotsConfig.diff(otherWatchrConfig.plotsConfig));
         diffList.addAll(graphConfig.diff(otherWatchrConfig.graphConfig));
+        diffList.addAll(filterConfig.diff(otherWatchrConfig.filterConfig));
         return diffList;
     }
 
@@ -117,9 +157,12 @@ public class WatchrConfig implements IConfig {
         } else if(getClass() != other.getClass()) {
             return false;
         } else {
-			WatchrConfig otherWatchrConfig = (WatchrConfig) other;
+            WatchrConfig otherWatchrConfig = (WatchrConfig) other;
             equals = plotsConfig.equals(otherWatchrConfig.plotsConfig);
-            equals = equals && graphConfig != otherWatchrConfig.graphConfig;
+            equals = equals && graphConfig.equals(otherWatchrConfig.graphConfig);
+            equals = equals && logConfig.equals(otherWatchrConfig.logConfig);
+            equals = equals && ruleConfigs.equals(otherWatchrConfig.ruleConfigs);
+            equals = equals && filterConfig.equals(otherWatchrConfig.filterConfig);
         }
         return equals;
     }
@@ -129,6 +172,9 @@ public class WatchrConfig implements IConfig {
         int hash = 7;
         hash = 31 * (hash + plotsConfig.hashCode());
         hash = 31 * (hash + graphConfig.hashCode());
+        hash = 31 * (hash + logConfig.hashCode());
+        hash = 31 * (hash + ruleConfigs.hashCode());
+        hash = 31 * (hash + filterConfig.hashCode());
         return hash;
     }
 }

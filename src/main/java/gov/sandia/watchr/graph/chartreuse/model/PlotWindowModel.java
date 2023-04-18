@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -15,7 +15,8 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.sandia.watchr.rule.actors.RuleFailActor;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
+import gov.sandia.watchr.parse.generators.rule.actors.RulePlotTraceModelFailActor;
 import gov.sandia.watchr.util.CommonConstants;
 import gov.sandia.watchr.util.RGB;
 
@@ -40,6 +41,7 @@ public class PlotWindowModel {
 	
 	private String name;
 	private String font;
+	private String nickname;
 	private int viewHeight = -1;
 	private int viewWidth = -1;
 	private boolean legendVisible;
@@ -73,11 +75,12 @@ public class PlotWindowModel {
 		divName = "plotDiv";
 		canvasModels = new ArrayList<>();
 		category = "";
+		nickname = "";
 		backgroundColor = new RGB(255, 255, 255);
 	}
 	
-	public PlotWindowModel(PlotWindowModel copy) {
-	    this.uuid =UUID.randomUUID();
+	public PlotWindowModel(PlotWindowModel copy) throws ChartreuseException {
+	    this.uuid = UUID.randomUUID();
 		PlotRelationshipManager.addWindowModel(this);
 		
         name = copy.getName();
@@ -85,6 +88,7 @@ public class PlotWindowModel {
         viewHeight = copy.getViewHeight();
         viewWidth = copy.getViewWidth();
 		canvasModels = new ArrayList<>();
+		nickname = copy.getNickname();
 		List<PlotCanvasModel> copyCanvasModels = new ArrayList<>(copy.getCanvasModels());
         for(PlotCanvasModel canvasModel : copyCanvasModels) {
             new PlotCanvasModel(uuid, canvasModel);
@@ -95,6 +99,7 @@ public class PlotWindowModel {
 		category = copy.getCategory();
 		divName = copy.getDivName();
 		isRoot = copy.isRoot();
+
 	}
 
 	/**
@@ -113,6 +118,7 @@ public class PlotWindowModel {
 		divName = "plotDiv";
 		canvasModels = new ArrayList<>();
 		category = "";
+		nickname = "";
 		backgroundColor = new RGB(255, 255, 255);
 
 		this.setName(canvasModel.getName())
@@ -194,7 +200,20 @@ public class PlotWindowModel {
 	public RGB getBackgroundColor() {
 		return backgroundColor;
 	}
+
+	public String getNickname() {
+		return nickname;
+	}
 	
+	public String getNameOrNickname() {
+		if(this.hasNickname()){
+			return getNickname();
+		}
+		else{
+			return getName();
+		}
+	}
+
 	////////////////////////
 	// GETTERS (COMPUTED) //
 	////////////////////////
@@ -253,7 +272,7 @@ public class PlotWindowModel {
 	}
 
 	public boolean isFailing() {
-		return getBackgroundColor().equals(RuleFailActor.FAIL_COLOR);
+		return getBackgroundColor().equals(RulePlotTraceModelFailActor.FAIL_COLOR);
 	}
 
 	/////////////
@@ -314,6 +333,10 @@ public class PlotWindowModel {
 		this.backgroundColor = backgroundColor;
 		return this;
 	}
+
+	public void setNickname(String nickname){
+		this.nickname = nickname;
+	}
 	
 	/////////////
 	// UTILITY //
@@ -323,6 +346,10 @@ public class PlotWindowModel {
 		return 
 			   getChildCanvasesAsTable().size() == 1 &&
 			   getChildCanvasesAsTable().get(0).size() == 1;
+	}
+
+	public boolean hasNickname() {
+		return StringUtils.isNotBlank(nickname);
 	}
 	
 	/**
@@ -349,10 +376,12 @@ public class PlotWindowModel {
 		empty = empty || canvasModels.isEmpty();
 
 		if(!empty) {
-			for(PlotCanvasModel canvasModel : canvasModels) {
+			for(int i = 0; i < canvasModels.size(); i++) {
+				PlotCanvasModel canvasModel = canvasModels.get(i);
 				empty = empty || canvasModels.isEmpty();
 				if(!empty) {
-					for(PlotTraceModel traceModel : canvasModel.getTraceModels()) {
+					for(int j = 0; j < canvasModel.getTraceModels().size(); j++) {
+						PlotTraceModel traceModel = canvasModel.getTraceModels().get(j);
 						empty = empty || traceModel.isEmpty2D();
 					}
 				}

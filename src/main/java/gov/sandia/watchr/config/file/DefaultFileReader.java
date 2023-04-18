@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import gov.sandia.watchr.log.ILogger;
 
@@ -19,7 +20,7 @@ import gov.sandia.watchr.log.ILogger;
  */
 public class DefaultFileReader implements IFileReader {
 
-    private final ILogger logger;
+    private ILogger logger;
 
     public DefaultFileReader(ILogger logger) {
         this.logger = logger;
@@ -60,18 +61,22 @@ public class DefaultFileReader implements IFileReader {
 
     @Override
     public boolean isFile(String absolutePath) {
-        File file = new File(absolutePath);
-        if(file.exists()) {
-            return file.isFile();
+        if(StringUtils.isNotBlank(absolutePath)) {
+            File file = new File(absolutePath);
+            if(file.exists()) {
+                return file.isFile();
+            }
         }
         return false;
     }
 
     @Override
     public boolean isDirectory(String absolutePath) {
-        File file = new File(absolutePath);
-        if(file.exists()) {
-            return file.isDirectory();
+        if(StringUtils.isNotBlank(absolutePath)) {
+            File file = new File(absolutePath);
+            if(file.exists()) {
+                return file.isDirectory();
+            }
         }
         return false;
     }
@@ -86,5 +91,10 @@ public class DefaultFileReader implements IFileReader {
     public boolean exists(String absolutePath) {
         File file = new File(absolutePath);
         return file.exists();
+    }
+
+    @Override
+    public void setLogger(ILogger logger) {
+        this.logger = logger;
     }
 }

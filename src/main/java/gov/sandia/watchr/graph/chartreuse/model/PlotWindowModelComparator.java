@@ -15,12 +15,9 @@ public class PlotWindowModelComparator implements Comparator<PlotWindowModel> {
 
     @Override
     public int compare(PlotWindowModel p1, PlotWindowModel p2) {
-        if(config.getSort() == GraphDisplaySort.ASCENDING) {
-            return p1.getName().compareTo(p2.getName());
-        } else if(config.getSort() == GraphDisplaySort.DESCENDING) {
+        if(config.getSort() != null && config.getSort() == GraphDisplaySort.DESCENDING) {
             return p2.getName().compareTo(p1.getName());
-        } else {
-            return 0;
         }
+        return p1.getName().compareTo(p2.getName());
     }
 }

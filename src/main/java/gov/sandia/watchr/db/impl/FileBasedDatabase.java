@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.unix4j.Unix4j;
 import org.unix4j.line.Line;
 
+import gov.sandia.watchr.config.DataFilterConfig;
 import gov.sandia.watchr.config.GraphDisplayConfig;
 import gov.sandia.watchr.config.WatchrConfig;
 import gov.sandia.watchr.config.derivative.DerivativeLine;
@@ -47,10 +50,17 @@ import gov.sandia.watchr.util.StringUtil;
 
 public class FileBasedDatabase extends AbstractDatabase {
 
+    ////////////
+    // FIELDS //
+    ////////////
+
+    private static final String CLASSNAME = FileBasedDatabase.class.getSimpleName();
+
     private static final String FILE_LAST_CONFIG = "lastConfig.json";
     private static final String FILE_METADATA = "metadata.json";
 
     protected final File rootDir;
+    protected Object fileWriteMonitor = new Object();
 
     /////////////////
     // CONSTRUCTOR //
@@ -72,17 +82,15 @@ public class FileBasedDatabase extends AbstractDatabase {
 
     @Override
     public List<PlotWindowModel> getAllPlots() {
-        synchronized(plotMonitor) {
-            if(rootDir != null && rootDir.exists()) {
-                File[] fileList = rootDir.listFiles();
-                for(File file : fileList) {
-                    if(file.getName().startsWith("plot_")) {
-                        String baseName = FilenameUtils.getBaseName(file.getName());
-                        String uuid = baseName.split("_")[1];
-                        PlotWindowModel plot = getPlotByUUID(uuid);
-                        if(plot != null) {
-                            addPlot(plot);
-                        }
+        if(rootDir != null && rootDir.exists()) {
+            File[] fileList = rootDir.listFiles();
+            for(File file : fileList) {
+                if(file.getName().startsWith("plot_")) {
+                    String baseName = FilenameUtils.getBaseName(file.getName());
+                    String uuid = baseName.split("_")[1];
+                    PlotWindowModel plot = getPlotByUUID(uuid);
+                    if(plot != null) {
+                        addPlot(plot);
                     }
                 }
             }
@@ -110,20 +118,20 @@ public class FileBasedDatabase extends AbstractDatabase {
 
     @Override
     public void loadState() {
-        logger.logDebug("rootDir: " + rootDir);
-        logger.logDebug("Looking for root plot...");
+        logger.logDebug("rootDir: " + rootDir, CLASSNAME);
+        logger.logDebug("Looking for root plot...", CLASSNAME);
         loadRootPlot();
 
-        logger.logDebug("Reading parent-child plot relationships...");
+        logger.logDebug("Reading parent-child plot relationships...", CLASSNAME);
         readParentChildPlotRelationships();
 
-        logger.logDebug("Reading configuration information...");
+        logger.logDebug("Reading configuration information...", CLASSNAME);
         readLastConfiguration();
         
-        logger.logDebug("Reading file cache...");
+        logger.logDebug("Reading file cache...", CLASSNAME);
         readFileCache();
 
-        logger.logDebug("Reading database metadata...");
+        logger.logDebug("Reading database metadata...", CLASSNAME);
         readMetadata();
     }
 
@@ -190,11 +198,11 @@ public class FileBasedDatabase extends AbstractDatabase {
                 
                             if(!alreadyContains) {
                                 plots.add(newRootPlot);
+                                dirtyPlotUUIDs.add(newRootPlot.getUUID().toString());
+                                rebuildPlotRelationships(newRootPlot);
                             }
                         }
-                        dirtyPlotUUIDs.add(newRootPlot.getUUID().toString());
 
-                        rebuildPlotRelationships(newRootPlot);
                         return newRootPlot;
                     }
                 } catch(IOException e) {
@@ -206,10 +214,10 @@ public class FileBasedDatabase extends AbstractDatabase {
     }
 
     @Override
-    public void deletePlot(PlotWindowModel plotToDelete) {
-        super.deletePlot(plotToDelete);
+    public void deletePlot(String plotUUID) {
+        super.deletePlot(plotUUID);
 
-        String deleteFileName = "plot_" + plotToDelete.getUUID() + ".json";
+        String deleteFileName = "plot_" + plotUUID + ".json";
         File deleteFile = new File(rootDir, deleteFileName);
         if(deleteFile.exists()) {
             try {
@@ -219,17 +227,36 @@ public class FileBasedDatabase extends AbstractDatabase {
                 logger.logError("Could not delete file " + deleteFileName, e);
             }
         } else {
-            logger.logWarning("Could not find file " + deleteFileName);
+            logger.logInfo(deleteFileName + " is missing or was previously deleted.");
+        }
+    }
+
+    @Override
+    protected void deleteChildPlots(String parentPlotUUID) {
+        logger.logDebug("First, delete any child plots...", CLASSNAME);
+
+        List<String> childPlotUUIDs =
+            new ArrayList<>(parentChildPlots.getOrDefault(parentPlotUUID, new HashSet<>()));
+        for(String childPlotUUID : childPlotUUIDs) {
+            PlotWindowModel childPlot = getPlotByUUID(childPlotUUID);
+            if(childPlot != null) {
+                logger.logDebug("Deleting child plot " + childPlot.getName(), CLASSNAME);
+                deletePlot(childPlotUUID);
+            } else {
+                logger.logWarning("Couldn't find child plot by UUID " + childPlotUUID);
+            }
         }
     }
 
     @Override
     public void saveState() {
-        writePlots();
-        writeParentChildPlotRelationships();
-        writeLastConfiguration();
-        writeFileCache();
-        writeMetadata();
+        synchronized(fileWriteMonitor) {
+            writePlots();
+            writeParentChildPlotRelationships();
+            writeLastConfiguration();
+            writeFileCache();
+            writeMetadata();
+        }
     }
 
     ///////////////
@@ -303,6 +330,10 @@ public class FileBasedDatabase extends AbstractDatabase {
                     logger.logError("An error occurred deserializing categories.json", e);
                 }
             }
+
+            if(config != null && config.getFilterConfig() == null) {
+                config.setFilterConfig(new DataFilterConfig(WatchrConfig.START_PATH, logger));
+            }
         }
     }
 
@@ -346,7 +377,9 @@ public class FileBasedDatabase extends AbstractDatabase {
     protected void writePlots() {
         for(String dirtyPlotUUID : dirtyPlotUUIDs) {
             PlotWindowModel plot = getPlotByUUID(dirtyPlotUUID);
-            writePlotWindowModel(plot);
+            if(plot != null) {
+                writePlotWindowModel(plot);
+            }
         }
     }
 
@@ -355,6 +388,8 @@ public class FileBasedDatabase extends AbstractDatabase {
         Gson gson = builder.create(); 
         String destinationFileName = "plot_" + plotWindowModel.getUUID() + ".json";
         File destinationFile = new File(rootDir, destinationFileName);
+        logger.logDebug("Writing " + destinationFileName + " to disk...", CLASSNAME);
+
         try(FileWriter writer = new FileWriter(destinationFile)) {
             writer.write(gson.toJson(plotWindowModel));   
         } catch(IOException e) {
@@ -406,5 +441,5 @@ public class FileBasedDatabase extends AbstractDatabase {
         } catch(IOException e) {
             logger.logError("An error occurred serializing " + filenameCacheFilename, e);
         }
-    }    
+    }
 }

@@ -8,14 +8,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 import gov.sandia.watchr.config.IConfig;
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.element.ConfigConverter;
+import gov.sandia.watchr.config.element.ConfigElement;
+import gov.sandia.watchr.config.rule.AlwaysRuleConfig;
+import gov.sandia.watchr.config.rule.RuleConfig;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -34,49 +33,60 @@ public class RuleConfigReader extends AbstractExtractorConfigReader<List<RuleCon
     }
 
     @Override
-    public List<RuleConfig> handle(JsonElement element, IConfig parent) {
+    public List<RuleConfig> handle(ConfigElement element, IConfig parent) {
         List<RuleConfig> plotRules = new ArrayList<>();
-        JsonArray jsonArray = element.getAsJsonArray();
-        for(int i = 0; i < jsonArray.size(); i++) {
-            JsonElement arrayElement = jsonArray.get(i);
-            JsonObject jsonObject = arrayElement.getAsJsonObject();
-            Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-            RuleConfig plotRule = new RuleConfig(parent.getConfigPath() + "/" + Integer.toString(i), logger);
+        List<Object> array = element.getValueAsList();
+        ConfigConverter converter = element.getConverter();
+        
+        for(int i = 0; i < array.size(); i++) {
+            Object arrayElement = array.get(i);
+            ConfigElement configElement = converter.asChild(arrayElement);
+            RuleConfig ruleConfig = new RuleConfig(parent.getConfigPath() + "/" + Integer.toString(i), logger);
 
-            for(Entry<String, JsonElement> entry : entrySet) {
+            Map<String, Object> map = configElement.getValueAsMap();
+            for(Entry<String, Object> entry : map.entrySet()) {
                 String key = entry.getKey();
-                JsonElement value = entry.getValue();
+                Object value = entry.getValue();
 
                 if(key.equals(Keywords.CONDITION)) {
                     seenKeywords.add(Keywords.CONDITION);
-                    plotRule.setCondition(value.getAsString());
+                    String conditionValue = converter.asString(value);
+                    if(conditionValue.equals(Keywords.ALWAYS)) {
+                        ruleConfig = new AlwaysRuleConfig(parent.getConfigPath() + "/" + Integer.toString(i), logger);
+                    } else {
+                        ruleConfig.setCondition(conditionValue);
+                    }
                 } else if(key.equals(Keywords.ACTION)) {
                     seenKeywords.add(Keywords.ACTION);
-                    plotRule.setAction(value.getAsString());
+                    ruleConfig.setAction(converter.asString(value));
+                } else if(key.equals(Keywords.WHEN)) {
+                    seenKeywords.add(Keywords.WHEN);
+                    ruleConfig.setWhen(converter.asString(value));
                 } else if(key.equals(Keywords.ACTION_PROPERTIES)) {
                     seenKeywords.add(Keywords.ACTION_PROPERTIES);
-                    plotRule.getActionProperties().putAll(handleAsActionProperties(value));
+                    ruleConfig.getActionProperties().putAll(handleAsActionProperties(converter.asChild(value)));
                 } else {
                     logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsRules: Unrecognized element `" + key + "`."));
                 }
             }
 
-            plotRules.add(plotRule);
+            plotRules.add(ruleConfig);
         }
 
         validateMissingKeywords();
         return plotRules;
     }
     
-    private Map<String, String> handleAsActionProperties(JsonElement jsonElement) {
+    private Map<String, String> handleAsActionProperties(ConfigElement element) {
         Map<String, String> actionProperties = new HashMap<>();
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        ConfigConverter converter = element.getConverter();
 
-        Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
-        for(Entry<String, JsonElement> entry : entrySet) {
+        Map<String, Object> map = element.getValueAsMap();
+        for(Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
-            JsonElement value = entry.getValue();
-            actionProperties.put(key, value.getAsString());
+            Object value = entry.getValue();
+            
+            actionProperties.put(key, converter.asString(value));
         }
         return actionProperties;
     }

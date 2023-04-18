@@ -1,8 +1,228 @@
 WATCHR-CORE
 Release Notes
 
-1.0.0 (2021-04-21)
+1.15.2 (2023-04-17)
 -----------
+This patch release of watchr-core addresses a specific bug where derivative lines
+could not be loaded properly using the new factory creation pattern. The bug
+has been addressed and the functionality has been covered by unit tests.
+
+1.15.1 (2023-04-11)
+-----------
+This patch release of watchr-core addresses a specific bug where a WatchrConfig
+object could receive a null filter configuration, if the WatchrConfig object
+had been written prior to 1.15.0 and was later deserialized from the database.
+This patch fixes that problem and applies the correct default filter configuration
+upon deserialization of an old WatchrConfig object.
+
+1.15.0 (2022-12-05)
+-----------
+The December 2022 release of Watchr features new data filtering options
+in its configuration format. Data can be filtered either by point value
+or by metadata value, and it can be either whitelisted or blacklisted.
+Please refer to the documentation for detailed descriptions and examples.
+
+1.14.0 (2022-07-20)
+-----------
+The July 2022 release of Watchr adds several important features.
+- The configuration file for Watchr can now be expressed
+  in YAML format. Any YAML configuration for Watchr should be syntactically
+  parallel with what would previously go into a JSON configuration file.
+  JSON configuration files are still supported. Note that YAML is NOT YET
+  supported as a format for the report data files that are parsed by Watchr,
+  only the configuration file for Watchr itself.
+- The "deleteAllData" rule has been rewritten to be more efficient.
+- If running Watchr on the command line (not in Jenkins), the user may now issue
+  multiple "add" commands before issuing the final "run" command. This feature can
+  be useful if the report data needing to be parsed by Watchr exists in disparate
+  locations.
+
+1.13.0 (2022-06-15)
+-----------
+- The June 2022 release of Watchr fixes several critical bugs related to
+  cleaning up the internal state of Watchr's database following a "delete all"
+  rule.
+- The command-line interface for Watchr has been completely refactored to
+  be more user-friendly. See the documentation for examples and an explanation
+  of which keywords you can use.
+
+1.12.0 (2022-05-25)
+-----------
+- This latest release of Watchr addresses some critical multithreading bugs
+  found in the 1.11.0 release of Watchr.
+- The new keyword "randomizeFileOrder" has been added to the "files" section
+  of the Watchr configuration spec. This feature can be used to force Watchr
+  to ingest reports in a random order, which can help to alleviate stress on
+  the allotted number of threads.
+
+1.11.0 (2022-05-18)
+-----------
+- The May 2022 release of Watchr contains a number of small improvements
+  to Watchr's multithreading engine. Fewer report files should fail to
+  parse, and if they do, Watchr will remember which report files it missed,
+  so that it can try again to read them on subsequent runs.
+- New keywords added to "plotypus" section of the Watchr configuration spec.
+  "timeWarning" and "timeout" can be used to control the amount of time a
+  tentacle is allowed to work on a plot payload before it prints warnings to
+  the log, and the amount of time it's allowed to work before giving up
+  (respectively).
+
+1.10.0 (2022-04-20)
+-----------
+The April 2022 release of Watchr contains a number of improvements to
+Watchr's rule subsystem.
+ - New "always" rule condition, which always resolves to true
+ - New "deleteAllData" action, for cleaning out databases via the
+   Watchr configuration file.
+ - New "deleteConditionalData" action, which deletes certain database data.
+   It is required to provide properties through the "actionProperties" JSON
+   block to specify what should be deleted. So far, "ageToDelete" is the
+   only recognized property for determining data that is deleted
+   conditionally.
+
+1.9.2 (2022-03-23)
+-----------
+Fixed another threading bug in Watchr's plotypus code. This one seems to have
+been triggered by Watchr being too permissive when it comes to empty extraction
+results and trying to find nonexistent plots via hashcode logic. All of this
+has been removed in favor of Watchr being more strict about unknown extraction
+results.
+
+1.9.1 (2022-03-21)
+-----------
+Fixed a threading bug in Watchr's plotypus code that will lead to dead/interrupted
+threads hanging around and not getting collected by the garbage collector.
+
+1.9.0 (2022-03-16)
+----------
+The March 2022 release of watchr-core has a number of important new features
+designed to improve Watchr's performance for extremely large datasets.
+ - Watchr is now multithreaded when it processes new report files to either add
+   new plots or update existing plots. The number of threads can be controlled
+   using the new "plotypus" section of the Watchr configuration spec. See the
+   documentation for more details on this.
+ - A "rules" section can now be added to the top-level of a Watchr configuration
+   file, enabling the use of global rules that apply to an entire Watchr run.
+ - New rule target "newDatasets", which can be used to count the number of
+   new plot datasets created since the last Watchr run. This feature is still
+   being fleshed out and will be fully-featured in the next release.
+ - Examples found in the documentation have been updated to be compatible with
+   the latest changes made to Watchr (credit goes to Jon Wilson for spotting these
+   examples that needed cleaning).
+ - Improved Javadoc throughout Watchr's code.
+
+
+1.8.0 (2021-12-14)
+----------
+The December 2021 release of watchr-core contains a number of code changes
+designed to improve logging output as well as make subroutines more efficient
+for parsing extremely large datasets.
+ - New "logging" section in Watchr config file that controls the amount of logging
+   you receive while Watchr is running. See Watchr's documentation for more information
+   about how to control this.
+ - Methods for parsing new reports and generating new graphs are more efficient.
+ - Fixed concurrent modification exceptions that could occur from accessing database
+   from multiple threads.
+ - Fixed bug where watchr-core would not auto-create graph export directory when run from
+   the command line.
+ - Upgraded log4j and gson dependency versions.
+
+1.7.0 (2021-11-17)
+----------
+The November 2021 release of watchr-core contains a number of bugfixes:
+ - Fixed a bug related to applying plotting rules to child plots.
+ - Fixed a critical bug related to reading Watchr's database data.
+
+1.6.0 (2021-10-20)
+----------
+The October 2021 release of watchr-core contains a critical bugfix regarding
+Watchr's ability to read the configuration file and/or data files off of disk.
+
+1.5.0 (2021-09-15)
+----------
+The September 2021 release of watchr-core has a number of new features and bugfixes.
+ - Implemented HTML graph export across multiple pages, given a limit on how many
+   graphs can appear on one page.
+ - Fixed a bug that would occur if a non-parseable, non-folder start file is used.
+ - A substantial amount of code was rewritten to facilitate the use case where
+   multiple instances of the main Watchr class may need to be instantiated by other
+   libraries.
+
+1.4.0 (2021-08-18)
+----------
+The August 2021 release of watchr-core has a number of new features and bugfixes.
+ - New graph display configuration option "exportMode" - this option dictates how Watchr apportions
+   graphs across HTML pages upon exporting.  "perPlot" will put one graph in each HTML file, whereas
+   "perCategory" will group plots belonging to the same category on a single HTML file (this was
+   the previous default behavior).
+ - For grids of canvases, duplicate axes are automatically made invisible, if and only if the start and
+   end range of that axis exactly matches every other axis in the stack along that same dimension.
+ - Fixed a derivative line backwards-compatibility bug.
+ - Fixed a bug related to adding new categories after the first build.
+
+1.3.1 (2021-07-20)
+-----------
+Fixed a last-minute bug found while testing version 1.3.0.  This bug would occur if you try to
+delete a plot from a Watchr database that was created prior to version 1.3.0.
+
+1.3.0 (2021-07-16)
+-----------
+The July 2021 release of watchr-core has a number of new features and bugfixes.
+
+Configuration File Updates:
+- New "areaPlot" plot type in configuration file, for displaying hierarchical data as area plots.
+  Area plots are stacks of lines with solid colored areas underneath.
+- In addition to being able to show an "average + 1 std. dev" derivative line, you can now show an
+  "average - 1 std. dev" derivative line by specifying the "standardDeviationNegativeOffset" derivative
+  line type.  
+- New "slope" derivative line type.  Given an existing line of collected data points, you can now draw
+  arbitrary straight lines that take the form "y = mx + b".  Slope lines are considered "derivative"
+  because they only define specific data points where the parent data line also defines data points.  
+- Filter sections can now be defined in plot configuration files at the global "plots" level (previously,
+  a filter section could only be specified per-plot).  A global filter will have the effect of filtering
+  data points from all plots defined by a given configuration file.  
+- Alpha channel supported for line colors - simply specify four values instead of three, where the
+  fourth value is a decimal between 0.0 (invisible) and 1.0 (opaque).
+- Unified regex support throughout the Watchr configuration file.  Fields that support simple wildcards
+  (asterisk character) still do so.  To activate full regex support for the same field, start the
+  expression with "R$" (without the quotes shown here).
+
+New Features:
+- Watchr now provides sterner warnings if a treemap plot violates the implicit assumption that for a given
+  node in the tree, that node's child values will sum to the value of the parent node.
+
+Bugfixes:
+- Fixed bug that prevented regex characters from appearing in plot names.
+- Fixed bug that caused a stack overflow error when exporting plots to static HTML pages.
+- Fixed bug where infinitesimal changes to derivative lines (i.e. at the sixteenth decimal place) would
+  accrue over time.
+- Fixed bug where the color of an inheriting line would not correctly inherit from the template line's color.
+
+1.2.0 (2021-06-03)
+------------------
+The June 2021 release of watchr-core is an emergency patch release to support Watchr's only front-end customer,
+Jenkins.  Because Jenkins can work with workspace files that are located on remote machines, we cannot rely on
+standard file reading and writing interfaces.  The IFileReader interface has been introduced to watchr-core, to
+allow this project to work with file read and write operations in an abstract way.  For standalone, non-Jenkins
+uses of Watchr, we have also provided a DefaultFileReader implementation that uses normal file operations that
+assume the file exists on the same computer.
+
+1.1.0 (2021-05-24)
+------------------
+The May 2021 release of watchr-core has a number of new features and bugfixes.
+
+- New "canvasLayout" configuration file option for laying data lines out across multiple canvases (i.e. x/y axes)
+  within a single plot.  An additional new option, "canvasPerRow", can be used to specify a grid of canvases with
+  a particular row width.
+- New "treemap" plot type in configuration file, for displaying treemaps instead of line plots.
+- New "formatAs" configuration file option for displaying epoch time numbers as human-readable timestamps.
+- Standard data extractors can now be applied to the "autoname" section, if names should be determined by
+  specific paths in the data file.
+- Configuration file keywords "template" and "inherit" can be applied to data lines in addition to entire plots.
+- Fixed a bug where blank divs would be placed at the end of pages after performing an HTML export.
+
+1.0.0 (2021-04-21)
+------------------
 The first release of watchr-core represents a major refactoring of the previous iteration of Watchr, which was simply
 a Jenkins plugin that performed all of Watchr's functionality by itself.  Now, watchr-core represents all of the
 non-Jenkins functionality that Watchr represents - scraping temporal data from many report files, storing it, and

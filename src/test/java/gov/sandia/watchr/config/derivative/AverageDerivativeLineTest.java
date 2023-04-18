@@ -3,6 +3,7 @@ package gov.sandia.watchr.config.derivative;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class AverageDerivativeLineTest {
         WatchrDiff<?> diff4 = diffs.get(3);
         assertEquals(DiffCategory.NUMBER_FORMAT, diff4.getProperty());
         assertEquals("/my/path/prefix/derivativeLine/average", diff4.getPath());
-        assertEquals("#.####", diff4.getBeforeValue());
+        assertEquals("", diff4.getBeforeValue());
         assertEquals("##.##",diff4.getNowValue());
     }
 
@@ -155,10 +156,33 @@ public class AverageDerivativeLineTest {
         // variation in the values.
         AverageDerivativeLine derivativeLine = new AverageDerivativeLine("", testLogger);
         derivativeLine.setRollingRange(10);
+        derivativeLine.setNumberFormat("#.####");
         List<PlotTracePoint> averagePoints = derivativeLine.calculateRollingLine(points);
 
         for(PlotTracePoint averagePoint : averagePoints) {
             assertEquals(0.001, Double.parseDouble(averagePoint.y), 1.0e-20);
         }
+    }
+
+    @Test
+    public void testApplyOverTemplate() {
+        AverageDerivativeLine baseLine = new AverageDerivativeLine("", testLogger);
+        baseLine.setRollingRange(20);
+        baseLine.setNumberFormat("#.#");
+        AverageDerivativeLine overwriteLine = new AverageDerivativeLine("", testLogger);
+        overwriteLine.setRollingRange(10);
+        overwriteLine.setNumberFormat("#.####");
+
+        AverageDerivativeLine resultLine = (AverageDerivativeLine) overwriteLine.applyOverTemplate(baseLine);
+
+        assertEquals(10, resultLine.getRollingRange());
+        assertEquals("#.####", resultLine.getNumberFormat());
+    }
+
+    @Test
+    public void testApplyOverTemplate_TypeMismatch() {
+        SlopeDerivativeLine baseLine = new SlopeDerivativeLine("", testLogger);
+        AverageDerivativeLine overwriteLine = new AverageDerivativeLine("", testLogger);
+        assertNull(overwriteLine.applyOverTemplate(baseLine));
     }
 }

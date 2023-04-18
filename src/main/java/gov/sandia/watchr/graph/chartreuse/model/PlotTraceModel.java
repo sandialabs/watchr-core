@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -22,25 +22,33 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import gov.sandia.watchr.config.derivative.DerivativeLineType;
+import gov.sandia.watchr.config.filter.DataFilter;
+import gov.sandia.watchr.config.filter.FilterExpressionEvaluator;
+import gov.sandia.watchr.config.filter.IFilterable;
+import gov.sandia.watchr.config.filter.BooleanOperatorElement.BooleanOperator;
+import gov.sandia.watchr.config.filter.DataFilter.DataFilterPolicy;
+import gov.sandia.watchr.config.filter.DataFilter.DataFilterType;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.CommonPlotTerms;
 import gov.sandia.watchr.graph.chartreuse.Dimension;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
+import gov.sandia.watchr.parse.generators.rule.RuleApplyable;
+import gov.sandia.watchr.parse.generators.rule.RuleTarget;
 import gov.sandia.watchr.util.ListUtil;
 import gov.sandia.watchr.util.RGB;
 import gov.sandia.watchr.util.RgbUtil;
-import gov.sandia.watchr.util.StringUtil;
 
 /**
  * A plot trace model is the most basic grouping of information that can be visualized in Chartreuse.
  * A trace represents a single "variable" (either parameter or response) visually rendered in some way.<br><br>
  * To give a basic example, a trace could be a series of points plotted on a Cartesian plane (i.e. a scatter plot).
- * A trace can also be represented in other ways that we don�t naturally think of as "tracing" (such as a histogram).
+ * A trace can also be represented in other ways that we don't naturally think of as "tracing" (such as a histogram).
  * 
  * @author Elliott Ridgway
  *
  */
-public class PlotTraceModel {
+public class PlotTraceModel implements RuleApplyable, IFilterable {
 	
 	////////////
 	// FIELDS //
@@ -51,7 +59,7 @@ public class PlotTraceModel {
 	private String name;
 	private DerivativeLineType derivativeLineType = null;
 
-	protected Set<PlotTracePoint> points;
+	protected List<PlotTracePoint> points;
 	private Map<PlotToken, String> properties;
 	
 	private List<RGB> rgbs;
@@ -75,21 +83,21 @@ public class PlotTraceModel {
 	// WATCHR-SPECIFIC FIELDS //
 	////////////////////////////
 
-	protected Set<PlotTracePoint> filterValues;
+	protected Set<DataFilter> filters;
 	
 	/////////////////
 	// CONSTRUCTOR //
 	/////////////////	
 
-	public PlotTraceModel() {
+	public PlotTraceModel() throws ChartreuseException {
 		this(null);
 	}
 
-	public PlotTraceModel(UUID parentCanvasModelUUID) {
+	public PlotTraceModel(UUID parentCanvasModelUUID) throws ChartreuseException {
 		this(parentCanvasModelUUID, true);
 	}
 	
-	public PlotTraceModel(UUID parentCanvasModelUUID, boolean shouldSetUUID) {
+	public PlotTraceModel(UUID parentCanvasModelUUID, boolean shouldSetUUID) throws ChartreuseException {
 		this.parentCanvasModelUUID = parentCanvasModelUUID;
 		if(shouldSetUUID) {
 			this.uuid = UUID.randomUUID();
@@ -97,7 +105,14 @@ public class PlotTraceModel {
 
 		if(parentCanvasModelUUID != null) {
 			PlotCanvasModel parent = getParent();
-			parent.addTraceModel(this);
+			if(parent != null) {
+				parent.addTraceModel(this);
+			} else {
+				throw new ChartreuseException(
+					"Tried to instantiate PlotTraceModel, but "
+					+ parentCanvasModelUUID.toString()
+					+ " does not refer to a parent canvas.");
+			}
 		}
 		
 		properties = new HashMap<>();
@@ -108,8 +123,8 @@ public class PlotTraceModel {
 		properties.put(PlotToken.TRACE_POINT_MODE, "Circle");
 		properties.put(PlotToken.TRACE_ORIENTATION, CommonPlotTerms.ORIENTATION_HORIZONTAL.getLabel());
 		
-		points = new LinkedHashSet<>();
-		filterValues = new LinkedHashSet<>();
+		points = new ArrayList<>();
+		filters = new LinkedHashSet<>();
 		
 		rgbs = new ArrayList<>();
 		colorScaleAnchors = new ArrayList<>();
@@ -120,7 +135,7 @@ public class PlotTraceModel {
 		this.listeners = new ArrayList<>();
 	}
 
-	public PlotTraceModel(UUID parentCanvasModelUUID, PlotTraceModel copy) {
+	public PlotTraceModel(UUID parentCanvasModelUUID, PlotTraceModel copy) throws ChartreuseException {
 		this(parentCanvasModelUUID, copy.getUUID() != null);
 		
 		this.setName(copy.getName());
@@ -133,7 +148,7 @@ public class PlotTraceModel {
 
 		this.rgbs.clear();
 		for(RGB rgb : copy.getRGBs()) {
-        	this.rgbs.add(new RGB(rgb));
+        	this.rgbs.add(RgbUtil.copyColor(rgb));
 		}
 
 		this.colorScaleAnchors.clear();
@@ -145,7 +160,7 @@ public class PlotTraceModel {
 		getProperties().clear();
         getProperties().putAll(copy.getProperties());
 
-        this.filterValues.addAll(copy.getFilterValues());
+        this.filters.addAll(copy.getFilters());
     }
 
 	/////////////
@@ -180,8 +195,8 @@ public class PlotTraceModel {
 		return getPoints(null);
 	}
 
-	public Set<PlotTracePoint> getFilterValues() {
-		return Collections.unmodifiableSet(filterValues);
+	public Set<DataFilter> getFilters() {
+		return Collections.unmodifiableSet(filters);
 	}
 	
 	public List<RGB> getRGBs() {
@@ -223,6 +238,8 @@ public class PlotTraceModel {
 			Dimension dim = options.sortAlongDimension;
 			if(dim == Dimension.X) {
 				returnPoints.sort((PlotTracePoint p1, PlotTracePoint p2) -> {
+					if(p1 == null || p2 == null) return 0;
+
 					boolean numberComparison = NumberUtils.isCreatable(p1.x) && NumberUtils.isCreatable(p2.x);
 					if(numberComparison) {
 						Double n1 = Double.parseDouble(p1.x);
@@ -234,6 +251,8 @@ public class PlotTraceModel {
 				});
 			} else if(dim == Dimension.Y) {
 				returnPoints.sort((PlotTracePoint p1, PlotTracePoint p2) -> {
+					if(p1 == null || p2 == null) return 0;
+
 					boolean numberComparison = NumberUtils.isCreatable(p1.y) && NumberUtils.isCreatable(p2.y);
 					if(numberComparison) {
 						Double n1 = Double.parseDouble(p1.y);
@@ -245,6 +264,8 @@ public class PlotTraceModel {
 				});
 			} else if(dim == Dimension.Z) {
 				returnPoints.sort((PlotTracePoint p1, PlotTracePoint p2) -> {
+					if(p1 == null || p2 == null) return 0;
+					
 					boolean numberComparison = NumberUtils.isCreatable(p1.z) && NumberUtils.isCreatable(p2.z);
 					if(numberComparison) {
 						Double n1 = Double.parseDouble(p1.z);
@@ -303,23 +324,47 @@ public class PlotTraceModel {
 	}
 
 	public boolean isPointFiltered(PlotTracePoint point) {
-		for(PlotTracePoint filterValue : filterValues) {
-			boolean notAllBlank = StringUtils.isNotBlank(filterValue.x);
-			notAllBlank = notAllBlank || StringUtils.isNotBlank(filterValue.y);
-			notAllBlank = notAllBlank || StringUtils.isNotBlank(filterValue.z);
+		return isPointFiltered(point, BooleanOperator.OR);
+	}
 
-			String filterValueXRegex = StringUtil.convertToRegex(filterValue.x);
-			String filterValueYRegex = StringUtil.convertToRegex(filterValue.y);
-			String filterValueZRegex = StringUtil.convertToRegex(filterValue.z);;
+	public boolean isPointFiltered(PlotTracePoint point, BooleanOperator combineOperator) {
+		boolean filteredOut = false;
+		for(DataFilter filter : filters) {
+			boolean result = false;
+			if(filter.getType() == DataFilterType.POINT) {
+				result = isPointFilteredByCoordinates(point, filter);
+			} else if(filter.getType() == DataFilterType.METADATA) {
+				result = isPointFilteredByMetadata(point, filter);
+			}
 
-			if((point.x.matches(filterValueXRegex) || StringUtils.isBlank(filterValueXRegex)) &&
-			   (point.y.matches(filterValueYRegex) || StringUtils.isBlank(filterValueYRegex)) &&
-			   (point.z.matches(filterValueZRegex) || StringUtils.isBlank(filterValueZRegex)) &&
-			   notAllBlank) {
-				return true;
+			if(combineOperator == BooleanOperator.AND) {
+				filteredOut = result;
+			} else {
+				filteredOut = filteredOut || result;
 			}
 		}
-		return false;
+		return filteredOut;
+	}
+
+	private boolean isPointFilteredByCoordinates(PlotTracePoint point, DataFilter filter) {
+		Map<String, String> filterArgs = new HashMap<>();
+		filterArgs.put("x", point.x);
+		filterArgs.put("y", point.y);
+		filterArgs.put("z", point.z);
+		return testIfPointIsFiltered(filter, filterArgs);
+	}
+
+	private boolean isPointFilteredByMetadata(PlotTracePoint point, DataFilter filter) {
+		Map<String, String> filterArgs = new HashMap<>();
+		filterArgs.putAll(point.metadata);
+		return testIfPointIsFiltered(filter, filterArgs);
+	}
+
+	private boolean testIfPointIsFiltered(DataFilter filter, Map<String, String> filterArgs) {
+		boolean result = FilterExpressionEvaluator.evaluate(filter.getExpression(), filterArgs);
+		return
+			((result && filter.getPolicy() == DataFilterPolicy.BLACKLIST) ||
+			(!result && filter.getPolicy() == DataFilterPolicy.WHITELIST));
 	}
 	
 	public int getPropertyAsInt(PlotToken property) {
@@ -425,26 +470,28 @@ public class PlotTraceModel {
 		return this;
 	}
 	
-	public PlotTraceModel setPoints(Collection<PlotTracePoint> points) {
+	public PlotTraceModel setPoints(Collection<PlotTracePoint> newPoints) {
 		this.points.clear();
-		this.points.addAll(points);
+		for(PlotTracePoint point : newPoints) {
+			if(!this.points.contains(point)) {
+				this.points.add(point);
+			}
+		}
 		return this;
 	}
 
-	public PlotTraceModel addFilterValue(PlotTracePoint point) {
-		this.filterValues.add(point);
+	public PlotTraceModel addFilterValue(DataFilter filter) {
+		this.filters.add(filter);
 		return this;
 	}	
 
-	public PlotTraceModel setFilterValues(List<PlotTracePoint> points) {
-		this.filterValues.clear();
-		this.filterValues.addAll(points);
-		return this;
+	public void setFilterValues(Collection<DataFilter> filters) {
+		this.filters.clear();
+		this.filters.addAll(filters);
 	}
 
-	public PlotTraceModel applyFilterValues(List<PlotTracePoint> points) {
-		this.filterValues.addAll(points);
-		return this;
+	public void addFilterValues(Collection<DataFilter> filters) {
+		this.filters.addAll(filters);
 	}
 	
 	public PlotTraceModel setPrimaryRGB(RGB rgb) {
@@ -459,11 +506,15 @@ public class PlotTraceModel {
 	}
 
 	public void add(PlotTracePoint point) {
-		points.add(point);
+		if(!this.points.contains(point)) {
+			this.points.add(point);
+		}
 	}
 
-	public void addAll(List<PlotTracePoint> points) {
-		this.points.addAll(points);
+	public void remove(PlotTracePoint point) {
+		if(this.points.contains(point)) {
+			this.points.remove(point);
+		}
 	}
 
 	public void clear() {
@@ -479,7 +530,8 @@ public class PlotTraceModel {
 	 * dimensions.
 	 */
 	public boolean isThreeDimensional() {
-		for(PlotTracePoint point : points) {
+		for(int i = 0; i < points.size(); i++) {
+			PlotTracePoint point = points.get(i);
 			if(StringUtils.isNotBlank(point.z)) {
 				return true;
 			}
@@ -551,8 +603,14 @@ public class PlotTraceModel {
 	public boolean isEmpty2D() {
 		boolean empty = points.isEmpty();
 		boolean allZeroes = true;
-		for(PlotTracePoint point : points) {
-			allZeroes = allZeroes && StringUtils.isBlank(point.y);
+	
+		synchronized(points) {
+			for(int i = 0; i < points.size(); i++) {
+				if(i < points.size()) {
+					PlotTracePoint point = points.get(i);
+					allZeroes = allZeroes && (point == null || StringUtils.isBlank(point.y));
+				}
+			}
 		}
 		empty = empty || allZeroes;
 		return empty;
@@ -598,7 +656,7 @@ public class PlotTraceModel {
 			equals = equals && otherModel.getProperties().values().containsAll(getProperties().values());
 			equals = equals && otherModel.getName().equals(getName());
 			equals = equals && otherModel.getPoints().equals(getPoints());
-			equals = equals && otherModel.getFilterValues().equals(getFilterValues());
+			equals = equals && otherModel.getFilters().equals(getFilters());
 			equals = equals && otherModel.getPointType() == getPointType();
 			equals = equals && otherModel.getTrimNoDelta().equals(getTrimNoDelta());
 			equals = equals && otherModel.getRelativeAxis().equals(getRelativeAxis());
@@ -628,7 +686,10 @@ public class PlotTraceModel {
 		
 		hashCode = hashCode + properties.hashCode();
 		
-		hashCode = hashCode + points.hashCode();
+		for(int i = 0; i < points.size(); i++) {
+			PlotTracePoint point = points.get(i);
+			hashCode = hashCode + point.hashCode();
+		}
 		
 		hashCode = hashCode + rgbs.hashCode();
 		hashCode = hashCode + colorScaleAnchors.hashCode();
@@ -639,5 +700,47 @@ public class PlotTraceModel {
 		
 		return hashCode;
 	}
+
+	///////////
+	// RULES //
+	///////////
+
+	@Override
+	public Double getValue(RuleTarget target) {
+		PlotTraceModel actualTraceModel = getTraceModelForTarget(target);
+
+        if(actualTraceModel != null) {
+            PlotTraceOptions options = new PlotTraceOptions();
+            options.sortAlongDimension = Dimension.X;
+            List<PlotTracePoint> actualPoints = actualTraceModel.getPoints(options);
+            if(!actualPoints.isEmpty()) {
+                PlotTracePoint lastPoint = actualPoints.get(actualPoints.size() - 1);
+				if(lastPoint != null) {
+					String stringValue = lastPoint.y;
+					if(NumberUtils.isCreatable(stringValue)) {
+						return Double.parseDouble(stringValue);
+					}
+				}
+            }
+        }
+        return null;
+	}
+
+	private PlotTraceModel getTraceModelForTarget(RuleTarget target) {
+        PlotCanvasModel parent = getParent();
+
+        if(target == RuleTarget.LAST_POINT_ON_DATA_LINE) {
+            return this;
+        } else if(target == RuleTarget.LAST_POINT_ON_AVERAGE_LINE) {
+            return parent.findDerivativeLine(getName(), DerivativeLineType.AVERAGE);
+        } else if(target == RuleTarget.LAST_POINT_ON_STD_DEV_LINE) {
+            return parent.findDerivativeLine(getName(), DerivativeLineType.STANDARD_DEVIATION);
+        } else if(target == RuleTarget.LAST_POINT_ON_STD_DEV_OFFSET_LINE) {
+            return parent.findDerivativeLine(getName(), DerivativeLineType.STANDARD_DEVIATION_OFFSET);
+        } else if(target == RuleTarget.LAST_POINT_ON_STD_DEV_NEG_OFFSET_LINE) {
+            return parent.findDerivativeLine(getName(), DerivativeLineType.STANDARD_DEVIATION_NEG_OFFSET);
+        }
+        return null;
+    }
 }
 

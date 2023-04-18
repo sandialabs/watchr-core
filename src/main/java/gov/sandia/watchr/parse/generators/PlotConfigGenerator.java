@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -25,10 +25,14 @@ public class PlotConfigGenerator extends AbstractGenerator<PlotConfig> {
     // FIELDS //
     ////////////
 
+    private static final String CLASSNAME = PlotConfigGenerator.class.getSimpleName();
+
     private final String reportAbsPath;
     private final IDatabase db;
     private final List<PlotWindowModel> plots;
     private final List<WatchrDiff<?>> diffs;
+
+    private DataLineGenerator lineGenerator;
 
     /////////////////
     // CONSTRUCTOR //
@@ -56,17 +60,25 @@ public class PlotConfigGenerator extends AbstractGenerator<PlotConfig> {
 
     @Override
     public void generate(PlotConfig config, List<WatchrDiff<?>> diffs) throws WatchrParseException {
-        logger.logDebug("PlotConfigGenerator.generate()");
+        logger.logDebug("PlotConfigGenerator.generate()", CLASSNAME);
         this.diffs.clear();
         this.diffs.addAll(diffs);
         
         plots.clear();
         for(DataLine line : config.getDataLines()) {
             DataLineGeneratorFactory factory = DataLineGeneratorFactory.getInstance();
-            DataLineGenerator lineGenerator = factory.create(config, reportAbsPath, db);
+            lineGenerator = factory.create(config, reportAbsPath, db);
             lineGenerator.generate(line, diffs);
-            plots.addAll(lineGenerator.getRootPlots());
+            plots.addAll(lineGenerator.getUpdatedPlots());
         }
-        logger.logDebug("DONE: PlotConfigGenerator.generate()");
+        logger.logDebug("DONE: PlotConfigGenerator.generate()", CLASSNAME);
+    }
+
+    @Override
+    public String getProblemStatus() {
+        if(lineGenerator != null) {
+            return lineGenerator.getProblemStatus();
+        }
+        return "";
     }
 }

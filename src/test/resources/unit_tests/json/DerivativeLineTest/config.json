@@ -30,17 +30,20 @@
                         "derivativeLines" : [
 							{
 								"type" : "average",
-								"range" : 3
+								"range" : 3,
+                                "numberFormat" : "#.####"
 							},
 							{
 								"type" : "standardDeviationOffset",
 								"range" : 3,
-                                "color" : "255,0,0,0.5"
+                                "color" : "255,0,0,0.5",
+                                "numberFormat" : "#.####"
 							},
                             {
 								"type" : "standardDeviationNegativeOffset",
 								"range" : 3,
-                                "color" : "255,0,0,0.5"
+                                "color" : "255,0,0,0.5",
+                                "numberFormat" : "#.####"
 							}
 						]
                     }

@@ -360,7 +360,10 @@ img {
 </ul>
 <p>In the example above, the configuration file will read data from the &quot;ReadThisFile.json&quot; file, but NOT the &quot;DoNotRead.json&quot; file, according to the &quot;namePattern&quot; value of &quot;ReadThisFile*&quot;.</p>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json &lt;folder containing data JSON files&gt;
+<pre><code>watchr start
+watchr config config.json
+watchr add &lt;folder containing data JSON files&gt;
+watchr run
 </code></pre>
 
 

@@ -36,6 +36,12 @@ public class DerivativeLineFactory {
             derivativeLine = new ChildPreviewDerivativeLine(configPathPrefix, logger);
             derivativeLine.setName("childPreview");
         }
+
+        if(type == null) {
+            logger.logWarning("Could not establish derivative line with null type");
+        } else if(derivativeLine == null) {
+            logger.logWarning("Could not establish derivative line with type " + type.toString());
+        }
         return derivativeLine;
     }
 
@@ -77,6 +83,10 @@ public class DerivativeLineFactory {
             } else {
                 derivativeLine = new ChildPreviewDerivativeLine(configPathPrefix, logger);
             }
+        }
+
+        if(derivativeLine == null) {
+            logger.logWarning("Could not copy derivative line from object of type " + copy.getClass().getSimpleName());
         }
         return derivativeLine;
     }

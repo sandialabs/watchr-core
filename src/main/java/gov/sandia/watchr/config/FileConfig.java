@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -25,12 +25,13 @@ public class FileConfig implements IConfig {
     // FIELDS //
     ////////////
 
-    private final String startFileAbsPath;
+    private String startFileAbsPath;
 
     private String fileNamePattern = "";
     private String fileExtension = "";
     private boolean ignoreOldFiles = false;
     private boolean recurseDirectories = false;
+    private boolean randomizeFileOrder = false;
 
     private final String configPath;
     private final ILogger logger;
@@ -61,6 +62,7 @@ public class FileConfig implements IConfig {
         this.fileExtension = copy.getFileExtension();
         this.ignoreOldFiles = copy.shouldIgnoreOldFiles();
         this.recurseDirectories = copy.shouldRecurseDirectories();
+        this.randomizeFileOrder = copy.shouldRandomizeFileOrder();
         this.configPath = copy.getConfigPath();
         this.fileReader = copy.getFileReader();
     }
@@ -91,6 +93,10 @@ public class FileConfig implements IConfig {
 
     public boolean shouldRecurseDirectories() {
         return recurseDirectories;
+    }
+
+    public boolean shouldRandomizeFileOrder() {
+        return randomizeFileOrder;
     }
 
     @Override
@@ -127,6 +133,14 @@ public class FileConfig implements IConfig {
         this.recurseDirectories = recurseDirectories;
     }
 
+    public void setShouldRandomizeFileOrder(boolean randomizeFileOrder) {
+        this.randomizeFileOrder = randomizeFileOrder;
+    }
+
+    public void setStartFileAbsPath(String startFileAbsPath) {
+        this.startFileAbsPath = startFileAbsPath;
+    }
+
     //////////////
     // OVERRIDE //
     //////////////
@@ -134,9 +148,9 @@ public class FileConfig implements IConfig {
     @Override
     public void validate() {
         if(startFileAbsPath == null) {
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "A directory for parseable reports was not provided."));
+            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "A starting path for parseable reports was not provided."));
         } else if(!fileReader.exists(startFileAbsPath)) {
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Directory \"" + startFileAbsPath + "\" does not exist."));
+            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Start path \"" + startFileAbsPath + "\" does not exist."));
         }
 
         if(StringUtils.isBlank(fileNamePattern)) {
@@ -187,6 +201,12 @@ public class FileConfig implements IConfig {
                 diff.setNowValue(otherFileConfig.recurseDirectories);
                 diffList.add(diff);
             }
+            if(randomizeFileOrder != otherFileConfig.randomizeFileOrder) {
+                WatchrDiff<Boolean> diff = new WatchrDiff<>(configPath, DiffCategory.RANDOMIZE_FILE_ORDER);
+                diff.setBeforeValue(randomizeFileOrder);
+                diff.setNowValue(otherFileConfig.randomizeFileOrder);
+                diffList.add(diff);
+            }
         }
 
         return diffList;
@@ -213,6 +233,7 @@ public class FileConfig implements IConfig {
             equals = equals && fileExtension.equals(otherFileConfig.fileExtension);
             equals = equals && ignoreOldFiles == otherFileConfig.ignoreOldFiles;
             equals = equals && recurseDirectories == otherFileConfig.recurseDirectories;
+            equals = equals && randomizeFileOrder == otherFileConfig.randomizeFileOrder;
         }
         return equals;
     }
@@ -227,6 +248,7 @@ public class FileConfig implements IConfig {
         hash = 31 * (hash + fileExtension.hashCode());
         hash = 31 * (hash + Boolean.hashCode(ignoreOldFiles));
         hash = 31 * (hash + Boolean.hashCode(recurseDirectories));
+        hash = 31 * (hash + Boolean.hashCode(randomizeFileOrder));
         return hash;
-    }  
+    }
 }

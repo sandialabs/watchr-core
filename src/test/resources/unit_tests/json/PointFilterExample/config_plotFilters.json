@@ -1,0 +1,45 @@
+{
+    "plots" : {
+        "files" : {
+            "fileName": "performance_*",
+            "type" : "json"
+        },
+        "plot" : [
+            {
+                "name" : "Point Filter Plot",
+                "dataLines" : [
+                    {
+                        "name" : "Data Line",
+                        "x" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "date",
+                            "unit" : "date",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false"
+                            }
+                        },
+                        "y" : {
+                            "getPath": "performance-reports/*",
+                            "getKey" : "measurement",
+                            "unit" : "seconds",
+                            "strategy" : {
+                                "getFirstMatchOnly" : "false",
+                                "iterateWith" : "x"
+                            }
+                        }
+                    }
+                ],
+                "filters": [
+                    {
+                      "type": "point",
+                      "expression": "x == 2021-04-07* || y == -1.0",
+                      "policy": "blacklist"
+                    }
+                ]
+            }
+        ]
+    },
+    "graphDisplay" : {
+        "exportMode" : "perCategory"
+    }
+}

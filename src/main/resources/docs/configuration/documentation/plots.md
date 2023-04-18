@@ -11,6 +11,7 @@ No properties at this level.
 - [**files**](files.html)
 - [**categories**](categories.html)
 - [**plot**](plot.html)
+- [**filters**](filters.html)
 
 ## Parent Element
 

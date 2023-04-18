@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -21,6 +21,7 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.generators.line.impl.ScatterPlotDataLineGenerator;
+import gov.sandia.watchr.util.OsUtil;
 
 public class DataLineGeneratorTest {
     
@@ -133,5 +134,11 @@ public class DataLineGeneratorTest {
         assertEquals(canvas1, windowModel.getCanvasModels().get(0));
         assertEquals(canvas2, windowModel.getCanvasModels().get(1));
         assertEquals(canvas3, windowModel.getCanvasModels().get(2));
-    }    
+    }
+
+    @Test
+    public void testGetProblemStatus() {
+        assertEquals("ScatterPlotDataLineGenerator: State is IDLE" + OsUtil.getOSLineBreak(),
+                     dataLineGenerator.getProblemStatus());
+    }
 }

@@ -18,6 +18,7 @@ public class ChildPreviewDerivativeLine extends DerivativeLine {
             ChildPreviewDerivativeLine newDerivativeLine = new ChildPreviewDerivativeLine((ChildPreviewDerivativeLine)template);
             newDerivativeLine.setColor(getColor());
             newDerivativeLine.setName(getName());
+            return newDerivativeLine;
         }
         return null;
     }

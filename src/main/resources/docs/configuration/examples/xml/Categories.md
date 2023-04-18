@@ -109,4 +109,7 @@ For this example, we will construct a config file that plots each of these three
 
 ## Command Line:
 
-	watchr config.json performance_day_1.xml
+	watchr start 
+    watchr config config.json
+    watchr add performance_day_1.xml
+    watchr run

@@ -57,7 +57,7 @@ public class FileConfigTest {
         List<String> errors = logger.getLog();
         assertEquals(1, errors.size());
         assertTrue(errors.get(0).contains("ERROR"));
-        assertTrue(errors.get(0).contains("A directory for parseable reports was not provided."));
+        assertTrue(errors.get(0).contains("A starting path for parseable reports was not provided."));
     } 
 
     @Test

@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -16,23 +16,31 @@ public class WatchrConfigError {
     ////////////
 
     public enum ErrorLevel {
-        DEBUG,
-        INFO,
-        WARNING,
-        ERROR;
+        DEBUG,               // The finest level of granularity for debugging. Users must also separately
+                             // specify which Java classes they want to debug, since this option produces
+                             // so much output.
+        INFO,                // Information for the user. Information does not have a negative connotation.
+        WARNING,             // Warnings are non-critical problems that Watchr can easily continue from.   
+        ERROR;               // Watchr errors and Java stacktraces. Watchr will do its best to recover from an error.
     }
     private final long time;
     private final ErrorLevel level;
     private final String message;
+    private String loggingClass;
 
     /////////////////
     // CONSTRUCTOR //
     /////////////////
 
-    public WatchrConfigError(ErrorLevel level, String message) {
+    public WatchrConfigError(ErrorLevel level, String message, String loggingClass) {
         this.time = System.currentTimeMillis();
         this.level = level;
         this.message = message;
+        this.loggingClass = loggingClass;
+    }
+
+    public WatchrConfigError(ErrorLevel level, String message) {
+        this(level, message, "");
     }
 
     /////////////
@@ -49,5 +57,9 @@ public class WatchrConfigError {
 
     public String getMessage() {
         return message;
+    }
+
+    public String getLoggingClass() {
+        return loggingClass;
     }
 }

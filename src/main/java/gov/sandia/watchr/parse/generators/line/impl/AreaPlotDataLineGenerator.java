@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -17,13 +17,14 @@ import gov.sandia.watchr.config.PlotConfig;
 import gov.sandia.watchr.config.derivative.DerivativeLine;
 import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.db.IDatabase;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.parse.WatchrParseException;
-import gov.sandia.watchr.parse.extractors.ExtractionResult;
+import gov.sandia.watchr.parse.generators.line.extractors.ExtractionResult;
 import gov.sandia.watchr.util.RGB;
 
 /**
@@ -63,7 +64,8 @@ public class AreaPlotDataLineGenerator extends ScatterPlotDataLineGenerator {
     @Override
     protected void newPlotTraceModel(
             PlotCanvasModel parentCanvas, String traceName,
-            String xValue, String yValue, Map<String, ExtractionResult> metadataResults) {
+            String xValue, String yValue,
+            Map<String, ExtractionResult> metadataResults) throws WatchrParseException {
         super.newPlotTraceModel(parentCanvas, traceName, xValue, yValue, metadataResults);
         
         int newTraceIndex = parentCanvas.getTraceModels().size() - 1;
@@ -78,13 +80,17 @@ public class AreaPlotDataLineGenerator extends ScatterPlotDataLineGenerator {
             PlotWindowModel windowModel, List<DerivativeLine> derivativeLines) throws WatchrParseException {
         super.applyDerivativeLinesToPlot(windowModel, derivativeLines);
 
-        for(PlotCanvasModel canvasModel : windowModel.getCanvasModels()) {
-            boolean firstTime = anyChildPreviewDerivativeLinesExist(canvasModel);
-            if(firstTime) {
-                createNewChildPreviewDerivativeLine(windowModel, canvasModel);
-            } else {
-                updateChildPreviewDerivativeLine(windowModel, canvasModel);
+        try {
+            for(PlotCanvasModel canvasModel : windowModel.getCanvasModels()) {
+                boolean firstTime = anyChildPreviewDerivativeLinesExist(canvasModel);
+                if(firstTime) {
+                    createNewChildPreviewDerivativeLine(windowModel, canvasModel);
+                } else {
+                    updateChildPreviewDerivativeLine(windowModel, canvasModel);
+                }
             }
+        } catch(ChartreuseException e) {
+            throw new WatchrParseException(e);
         }
     }
 
@@ -111,7 +117,8 @@ public class AreaPlotDataLineGenerator extends ScatterPlotDataLineGenerator {
         return true;
     }
 
-    private void createNewChildPreviewDerivativeLine(PlotWindowModel parentWindow, PlotCanvasModel parentCanvas) {
+    private void createNewChildPreviewDerivativeLine(
+            PlotWindowModel parentWindow, PlotCanvasModel parentCanvas) throws ChartreuseException {
         Set<PlotWindowModel> childWindows = db.getChildren(parentWindow, category);
         for(PlotWindowModel childWindow : childWindows) {
             List<PlotTraceModel> childTraces = getChildTraces(childWindow);
@@ -136,9 +143,7 @@ public class AreaPlotDataLineGenerator extends ScatterPlotDataLineGenerator {
                     if(childTrace.getDerivativeLineType() == null &&
                         childWindow.getName().equals(traceModel.getName()) &&
                         traceModel.getDerivativeLineType() == DerivativeLineType.CHILD_PREVIEW) {
-
-                        traceModel.clear();
-                        traceModel.addAll(childTrace.getPoints());
+                        traceModel.setPoints(childTrace.getPoints());
                         break;
                     }
                 }

@@ -293,7 +293,7 @@ img {
 <body>
 <h1>Example:  Point Filter Example</h1>
 <h2>Overview</h2>
-<p>The &quot;filter&quot; section of a Watchr config file provides a convenient way to selectively filter &quot;bad&quot; points that have already entered the database of previously-parsed data files.</p>
+<p>The &quot;filters&quot; section of a Watchr config file provides a convenient way to selectively filter &quot;bad&quot; points that have already entered the database of previously-parsed data files.</p>
 <h2>Watchr Config:  config.json</h2>
 <pre><code>{
     &quot;plots&quot; : {
@@ -326,9 +326,10 @@ img {
                         }
                     }
                 ],
-                &quot;filter&quot;: {
-                    &quot;x&quot;: [ &quot;2021-04-07T22:21:21&quot; ],
-                    &quot;y&quot;: [ &quot;-1.0&quot; ]
+                &quot;filters&quot;: {
+                    &quot;type&quot; : &quot;point&quot;,
+                    &quot;expression&quot; : &quot;x == 2021-04-07T22:21:21 &amp;&amp; y == -1.0&quot;
+                    &quot;policy&quot; : &quot;blacklist&quot;
                 }
             }
         ]
@@ -369,10 +370,13 @@ img {
 
 <h2>What this example demonstrates:</h2>
 <ul>
-<li><strong>The &quot;filter&quot; section</strong> - A filter section contains two JSON arrays - &quot;x&quot; and &quot;y&quot;, for filtering x and y data points respectively.  In this example, all data points where the x value  equals &quot;2021-04-07T22:21:21&quot; will be hidden from view.  Likewise, all data points where the y value  equals &quot;-1.0&quot; will be hidden from view.</li>
+<li><strong>The &quot;filters&quot; section</strong> : This filters section contains an expression <code>x == 2021-04-07T22:21:21 &amp;&amp; y == -1.0</code>, which will match on all points that have an x-value of &quot;2021-04-07T22:21:21&quot; AND have a y-value of &quot;-1.0.&quot; Because the filter policy is set to &quot;blacklist,&quot; these points will be removed if they match. Finally, because of this filter block's placement in the configuration file, it will apply to all data lines on the plot. If another &quot;plot&quot; configuration block were to be added, however, the &quot;filter&quot; block would not apply to that newly-added plot. </li>
 </ul>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance_data.json
+<pre><code>watchr start
+watchr config config.json
+watchr add performance_data.json
+watchr run
 </code></pre>
 
 

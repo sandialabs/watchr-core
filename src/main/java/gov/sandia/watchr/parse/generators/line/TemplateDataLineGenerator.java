@@ -35,6 +35,9 @@ public class TemplateDataLineGenerator extends AbstractTemplateGenerator {
     public DataLine handleDataLineGenerationForTemplate(DataLine childDataLine) {
         DataLine templateDataLine = getTemplateDataLine(childDataLine.getInheritTemplate());
         if(templateDataLine != null) {
+            if(!templateDataLine.isTemplateApplied()) {
+                templateDataLine = handleDataLineGenerationForTemplate(templateDataLine);
+            }
             return applyChildOverTemplate(templateDataLine, childDataLine);
         } else {
             logger.logError("Data line depends on template " + childDataLine.getInheritTemplate() + ", but this template does not exist in the configuration.");
@@ -55,11 +58,10 @@ public class TemplateDataLineGenerator extends AbstractTemplateGenerator {
             }
         }
         return null;
-    }    
-
+    }
 
     private DataLine applyChildOverTemplate(DataLine templateDataLine, DataLine childDataLine) {
-        DataLine newDataLine = new DataLine(templateDataLine);
+        DataLine newDataLine = new DataLine(templateDataLine);        
         if(StringUtils.isNotBlank(childDataLine.getName())) {
             newDataLine.setName(childDataLine.getName());
         }
@@ -73,7 +75,16 @@ public class TemplateDataLineGenerator extends AbstractTemplateGenerator {
         applyChildExtractorOverTemplate(newDataLine.getXExtractor(), childDataLine.getXExtractor());
         applyChildExtractorOverTemplate(newDataLine.getYExtractor(), childDataLine.getYExtractor());
         applyDerivativeLinesOverTemplate(newDataLine.getDerivativeLines(), childDataLine.getDerivativeLines());
+        applyFiltersOverTemplate(newDataLine.getPointFilterConfig(), childDataLine.getPointFilterConfig());
         applyMetadataOverTemplate(newDataLine.getMetadata(), childDataLine.getMetadata());
+
+        if(StringUtils.isNotBlank(childDataLine.getInheritTemplate())) {
+            newDataLine.setInheritTemplate(childDataLine.getInheritTemplate());
+        }
+        if(StringUtils.isNotBlank(childDataLine.getTemplateName())) {
+            newDataLine.setTemplateName(childDataLine.getTemplateName());
+        }
+        newDataLine.setTemplateApplied(true);
 
         return newDataLine;
     }

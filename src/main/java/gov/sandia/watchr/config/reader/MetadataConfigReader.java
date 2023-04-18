@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -10,18 +10,17 @@ package gov.sandia.watchr.config.reader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import gov.sandia.watchr.config.FileConfig;
 import gov.sandia.watchr.config.IConfig;
 import gov.sandia.watchr.config.MetadataConfig;
 import gov.sandia.watchr.config.WatchrConfigError;
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
+import gov.sandia.watchr.config.element.ConfigConverter;
+import gov.sandia.watchr.config.element.ConfigElement;
 import gov.sandia.watchr.config.schema.Keywords;
 import gov.sandia.watchr.log.ILogger;
 
@@ -50,26 +49,25 @@ public class MetadataConfigReader extends AbstractExtractorConfigReader<List<Met
     //////////////
 
     @Override
-    public List<MetadataConfig> handle(JsonElement jsonElement, IConfig parent) {
+    public List<MetadataConfig> handle(ConfigElement element, IConfig parent) {
         List<MetadataConfig> metadataList = new ArrayList<>();
-        JsonArray jsonArray = jsonElement.getAsJsonArray();
+        ConfigConverter converter = element.getConverter();
 
-        for(int i = 0; i < jsonArray.size(); i++) {
-            JsonElement arrayElement = jsonArray.get(i);
-            JsonObject jsonObject = arrayElement.getAsJsonObject();
-            Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
+        for(Object listObj : element.getValueAsList()) {
+            ConfigElement listElement = converter.asChild(listObj);
             MetadataConfig metadata = new MetadataConfig(fileConfig, parent.getConfigPath());
 
-            for(Entry<String, JsonElement> entry : entrySet) {
+            Map<String, Object> map = listElement.getValueAsMap();
+            for(Entry<String, Object> entry : map.entrySet()) {
                 String key = entry.getKey();
-                JsonElement value = entry.getValue();
+                Object value = entry.getValue();
 
                 if(key.equals(Keywords.NAME)) {
                     seenKeywords.add(Keywords.NAME);
-                    metadata.setName(value.getAsString());
+                    metadata.setName(converter.asString(value));
                 } else if(key.equals(Keywords.EXTRACTOR)) {
                     seenKeywords.add(Keywords.EXTRACTOR);
-                    handleDataForExtractor(value, metadata.getMetadataExtractor(), metadata);
+                    handleDataForExtractor(converter.asChild(value), metadata.getMetadataExtractor(), metadata);
                 } else {
                     logger.log(new WatchrConfigError(ErrorLevel.WARNING, "handleAsMetadata: Unrecognized element `" + key + "`."));
                 }

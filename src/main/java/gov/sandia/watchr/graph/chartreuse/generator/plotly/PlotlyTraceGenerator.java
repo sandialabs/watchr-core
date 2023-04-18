@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -108,7 +108,9 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 
 		sb.append("trace");
 		if(trace.getUUID() != null) {
-			sb.append(Math.abs(trace.getUUID().hashCode()));
+			int hashCode = trace.getUUID().hashCode();
+			if(hashCode < 0) hashCode *= -1;
+			sb.append(hashCode);
 		} else {
 			sb.append(processIterCount());
 		}
@@ -252,9 +254,9 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 	@Override
 	public String processPointMode() {
 		String pointMode = traceModel.get(PlotToken.TRACE_POINT_MODE);
-		String colorAxis = traceModel.get(PlotToken.TRACE_COLOR_AXIS);
+		// String colorAxis = traceModel.get(PlotToken.TRACE_COLOR_AXIS);
 		boolean drawLines = Boolean.parseBoolean(traceModel.get(PlotToken.TRACE_DRAW_LINES));
-		boolean showColorScale = Boolean.parseBoolean(traceModel.get(PlotToken.TRACE_DRAW_COLOR_SCALE));
+		// boolean showColorScale = Boolean.parseBoolean(traceModel.get(PlotToken.TRACE_DRAW_COLOR_SCALE));
 		
 		if(traceModel.getPointType() == PlotType.CONTOUR_PLOT) {
 			return "'" + pointMode + "'";
@@ -284,12 +286,6 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 				modelBlockBuilder.append("color:");			
 				modelBlockBuilder.append(processColor());
 				
-				if(traceModel.getPointType() == PlotType.SCATTER_3D_PLOT && colorAxis != null) {
-				    modelBlockBuilder.append(",\r\n");
-				    modelBlockBuilder.append("colorscale:");
-				    modelBlockBuilder.append(processColorScale());
-				}
-				
 				if(drawLines) {
 				    modelBlockBuilder.append(",\r\n");
 					modelBlockBuilder.append("line: { \r\n");
@@ -297,12 +293,6 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 					modelBlockBuilder.append(processColor());
 					modelBlockBuilder.append("\r\n");
 					modelBlockBuilder.append("}");		
-				}
-				
-				if(traceModel.getPointType() == PlotType.SCATTER_3D_PLOT) {
-				    modelBlockBuilder.append(",\r\n");
-				    modelBlockBuilder.append("showscale: ").append(showColorScale);
-				    
 				}
 				
 				modelBlockBuilder.append("\r\n");
@@ -717,9 +707,8 @@ public class PlotlyTraceGenerator extends PlotTraceGenerator {
 				RGB rgb = colorScaleValue.getRight();
 				if(rgb != null) {
 					sb.append("'rgb(" + rgb.red + ", " + rgb.green + ", " + rgb.blue + ")'");
-					sb.append("]");
-					sb.append(",");
 				}
+				sb.append("],");
 			}
 		} else {
 			sb.append(processColorScaleDefault());

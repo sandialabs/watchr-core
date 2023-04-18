@@ -1,5 +1,8 @@
 {
     "plots" : {
+        "plotypus" : {
+            "tentacles" : 10
+        },
         "files" : {
             "fileName": "performance_day_*",
             "type" : "xml"
@@ -54,5 +57,14 @@
     },
     "graphDisplay" : {
         "exportMode" : "perPlot"
+    },
+    "logging" : {
+        "level" : "DEBUG",
+        "loggableClasses" : [
+            "PlotlyGraphRenderer",
+            "Plotypus",
+            "Tentacle",
+            "AbstractDatabase"
+        ]
     }
 }

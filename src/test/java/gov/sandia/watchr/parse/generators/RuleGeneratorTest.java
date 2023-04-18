@@ -9,9 +9,10 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import gov.sandia.watchr.config.RuleConfig;
 import gov.sandia.watchr.config.derivative.DerivativeLineType;
 import gov.sandia.watchr.config.diff.WatchrDiff;
+import gov.sandia.watchr.config.rule.RuleConfig;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotModelUtil;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
@@ -19,6 +20,7 @@ import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.parse.WatchrParseException;
+import gov.sandia.watchr.parse.generators.rule.RuleGenerator;
 import gov.sandia.watchr.util.RGB;
 
 public class RuleGeneratorTest {
@@ -63,7 +65,7 @@ public class RuleGeneratorTest {
             ruleGenerator.generate(rules, diffs);
     
             assertEquals(windowModel.getBackgroundColor(), new RGB(255, 255, 255));
-        } catch(WatchrParseException e) {
+        } catch(ChartreuseException | WatchrParseException e) {
             fail(e.getMessage());
         }
     }
@@ -100,7 +102,7 @@ public class RuleGeneratorTest {
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
             assertEquals(windowModel.getBackgroundColor(), new RGB(235, 156, 156));
-        } catch(WatchrParseException e) {
+        } catch(ChartreuseException | WatchrParseException e) {
             fail(e.getMessage());
         }
     }
@@ -137,7 +139,7 @@ public class RuleGeneratorTest {
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
             assertEquals(windowModel.getBackgroundColor(), new RGB(239, 228, 176));
-        } catch(WatchrParseException e) {
+        } catch(ChartreuseException | WatchrParseException e) {
             fail(e.getMessage());
         }
     } 
@@ -174,7 +176,7 @@ public class RuleGeneratorTest {
             List<WatchrDiff<?>> diffs = new ArrayList<>();
             ruleGenerator.generate(rules, diffs);
             assertEquals(windowModel.getBackgroundColor(), new RGB(239, 228, 176));
-        } catch(WatchrParseException e) {
+        } catch(ChartreuseException | WatchrParseException e) {
             fail(e.getMessage());
         }
     } 

@@ -10,30 +10,38 @@
 4. [**What is Watchr compatible with?**](intro.html#compatibility) 
 5. [**How can I build Watchr?**](intro.html#build-steps)
 
+## Command-Line Documentation
+
+Watchr can be executed on the command line. Click [**here**](commandLine.html) to read the specification for Watchr's command keywords.
+
 ## Configuration Documentation
 
 Watchr uses a single JSON configuration file to drive all of its operations.  This configuration file is responsible for everything from parsing your data files to generating graphs.
 
 1. [**plots**](configuration/documentation/plots.html)
     1. [**files**](configuration/documentation/files.html)
-    2. [**categories**](configuration/documentation/categories.html)
-    3. [**plot**](configuration/documentation/plot.html)
+    2. [**plotypus**](configuration/documentation/plotypus.html)
+    3. [**categories**](configuration/documentation/categories.html)
+    4. [**plot**](configuration/documentation/plot.html)
 		1. [**dataLines**](configuration/documentation/dataLines.html)
 			1. [**x/y extractors**](configuration/documentation/extractor.html)
 				1. [**strategy**](configuration/documentation/strategy.html)
 			2. [**derivativeLines**](configuration/documentation/derivativeLines.html)
 			3. [**metadata**](configuration/documentation/metadata.html)
 				1. [**extractor**](configuration/documentation/extractor.html)
-					1. [**strategy**](configuration/documentation/strategy.html) 
+					1. [**strategy**](configuration/documentation/strategy.html)
+			4. [**filter**](configuration/documentation/filter.html) 
 		2. [**rules**](configuration/documentation/rules.html)
 		3. [**autoname**](configuration/documentation/autoname.html)
 			1. [**extractor**](configuration/documentation/extractor.html)
 				1. [**strategy**](configuration/documentation/strategy.html) 
 		4. [**filter**](configuration/documentation/filter.html)
 		5. [**fileFilter**](configuration/documentation/fileFilter.html)
-	4. [**filter**](configuration/documentation/filter.html)
-2. [**graphDisplay**](configuration/documentation/graphDisplay.html)
-3. [**logging**](configuration/documentation/logging.html)
+	5. [**filter**](configuration/documentation/filter.html)
+2. [**rules**](configuration/documentation/rules.html)
+3. [**graphDisplay**](configuration/documentation/graphDisplay.html)
+4. [**logging**](configuration/documentation/logging.html)
+
 
 ## Configuration Examples
 

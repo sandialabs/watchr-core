@@ -35,7 +35,7 @@ Arbitrary maps of metadata can be applied to individual points on Watchr graphs.
 									"name": "branch",
 									"extractor" : {
 										"getElement" : "performance-report|metadata",
-										"getPath" : "nightly_run_2021-04-05/branch,
+										"getPath" : "nightly_run_2021-04-05/branch",
 										"getPathAttribute" : "name|key",
 										"getKey" : "value"
 									}
@@ -66,4 +66,7 @@ Arbitrary maps of metadata can be applied to individual points on Watchr graphs.
 
 ## Command Line:
 
-	watchr config.json performance.xml
+	watchr start
+    watchr config config.json
+    watchr add performance.xml
+    watchr run

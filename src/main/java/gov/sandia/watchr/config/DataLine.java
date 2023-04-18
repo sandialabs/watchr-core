@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Watchr
 * ------
-* Copyright 2021 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+* Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
 * Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
 * certain rights in this software.
 ******************************************************************************/
@@ -10,16 +10,19 @@ package gov.sandia.watchr.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import gov.sandia.watchr.config.derivative.DerivativeLine;
 import gov.sandia.watchr.config.derivative.DerivativeLineFactory;
 import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.config.file.IFileReader;
 import gov.sandia.watchr.log.ILogger;
-import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategyFactory;
-import gov.sandia.watchr.parse.extractors.strategy.ExtractionStrategyType;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.ExtractionStrategyFactory;
+import gov.sandia.watchr.parse.generators.line.extractors.strategy.ExtractionStrategyType;
 import gov.sandia.watchr.util.RGB;
 import gov.sandia.watchr.util.RGBA;
+import gov.sandia.watchr.util.RgbUtil;
 
 public class DataLine implements IConfig {
     
@@ -40,11 +43,14 @@ public class DataLine implements IConfig {
 
     private String templateName = "";
     private String inheritTemplate = "";
+    private boolean templateApplied = true;
 
     private final String configPath;
     private final FileConfig fileConfig;
+    private DataFilterConfig pointFilterConfig;
     private final ILogger logger;
     private final IFileReader fileReader;
+
 
     /////////////////
     // CONSTRUCTOR //
@@ -83,11 +89,15 @@ public class DataLine implements IConfig {
         derivativeLines = new ArrayList<>();
         for(DerivativeLine derivativeLine : copy.getDerivativeLines()) {
             DerivativeLine newDerivativeLine = DerivativeLineFactory.getInstance().create(configPath, derivativeLine, true, logger);
-            derivativeLines.add(newDerivativeLine);
+            if(newDerivativeLine != null) {
+                derivativeLines.add(newDerivativeLine);
+            } else {
+                logger.logWarning("For some reason, we tried to add a null derivative line!");
+            }
         }
 
         if(copy.getColor() != null) {
-            color = new RGB(copy.getColor());
+            color = RgbUtil.copyColor(copy.getColor());
         }
 
         this.name = copy.getName();
@@ -95,8 +105,13 @@ public class DataLine implements IConfig {
             this.autonameConfig = new NameConfig(copy.getNameConfig());
         }
 
+        if(copy.getPointFilterConfig() != null) {
+            pointFilterConfig = new DataFilterConfig(copy.getPointFilterConfig());
+        }
+
         this.templateName = copy.getTemplateName();
-        this.inheritTemplate = copy.getInheritTemplate();        
+        this.inheritTemplate = copy.getInheritTemplate();
+        this.templateApplied = StringUtils.isBlank(inheritTemplate);
     }
 
     /////////////
@@ -143,6 +158,10 @@ public class DataLine implements IConfig {
         return inheritTemplate;
     }    
 
+    public boolean isTemplateApplied() {
+        return templateApplied;
+    }
+
     @Override
     public String getConfigPath() {
         return configPath;
@@ -151,6 +170,10 @@ public class DataLine implements IConfig {
     @Override
     public ILogger getLogger() {
         return logger;
+    }
+
+    public DataFilterConfig getPointFilterConfig() {
+        return pointFilterConfig;
     }
 
     /////////////
@@ -191,11 +214,20 @@ public class DataLine implements IConfig {
 
     public void setInheritTemplate(String inheritTemplate) {
         this.inheritTemplate = inheritTemplate;
+        this.templateApplied = StringUtils.isBlank(inheritTemplate);
     }
 
     public void setTemplateName(String templateName) {
         this.templateName = templateName;
-    }    
+    }
+
+    public void setTemplateApplied(boolean templateApplied) {
+        this.templateApplied = templateApplied;
+    }
+
+    public void setPointFilterConfig(DataFilterConfig filterConfig) {
+        this.pointFilterConfig = filterConfig;
+    }
 
     //////////////
     // OVERRIDE //
@@ -211,6 +243,9 @@ public class DataLine implements IConfig {
         }
         if(autonameConfig != null) {
             autonameConfig.validate();
+        }
+        if(pointFilterConfig != null) {
+            pointFilterConfig.validate();
         }
     }
 
@@ -292,8 +327,19 @@ public class DataLine implements IConfig {
             for(int i = newStart; i < otherDataLine.derivativeLines.size(); i++) {
                 DerivativeLine otherDerivativeLine = otherDataLine.derivativeLines.get(i);
                 DerivativeLine derivativeLine = DerivativeLineFactory.getInstance().create(configPath, otherDerivativeLine, false, logger);
-                diffList.addAll(derivativeLine.diff(otherDerivativeLine));
+                if(derivativeLine != null) {
+                    diffList.addAll(derivativeLine.diff(otherDerivativeLine));
+                }
             }
+        }
+
+        if(pointFilterConfig == null ^ otherDataLine.pointFilterConfig == null) {
+            WatchrDiff<DataFilterConfig> diff = new WatchrDiff<>(configPath, DiffCategory.POINT_FILTER_CONFIG);
+            diff.setBeforeValue(pointFilterConfig);
+            diff.setNowValue(otherDataLine.pointFilterConfig);
+            diffList.add(diff);
+        } else if(pointFilterConfig != null && otherDataLine.pointFilterConfig != null && !pointFilterConfig.equals(otherDataLine.pointFilterConfig)) {
+            diffList.addAll(pointFilterConfig.diff(otherDataLine.pointFilterConfig));
         }
 
         return diffList;
@@ -329,6 +375,11 @@ public class DataLine implements IConfig {
                 ((autonameConfig == null && otherDataLine.autonameConfig == null) ||
                  (autonameConfig != null && otherDataLine.autonameConfig != null &&
                   autonameConfig.equals(otherDataLine.autonameConfig)));            
+
+            equals = equals &&
+                ((pointFilterConfig == null && otherDataLine.pointFilterConfig == null) ||
+                 (pointFilterConfig != null && otherDataLine.pointFilterConfig != null &&
+                  pointFilterConfig.equals(otherDataLine.pointFilterConfig)));
         }
         return equals;
     }
@@ -344,9 +395,8 @@ public class DataLine implements IConfig {
         hash = 31 * (hash + yExtractor.hashCode());
         hash = 31 * (hash + metadataList.hashCode());
         hash = 31 * (hash + derivativeLines.hashCode());
-        if(color != null) {
-            hash = 31 * (hash + color.hashCode());
-        }
+        if(pointFilterConfig != null) hash = 31 * (hash + pointFilterConfig.hashCode());
+        if(color != null) hash = 31 * (hash + color.hashCode());
         return hash;
     }
 }

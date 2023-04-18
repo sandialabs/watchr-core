@@ -81,4 +81,7 @@ For each file beginning with "performance\_*" (see `"fileName": "performance_*"`
 
 ## Command Line:
 
-	watchr config.json <folder containing three performance files>
+	watchr start
+    watchr config config.json
+    watchr add <folder containing three performance files>
+    watchr run

@@ -24,7 +24,7 @@ public abstract class RollingDerivativeLine extends DerivativeLine {
 
     protected int rollingRange;
     protected boolean ignoreFilteredData;
-    protected String numberFormat = "#.####";
+    protected String numberFormat = "";
 
     //////////////////
     // CONSTRUCTORS //
@@ -78,8 +78,8 @@ public abstract class RollingDerivativeLine extends DerivativeLine {
     /////////////
 
     public List<PlotTracePoint> calculateRollingLine(List<PlotTracePoint> points) {
-        logger.logDebug("RollingDerivativeLine:calculateRollingLine()");
-        logger.logDebug("Number of points: " + points.size());
+        logger.logDebug("RollingDerivativeLine:calculateRollingLine()", RollingDerivativeLine.class.getSimpleName());
+        logger.logDebug("Number of points: " + points.size(), RollingDerivativeLine.class.getSimpleName());
         List<PlotTracePoint> newRollingLine = new ArrayList<>();
         newRollingLine.add(points.get(0));
 
@@ -100,7 +100,10 @@ public abstract class RollingDerivativeLine extends DerivativeLine {
 
             double[] data = ArrayUtil.asDoubleArrFromDoubleList(listRangeToInspect);
             double newValue = calculateValue(data);
-            String newValueDisplay = new DecimalFormat(numberFormat).format(newValue);
+            String newValueDisplay = Double.toString(newValue);
+            if(StringUtils.isNotBlank(numberFormat)) {
+                newValueDisplay = new DecimalFormat(numberFormat).format(newValue);
+            }
             newRollingLine.add(new PlotTracePoint(lastXValue, newValueDisplay));
         }
 
@@ -115,7 +118,11 @@ public abstract class RollingDerivativeLine extends DerivativeLine {
     public void validate() {
         super.validate();
         if(rollingRange < 1) {
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "The rolling range for a derivative line must use 1 or more points!"));
+            logger.log(
+                new WatchrConfigError(
+                    ErrorLevel.ERROR, "The rolling range for a derivative line must use 1 or more points!",
+                    RollingDerivativeLine.class.getSimpleName())
+                );
         }
     }
 

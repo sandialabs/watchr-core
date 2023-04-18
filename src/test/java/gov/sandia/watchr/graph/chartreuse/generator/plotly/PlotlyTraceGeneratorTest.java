@@ -12,15 +12,23 @@ import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.TestFileUtils;
+import gov.sandia.watchr.config.derivative.AverageDerivativeLine;
+import gov.sandia.watchr.config.derivative.DerivativeLine;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.ChartreuseTestsUtil;
 import gov.sandia.watchr.graph.chartreuse.CommonPlotTerms;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
 import gov.sandia.watchr.graph.chartreuse.model.PlotCanvasModel;
 import gov.sandia.watchr.graph.chartreuse.model.PlotTraceModel;
+import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.graph.chartreuse.model.PlotWindowModel;
 import gov.sandia.watchr.graph.chartreuse.type.NodeType;
 import gov.sandia.watchr.graph.chartreuse.type.PlotData;
+import gov.sandia.watchr.log.ILogger;
+import gov.sandia.watchr.log.StringOutputLogger;
+import gov.sandia.watchr.parse.WatchrParseException;
+import gov.sandia.watchr.parse.generators.DerivativeLineGenerator;
 import gov.sandia.watchr.util.RGB;
 
 public class PlotlyTraceGeneratorTest {
@@ -28,6 +36,13 @@ public class PlotlyTraceGeneratorTest {
 	////////////
 	// FIELDS //
 	////////////
+
+	private final double[] verySmallDataset = {
+        5.26929e-05, 6.38035e-05, 5.10579e-05, 6.42592e-05, 5.40156e-05,
+        5.58784e-05, 5.91227e-05, 5.35163e-05, 7.55462e-05, 5.83424e-05,
+        5.66851e-05, 7.30123e-05, 5.00549e-05, 5.14673e-05, 5.34931e-05,
+        6.38379e-05, 5.42619e-05, 7.29381e-05, 5.87058e-05, 5.67107e-05
+    };
 
 	private PlotlyWindowGenerator windowGenerator;
 	private PlotlyCanvasGenerator canvasGenerator;
@@ -86,7 +101,7 @@ public class PlotlyTraceGeneratorTest {
 		canvasModel = new PlotCanvasModel(windowModel.getUUID())
 				.setDrawGridLines(true)
 				.setDrawXAxisLines(true)
-					.setDrawYAxisLines(true)
+				.setDrawYAxisLines(true)
 				.setXAxisLabel("x1")
 				.setXAxisRGB(BLACK)
 				.setYAxisLabel("x2")
@@ -94,13 +109,17 @@ public class PlotlyTraceGeneratorTest {
 				.setZAxisLabel("rosen_out")
 				.setZAxisRGB(BLACK);
 		
-		traceModel = new PlotTraceModel(canvasModel.getUUID(), false)
-			.setPoints(TestFileUtils.formatAsPoints(tabularData.getRow(0), tabularData.getRow(1), tabularData.getRow(2)))
-			.setName("Surface 3D Plot: x1 / x2 / rosen_out")
-			.set(PlotToken.TRACE_POINT_TYPE, PlotType.SURFACE_3D_PLOT)
-			.set(PlotToken.TRACE_DRAW_COLOR_SCALE, true)
-			.setColors(colors)
-			.setColorScaleAnchors(colorAnchors);
+		try {
+			traceModel = new PlotTraceModel(canvasModel.getUUID(), false)
+				.setPoints(TestFileUtils.formatAsPoints(tabularData.getRow(0), tabularData.getRow(1), tabularData.getRow(2)))
+				.setName("Surface 3D Plot: x1 / x2 / rosen_out")
+				.set(PlotToken.TRACE_POINT_TYPE, PlotType.SURFACE_3D_PLOT)
+				.set(PlotToken.TRACE_DRAW_COLOR_SCALE, true)
+				.setColors(colors)
+				.setColorScaleAnchors(colorAnchors);
+		} catch(ChartreuseException e) {
+			fail(e.getMessage());
+		}
 	}
 	
 	@Test
@@ -184,4 +203,52 @@ public class PlotlyTraceGeneratorTest {
 			fail(e.getMessage());
 		}
 	}
+
+	@Test
+	public void testVerySmallAverageValues() {
+		ILogger logger = new StringOutputLogger();
+		try {
+			List<PlotTracePoint> verySmallPoints = new ArrayList<>();
+			for(int i = 0; i < verySmallDataset.length; i++) {
+				verySmallPoints.add(new PlotTracePoint(i, verySmallDataset[i]));
+			}
+
+			traceModel.setPoints(verySmallPoints);
+
+			List<DerivativeLine> derivativeLines = new ArrayList<>();
+			AverageDerivativeLine avgDerivativeLine = new AverageDerivativeLine("", logger);
+			avgDerivativeLine.setName("average");
+			avgDerivativeLine.setRollingRange(5);
+			derivativeLines.add(avgDerivativeLine);
+
+			DerivativeLineGenerator derivativeLineGenerator = new DerivativeLineGenerator(traceModel, logger);
+			derivativeLineGenerator.setShouldSetUUID(false);
+			derivativeLineGenerator.generate(derivativeLines, new ArrayList<>());
+
+			String result = windowGenerator.generatePlotWindow(windowModel, PlotType.DEFAULT);			
+			TestFileUtils.compareStringToTestFile(
+				PlotlyTraceGeneratorTest.class,
+				result, "plots/generated_from_templates/small_values_plot_test.html"
+			);
+		} catch(IOException | WatchrParseException e) {
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testProcessColorScaleDefault() {
+		try {
+			traceModel.setColorScaleAnchors(new ArrayList<>());
+			traceModel.set(PlotToken.TRACE_SCALE_COLOR_VALUE_TYPE, CommonPlotTerms.VALUE_DATA_VALUES.getLabel());
+			traceModel.setColorScaleType(CommonPlotTerms.SCALE_CONTINUOUS.getLabel());
+			
+			String result = windowGenerator.generatePlotWindow(windowModel, PlotType.DEFAULT);			
+			TestFileUtils.compareStringToTestFile(
+				PlotlyTraceGeneratorTest.class,
+				result, "plots/generated_from_templates/rosenbrock_3d_curve_rainbow_default_color_scale.html"
+			);
+		} catch(IOException e) {
+			fail(e.getMessage());
+		}
+	}	
 }

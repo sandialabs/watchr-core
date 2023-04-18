@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import gov.sandia.watchr.TestFileUtils;
+import gov.sandia.watchr.graph.chartreuse.ChartreuseException;
 import gov.sandia.watchr.graph.chartreuse.ChartreuseTestsUtil;
 import gov.sandia.watchr.graph.chartreuse.PlotToken;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
@@ -70,11 +71,15 @@ public class PlotlyCanvasGeneratorTest {
 				.setXAxisLabel("x1")
 				.setYAxisLabel("rosen_out");
 		
-		traceModel = new PlotTraceModel(canvasModel.getUUID(), false)
-			.setPoints(TestFileUtils.formatAsPoints(tabularData.getRow(0), tabularData.getRow(2)))
-			.setName("Scatter Plot")
-			.set(PlotToken.TRACE_POINT_TYPE, PlotType.SCATTER_PLOT)
-			.set(PlotToken.TRACE_POINT_MODE, "Circle");
+		try {
+			traceModel = new PlotTraceModel(canvasModel.getUUID(), false)
+				.setPoints(TestFileUtils.formatAsPoints(tabularData.getRow(0), tabularData.getRow(2)))
+				.setName("Scatter Plot")
+				.set(PlotToken.TRACE_POINT_TYPE, PlotType.SCATTER_PLOT)
+				.set(PlotToken.TRACE_POINT_MODE, "Circle");
+		} catch(ChartreuseException e) {
+			fail(e.getMessage());
+		}
 	}
 	
 	@Test
@@ -135,5 +140,44 @@ public class PlotlyCanvasGeneratorTest {
 		canvasGenerator.setPlotCanvasModel(canvasModel);
 		String rangeEnd = canvasGenerator.processCanvasYDisplayedRangeEnd();
 		assertEquals("0.0", rangeEnd);
+	}
+
+	@Test
+	public void testProcessCanvasAxisPrecision_Zero() {
+		canvasModel.setAxisPrecision(0);
+		canvasGenerator.setPlotCanvasModel(canvasModel);
+		String precision = canvasGenerator.processCanvasAxisPrecision();
+		assertEquals("''", precision);
+	}
+
+	@Test
+	public void testProcessCanvasAxisPrecision_One() {
+		canvasModel.setAxisPrecision(1);
+		canvasGenerator.setPlotCanvasModel(canvasModel);
+		String precision = canvasGenerator.processCanvasAxisPrecision();
+		assertEquals("'.1g'", precision);
+	}
+
+	@Test
+	public void testProcessCanvasHoverPrecision_Zero() {
+		canvasModel.setAxisPrecision(0);
+		canvasGenerator.setPlotCanvasModel(canvasModel);
+		String precision = canvasGenerator.processCanvasHoverPrecision();
+		assertEquals("''", precision);
+	}
+
+	@Test
+	public void testProcessCanvasHoverPrecision_One() {
+		canvasModel.setAxisPrecision(1);
+		canvasGenerator.setPlotCanvasModel(canvasModel);
+		String precision = canvasGenerator.processCanvasHoverPrecision();
+		assertEquals("'.1e'", precision);
+	}
+
+	@Test
+	public void testProcessCanvasBaseAxisY_BaseCase() {
+		canvasGenerator.setPlotCanvasModel(canvasModel);
+		String baseAxisY = canvasGenerator.processCanvasBaseAxisY();
+		assertEquals("'y0'", baseAxisY);
 	}
 }

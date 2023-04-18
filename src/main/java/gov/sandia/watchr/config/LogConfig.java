@@ -1,6 +1,7 @@
 package gov.sandia.watchr.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import gov.sandia.watchr.config.WatchrConfigError.ErrorLevel;
@@ -49,6 +50,10 @@ public class LogConfig implements IConfig {
         return logger.getLoggingLevel();
     }
 
+    public List<String> getLoggableDebugClasses() {
+        return Collections.unmodifiableList(logger.getLoggableDebugClasses());
+    }
+
     /////////////
     // SETTERS //
     /////////////
@@ -58,7 +63,17 @@ public class LogConfig implements IConfig {
         if(loggingLevel != null) {
             this.logger.setLoggingLevel(loggingLevel);
         } else {
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Log level " + loggingLevelStr + " is not recognized!"));
+            logger.log(
+                new WatchrConfigError(
+                    ErrorLevel.ERROR, "Log level " + loggingLevelStr + " is not recognized!",
+                    LogConfig.class.getSimpleName()));
+        }
+    }
+
+    public void setLoggableDebugClasses(List<String> loggableDebugClasses) {
+        logger.getLoggableDebugClasses().clear();
+        for(String debugClass : loggableDebugClasses) {
+            logger.getLoggableDebugClasses().add(debugClass);
         }
     }
 
@@ -69,7 +84,10 @@ public class LogConfig implements IConfig {
     @Override
     public void validate() {
         if(logger.getLoggingLevel() == null) {
-            logger.log(new WatchrConfigError(ErrorLevel.ERROR, "Logging level is undefined."));
+            logger.log(new WatchrConfigError(
+                ErrorLevel.ERROR, "Logging level is undefined.",
+                LogConfig.class.getSimpleName())
+            );
         }
     }
 
@@ -84,6 +102,14 @@ public class LogConfig implements IConfig {
             diff.setNowValue(otherLogConfig.logger.getLoggingLevel().toString());
             diffList.add(diff);
         }
+
+        if(!logger.getLoggableDebugClasses().equals(otherLogConfig.logger.getLoggableDebugClasses())) {
+            WatchrDiff<List<String>> diff = new WatchrDiff<>(configPath, DiffCategory.LOGGABLE_CLASSES);
+            diff.setBeforeValue(logger.getLoggableDebugClasses());
+            diff.setNowValue(otherLogConfig.logger.getLoggableDebugClasses());
+            diffList.add(diff);
+        }
+
         return diffList;
     }
     

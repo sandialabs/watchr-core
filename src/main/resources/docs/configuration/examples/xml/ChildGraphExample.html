@@ -342,7 +342,7 @@ img {
             &lt;timing name=&quot;measurement_A1A&quot; value=&quot;15.0&quot;/&gt;
             &lt;timing name=&quot;measurement_A1B&quot; value=&quot;10.0&quot;/&gt;
         &lt;/timing&gt;
-        &lt;timing name=&quot;measurement_A2&quot; value=&quot;75.0&quot;&gt;
+        &lt;timing name=&quot;measurement_A2&quot; value=&quot;75.0&quot;/&gt;
     &lt;/timing&gt;
 &lt;/performance-report&gt;
 </code></pre>
@@ -363,7 +363,10 @@ img {
 <h2>Notes</h2>
 <p>It is not possible to set &quot;recurseChildGraphs&quot; to true for more than one extractor at the same level.</p>
 <h2>Command Line:</h2>
-<pre><code>watchr config.json performance.xml
+<pre><code>watchr start 
+watchr config config.json
+watchr add performance.xml
+watchr run
 </code></pre>
 
 

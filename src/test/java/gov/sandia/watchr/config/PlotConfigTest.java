@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,8 +17,12 @@ import gov.sandia.watchr.config.diff.DiffCategory;
 import gov.sandia.watchr.config.diff.WatchrDiff;
 import gov.sandia.watchr.config.file.DefaultFileReader;
 import gov.sandia.watchr.config.file.IFileReader;
+import gov.sandia.watchr.config.filter.DataFilter;
+import gov.sandia.watchr.config.filter.FilterExpression;
+import gov.sandia.watchr.config.filter.DataFilter.DataFilterPolicy;
+import gov.sandia.watchr.config.filter.DataFilter.DataFilterType;
+import gov.sandia.watchr.config.rule.RuleConfig;
 import gov.sandia.watchr.graph.chartreuse.PlotType;
-import gov.sandia.watchr.graph.chartreuse.model.PlotTracePoint;
 import gov.sandia.watchr.log.StringOutputLogger;
 import gov.sandia.watchr.util.RGB;
 
@@ -57,7 +62,7 @@ public class PlotConfigTest {
         plotConfig.setNameConfig(nameConfig);
         plotConfig.getDataLines().add(new DataLine(fileConfig, ""));
         plotConfig.getPlotRules().add(new RuleConfig("", testLogger));
-        plotConfig.setPointFilterConfig(new FilterConfig("", testLogger));
+        plotConfig.setPointFilterConfig(new DataFilterConfig("", testLogger));
         
         PlotConfig copy = new PlotConfig(plotConfig);
         assertEquals(plotConfig, copy);
@@ -74,7 +79,7 @@ public class PlotConfigTest {
         plotConfig.setNameConfig(nameConfig);
         plotConfig.getDataLines().add(new DataLine(fileConfig, ""));
         plotConfig.getPlotRules().add(new RuleConfig("", testLogger));
-        plotConfig.setPointFilterConfig(new FilterConfig("", testLogger));
+        plotConfig.setPointFilterConfig(new DataFilterConfig("", testLogger));
         
         PlotConfig copy = new PlotConfig(plotConfig);
         copy.setCategory("category2");
@@ -92,7 +97,7 @@ public class PlotConfigTest {
         plotConfig.setNameConfig(nameConfig);
         plotConfig.getDataLines().add(new DataLine(fileConfig, ""));
         plotConfig.getPlotRules().add(new RuleConfig("", testLogger));
-        plotConfig.setPointFilterConfig(new FilterConfig("", testLogger));
+        plotConfig.setPointFilterConfig(new DataFilterConfig("", testLogger));
         
         PlotConfig copy = new PlotConfig(plotConfig);
         assertEquals(plotConfig.hashCode(), copy.hashCode());
@@ -103,7 +108,7 @@ public class PlotConfigTest {
         PlotConfig plotConfig = new PlotConfig("/my/path/prefix", testLogger);
         FileConfig fileConfig = new FileConfig("/my/path/prefix", testLogger, fileReader);
         NameConfig nameConfig = new NameConfig(fileConfig, "/my/path/prefix");
-        FilterConfig pointFilterConfig = new FilterConfig("/my/path/prefix", testLogger);
+        DataFilterConfig pointFilterConfig = new DataFilterConfig("/my/path/prefix", testLogger);
         FileFilterConfig fileFilterConfig = new FileFilterConfig("/my/path/prefix", testLogger);
 
         plotConfig.setCategory("category");
@@ -121,8 +126,21 @@ public class PlotConfigTest {
         plotConfig2.setCanvasPerRow(3);
         NameConfig nameConfig2 = plotConfig2.getNameConfig();
         nameConfig2.setNameFormatRemovePrefix("test");
-        FilterConfig filterConfig2 = plotConfig2.getPointFilterConfig();
-        filterConfig2.getFilterPoints().add(new PlotTracePoint(1,1,1));
+        DataFilterConfig filterConfig2 = plotConfig2.getPointFilterConfig();
+
+        DataFilter filter =
+            new DataFilter(
+                DataFilterType.POINT,
+                new FilterExpression("x == 1.0 && y == 1.0 && z == 1.0"),
+                DataFilterPolicy.BLACKLIST);
+
+        DataFilter expectedFilter =
+            new DataFilter(
+                DataFilterType.POINT,
+                new FilterExpression("x == 1.0 && y == 1.0 && z == 1.0"),
+                DataFilterPolicy.BLACKLIST);
+
+        filterConfig2.getFilters().add(filter);
         DataLine dataLine2 = plotConfig2.getDataLines().get(0);
         dataLine2.setColor(new RGB(255,255,255));
         RuleConfig rule2 = plotConfig2.getPlotRules().get(0);
@@ -177,9 +195,9 @@ public class PlotConfigTest {
         WatchrDiff<?> diff7 = diffs.get(6);
         assertEquals(DiffCategory.FILTER_POINTS, diff7.getProperty());
         assertEquals("/my/path/prefix/filterConfig", diff7.getPath());
-        assertTrue(((List<?>)diff7.getBeforeValue()).isEmpty());
-        assertFalse(((List<?>)diff7.getNowValue()).isEmpty());
-        assertEquals(new PlotTracePoint("1.0", "1.0", "1.0"), ((List<?>)diff7.getNowValue()).get(0));
+        assertTrue(((Set<?>)diff7.getBeforeValue()).isEmpty());
+        assertFalse(((Set<?>)diff7.getNowValue()).isEmpty());
+        assertEquals(expectedFilter, ((Set<?>)diff7.getNowValue()).iterator().next());
 
         WatchrDiff<?> diff8 = diffs.get(7);
         assertEquals(DiffCategory.FILENAME_PATTERN, diff8.getProperty());
@@ -217,7 +235,7 @@ public class PlotConfigTest {
         PlotConfig plotConfig = new PlotConfig("/my/path/prefix", testLogger);
         FileConfig fileConfig = new FileConfig("/my/path/prefix", testLogger, fileReader);
         NameConfig nameConfig = new NameConfig(fileConfig, "/my/path/prefix");
-        FilterConfig pointFilterConfig = new FilterConfig("/my/path/prefix", testLogger);
+        DataFilterConfig pointFilterConfig = new DataFilterConfig("/my/path/prefix", testLogger);
         FileFilterConfig fileFilterConfig = new FileFilterConfig("/my/path/prefix", testLogger);
 
         plotConfig.setCategory("category");

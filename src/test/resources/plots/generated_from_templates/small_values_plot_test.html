@@ -1,0 +1,118 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='plotDiv' style="width:500px;height:500px;"></div>
+</body>
+<script>
+var modeBarSettings = {
+modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'],
+displaylogo: false
+}
+
+var trace1 = {
+x: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0],
+y: [5.00549E-5, 5.10579E-5, 5.14673E-5, 5.26929E-5, 5.34931E-5, 5.35163E-5, 5.40156E-5, 5.42619E-5, 5.58784E-5, 5.66851E-5, 5.67107E-5, 5.83424E-5, 5.87058E-5, 5.91227E-5, 6.38035E-5, 6.38379E-5, 6.42592E-5, 7.29381E-5, 7.30123E-5, 7.55462E-5],
+z: [["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ], 
+[, , , , , , , , , , , , , , , , , , , ]
+],
+colorscale: [[NaN, ],[NaN, ],],
+showscale: true,
+type: 'surface',
+name: 'Surface 3D Plot: x1 / x2 / rosen_out'
+};
+
+
+var trace2 = {
+x: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0],
+y: [5.26929E-5, 5.82482E-5, 5.585143333333334E-5, 5.7953375E-5, 5.716582E-5, 5.6951249999999994E-5, 5.802288333333333E-5, 5.6308349999999994E-5, 6.038973333333334E-5, 5.940360000000001E-5, 5.9848516666666665E-5, 6.270416666666666E-5, 6.119286666666666E-5, 6.085136666666667E-5, 5.717584999999999E-5, 5.8091766666666665E-5, 5.768790000000001E-5, 5.7675533333333334E-5, 5.911735E-5, 5.999124999999999E-5],
+error_y: {
+  type: 'data',
+  symmetric: false,
+  visible: false,
+  array: [],
+  arrayminus: []
+},
+mode: 'lines+markers',
+marker: { 
+symbol: "circle", 
+color:'rgb(0, 0, 0)',
+line: { 
+color:'rgb(0, 0, 0)'
+}
+}
+,
+opacity: 1,
+hovertemplate: '<b>X</b>: %{x}<br>' +'<b>Y</b>: %{y}<br>',
+text: '',
+type: 'scatter',
+name: 'Surface 3D Plot: x1 / x2 / rosen_out - Average',
+xaxis: 'x1',
+yaxis: 'y1'
+};
+
+
+
+
+
+
+var data = [trace1, trace2];
+var layout = {
+title: "Rosenbrock Rainbow Curve",
+titlefont: {
+family: 'Segoe UI'
+},
+showlegend: false,
+height: 500,
+width: 500,
+hovermode: 'closest',
+plot_bgcolor: 'rgb(255, 255, 255)',
+xaxis1: {
+title: 'x1',
+type: '',
+position: 0.0,
+domain: [0.0, 1.0],
+autorange: true,
+range:[0.0, 19.0],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+showticklabels: true,
+zeroline: true
+},
+yaxis1: {
+title: 'x2',
+type: '',
+position: 0.0,
+domain: [0.0, 1.0],
+autorange: true,
+range:[5.00549E-5, 7.55462E-5],
+titlefont: {color: 'rgb(0, 0, 0)'},
+tickfont: {color: 'rgb(0, 0, 0)'},
+showgrid: true,
+showticklabels: true,
+zeroline: true
+}
+
+};
+    
+Plotly.newPlot('plotDiv', data, layout, modeBarSettings);
+</script>

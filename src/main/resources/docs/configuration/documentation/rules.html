@@ -292,7 +292,12 @@ img {
 </head>
 <body>
 <h1>Configuration Documentation: rules</h1>
-<p>Rules refer to pairs of conditional statements and actions that can be applied to specific Watchr graphs when their data changes.  Whenever a new data point is added to a graph, each rule applied to that graph is re-evaluated.  If a rule is found to be true, its action will be applied.</p>
+<p>Rules refer to pairings of conditions and actions, which can be used to monitor specific changes to Watchr's database across multiple runs.</p>
+<p>Some example uses of rules:</p>
+<ul>
+<li>Whenever a new data point is added to a graph, each rule applied to that graph is re-evaluated.  If a rule is found to be true, its action will be applied.</li>
+<li>The number of new datasets since last running Watchr can be counted. If the count is found to be greater than, equal to, or less than some other number, the rule's action will be applied.</li>
+</ul>
 <p>For more information about what text specifically can be used to create rules, refer to the <a href="ruleExpressionGlossary.html">Rule Expression Glossary.</a></p>
 <h2>Properties</h2>
 <ul>
@@ -300,10 +305,12 @@ img {
 <li><strong>action</strong> : <em>string</em> : The action that the rule should apply if the condition is evaluated as true.</li>
 </ul>
 <h2>Child Elements</h2>
-<p>None.</p>
+<ul>
+<li><strong>actionProperties</strong> : An arbitrary collection of key-value pairs, which can be used to further configure the action that needs to be taken if the condition is true. This child block is optional for most rules in Watchr.</li>
+</ul>
 <h2>Parent Element</h2>
 <ul>
-<li><a href="plot.html"><strong>plot</strong></a></li>
+<li>May be <a href="plot.html"><strong>plot</strong></a>, but rules can appear at multiple levels.</li>
 </ul>
 
 </body>
